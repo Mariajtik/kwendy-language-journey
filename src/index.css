@@ -17,7 +17,7 @@
     --popover-foreground: 15 20% 12%;
 
     /* Rich Crimson — matched to logo */
-    --primary: 4 68% 44%;
+    --primary: 5 84% 42%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 30 15% 95%;
@@ -35,13 +35,13 @@
 
     --border: 25 15% 88%;
     --input: 25 15% 88%;
-    --ring: 4 68% 44%;
+    --ring: 5 84% 42%;
 
     --radius: 1rem;
 
     /* Kwendi brand tokens */
-    --kwendi-red: 4 68% 44%;
-    --kwendi-red-dark: 4 68% 34%;
+    --kwendi-red: 5 84% 42%;
+    --kwendi-red-dark: 5 84% 32%;
     --kwendi-gold: 32 95% 52%;
     --kwendi-amber: 24 88% 48%;
     --kwendi-cream: 36 50% 96%;
