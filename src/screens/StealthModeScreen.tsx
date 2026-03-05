@@ -84,7 +84,7 @@ const StealthModeScreen = () => {
         {/* Explanation text */}
         <div className="text-center mb-8 px-2">
           <p className="text-foreground font-semibold leading-relaxed">
-            O modo furtivo permite usar o Kwendy por 7 dias
+            O modo furtivo permite usar o Kwendi por 7 dias
             <br />
             sem criar conta.
           </p>

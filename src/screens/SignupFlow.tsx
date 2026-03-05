@@ -74,7 +74,7 @@ const SignupFlow = () => {
           Conta criada com sucesso!
         </h1>
         <p className="text-muted-foreground text-center mb-8">
-          Bem-vindo ao Kwendy, {username}!
+          Bem-vindo ao Kwendi, {username}!
         </p>
         <button className="btn-duo btn-duo-primary max-w-xs" onClick={() => navigate("/")}>
           Voltar ao início

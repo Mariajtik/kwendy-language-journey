@@ -6,44 +6,46 @@
 
 @layer base {
   :root {
-    /* Kwendy Red Theme */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 15%;
+    /* Kwendi — warm earthy palette inspired by Angola */
+    --background: 30 15% 97%;
+    --foreground: 15 20% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 15%;
+    --card: 30 20% 99%;
+    --card-foreground: 15 20% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
+    --popover: 30 20% 99%;
+    --popover-foreground: 15 20% 12%;
 
-    /* Deep Red Primary */
-    --primary: 0 72% 51%;
+    /* Rich Crimson — matched to logo */
+    --primary: 4 68% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 30 15% 95%;
+    --secondary-foreground: 15 20% 12%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 25 12% 92%;
+    --muted-foreground: 15 10% 46%;
 
-    /* Warm Gold Accent */
-    --accent: 36 100% 50%;
+    /* Warm amber accent */
+    --accent: 32 95% 52%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 72% 51%;
+    --border: 25 15% 88%;
+    --input: 25 15% 88%;
+    --ring: 4 68% 44%;
 
     --radius: 1rem;
 
-    /* Kwendy specific */
-    --kwendy-red: 0 72% 51%;
-    --kwendy-red-dark: 0 72% 42%;
-    --kwendy-gold: 36 100% 50%;
-    --kwendy-orange: 20 90% 55%;
+    /* Kwendi brand tokens */
+    --kwendi-red: 4 68% 44%;
+    --kwendi-red-dark: 4 68% 34%;
+    --kwendi-gold: 32 95% 52%;
+    --kwendi-amber: 24 88% 48%;
+    --kwendi-cream: 36 50% 96%;
+    --kwendi-forest: 145 35% 32%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -94,11 +96,11 @@
 .btn-duo-primary {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  box-shadow: 0 4px 0 hsl(var(--kwendy-red-dark));
+  box-shadow: 0 4px 0 hsl(var(--kwendi-red-dark));
 }
 .btn-duo-primary:active {
   transform: translateY(4px);
-  box-shadow: 0 0 0 hsl(var(--kwendy-red-dark));
+  box-shadow: 0 0 0 hsl(var(--kwendi-red-dark));
 }
 
 .btn-duo-outline {
@@ -113,13 +115,13 @@
 }
 
 .btn-duo-gold {
-  background: hsl(var(--kwendy-gold));
+  background: hsl(var(--kwendi-gold));
   color: hsl(var(--primary-foreground));
-  box-shadow: 0 4px 0 hsl(36 100% 38%);
+  box-shadow: 0 4px 0 hsl(var(--kwendi-amber));
 }
 .btn-duo-gold:active {
   transform: translateY(4px);
-  box-shadow: 0 0 0 hsl(36 100% 38%);
+  box-shadow: 0 0 0 hsl(var(--kwendi-amber));
 }
 
 /* Input field styling */

@@ -61,7 +61,7 @@ const LoginScreen = () => {
       </button>
 
       <div className="flex flex-col items-center mb-8">
-        <img src={logo} alt="Kwendy" className="w-24 rounded-xl shadow mb-4" />
+        <img src={logo} alt="Kwendi" className="w-24 rounded-xl shadow mb-4" />
         <h1 className="text-2xl font-extrabold text-foreground">Entrar na conta</h1>
       </div>
 
