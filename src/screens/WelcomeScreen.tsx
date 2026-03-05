@@ -44,14 +44,6 @@ const WelcomeScreen = () => {
         animate="show"
         className="flex flex-col items-center w-full max-w-sm"
       >
-        {/* Logo */}
-        <motion.img
-          variants={item}
-          src={logo}
-          alt="Kwendi"
-          className="w-32 rounded-2xl shadow-lg mb-4"
-        />
-
         {/* Greeting text in Umbundu + Portuguese */}
         <motion.div variants={item} className="text-center mb-1">
           <p className="text-lg font-bold text-foreground leading-relaxed">
