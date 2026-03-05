@@ -2,14 +2,14 @@
  * WelcomeScreen.tsx
  * ------------------
  * Main landing screen after the splash.
- * Shows logo, avatar GIF, greeting text in Umbundu/Portuguese,
- * and 3 action buttons inspired by Duolingo.
+ * Shows logo, scenic nature image, greeting in Umbundu/Portuguese,
+ * motivational quote, and 3 action buttons.
  */
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.jpg";
-import avatar from "@/assets/avatar.jpg";
+import natureRoad from "@/assets/nature-road.jpg";
 
 /* Staggered animation container */
 const container = {
@@ -48,52 +48,55 @@ const WelcomeScreen = () => {
         <motion.img
           variants={item}
           src={logo}
-          alt="Kwendy"
-          className="w-36 rounded-2xl shadow-lg mb-4"
-        />
-
-        {/* Animated avatar / mascot */}
-        <motion.img
-          variants={item}
-          src={avatar}
-          alt="Kwendy mascot"
-          className="w-28 h-28 rounded-full shadow-md mb-6"
+          alt="Kwendi"
+          className="w-32 rounded-2xl shadow-lg mb-4"
         />
 
         {/* Greeting text in Umbundu + Portuguese */}
-        <motion.div variants={item} className="text-center mb-2">
+        <motion.div variants={item} className="text-center mb-1">
           <p className="text-lg font-bold text-foreground leading-relaxed">
             Kalunga, ndati okasi?
           </p>
           <p className="text-lg font-bold text-foreground leading-relaxed">
-            Onduko yange ame <span style={{ color: "hsl(var(--primary))" }}>Kwendy</span>!
+            Onduko yange ame <span className="text-primary">Kwendi</span>!
           </p>
         </motion.div>
 
-        <motion.div variants={item} className="text-center mb-2">
+        <motion.div variants={item} className="text-center mb-4">
           <p className="text-muted-foreground font-semibold">
             Você já fala Umbundu?
           </p>
           <p className="text-muted-foreground font-semibold">Ou não?</p>
           <p className="text-muted-foreground font-semibold">
-            A Kwendy irá te ensinar
+            A Kwendi irá te ensinar
           </p>
         </motion.div>
 
-        {/* Cultural motivational quote */}
+        {/* Scenic nature road image */}
+        <motion.div
+          variants={item}
+          className="w-full rounded-2xl overflow-hidden shadow-lg mb-4"
+        >
+          <img
+            src={natureRoad}
+            alt="Estrada entre árvores — o caminho para a descoberta"
+            className="w-full h-44 object-cover"
+          />
+        </motion.div>
+
+        {/* Cultural motivational quote — placed after the image */}
         <motion.p
           variants={item}
-          className="text-center text-sm italic mt-2 mb-8"
-          style={{ color: "hsl(var(--kwendy-gold))" }}
+          className="text-center text-sm italic mb-6 px-2 font-semibold"
+          style={{ color: "hsl(var(--kwendi-forest))" }}
         >
-          "É aqui que começa a sua jornada
+          "Cada caminho começa com um primeiro passo —
           <br />
-          pela língua e cultura de Angola."
+          este é o teu rumo pela língua e cultura de Angola."
         </motion.p>
 
         {/* ---- ACTION BUTTONS ---- */}
         <motion.div variants={item} className="w-full flex flex-col gap-3">
-          {/* Primary: Start sign-up */}
           <button
             className="btn-duo btn-duo-primary"
             onClick={() => navigate("/signup")}
@@ -101,7 +104,6 @@ const WelcomeScreen = () => {
             Começar
           </button>
 
-          {/* Secondary: Already have account */}
           <button
             className="btn-duo btn-duo-outline"
             onClick={() => navigate("/login")}
@@ -109,7 +111,6 @@ const WelcomeScreen = () => {
             Já tenho conta
           </button>
 
-          {/* Accent: Stealth mode */}
           <button
             className="btn-duo btn-duo-gold"
             onClick={() => navigate("/stealth")}

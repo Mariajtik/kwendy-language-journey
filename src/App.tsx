@@ -1,7 +1,7 @@
 /**
  * App.tsx
  * --------
- * Root component that sets up routing for all Kwendy screens.
+ * Root component that sets up routing for all Kwendi screens.
  * Uses AnimatePresence from framer-motion for smooth page transitions.
  */
 

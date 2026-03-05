@@ -1,51 +1,59 @@
 /**
  * SplashScreen.tsx
  * ----------------
- * The very first screen the user sees.
- * Shows the Kwendy logo on a solid red background for 3 seconds,
- * then navigates to the Welcome screen with a fade animation.
+ * Two-phase splash:
+ *  Phase 1 (0–5s): Solid crimson red screen — brand immersion.
+ *  Phase 2 (5–8s): Logo fades in on the red background.
+ * After phase 2 → navigate to /welcome with a smooth exit.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.jpg";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
 
-  /**
-   * After 3 seconds, navigate to the welcome screen.
-   * The AnimatePresence in App.tsx handles the exit animation.
-   */
+  /** false = pure red; true = red + logo */
+  const [showLogo, setShowLogo] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
+    /* Phase 1 → Phase 2 after 5 seconds */
+    const logoTimer = setTimeout(() => setShowLogo(true), 5000);
+
+    /* Navigate away 3 seconds after logo appears (total 8s) */
+    const navTimer = setTimeout(() => {
       navigate("/welcome", { replace: true });
-    }, 3000);
-    return () => clearTimeout(timer);
+    }, 8000);
+
+    return () => {
+      clearTimeout(logoTimer);
+      clearTimeout(navTimer);
+    };
   }, [navigate]);
 
   return (
     <motion.div
-      /* Full-screen red background */
       className="app-shell flex items-center justify-center"
       style={{ background: "hsl(var(--primary))", minHeight: "100dvh" }}
-      /* Fade-in on mount */
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      /* Fade-out on exit */
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
     >
-      {/* Kwendy logo — animated scale-in */}
-      <motion.img
-        src={logo}
-        alt="Kwendy logo"
-        className="w-56 rounded-2xl shadow-2xl"
-        initial={{ scale: 0.7, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5, type: "spring" }}
-      />
+      <AnimatePresence>
+        {showLogo && (
+          <motion.img
+            src={logo}
+            alt="Kwendi logo"
+            className="w-56 rounded-2xl shadow-2xl"
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.6, type: "spring" }}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
