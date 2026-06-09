@@ -211,9 +211,8 @@ const ApresentationScreen = () => {
                 style={{ background: "hsl(var(--kwendi-green) / 0.78)", backdropFilter: "blur(6px)" }}
               >
                 {current.bold && (
-                  <p className="text-2xl font-black leading-tight mb-1">
-                    {current.bold.replace("Kwendi", "")}
-                    <span className="font-black">Kwendi</span>
+                  <p className="text-2xl leading-tight mb-1 font-semibold">
+                    Olá, eu sou a <span className="font-black">Kwendi</span>
                   </p>
                 )}
                 <p className="text-base font-semibold leading-relaxed">
