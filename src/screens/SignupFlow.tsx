@@ -35,13 +35,16 @@ const SignupFlow = () => {
   const [password, setPassword] = useState("");
   const [motivation, setMotivation] = useState("");
   const [level, setLevel] = useState("");
+  const [source, setSource] = useState("");
+  const [chokwe, setChokwe] = useState("");
+  const [dailyGoal, setDailyGoal] = useState("");
 
   /* Whether the flow is complete */
   const [done, setDone] = useState(false);
 
   /** Move to next step, or finish */
   const next = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < totalSteps - 1) setStep(step + 1);
     else setDone(true);
   };
 
@@ -52,7 +55,7 @@ const SignupFlow = () => {
   };
 
   /* Total number of steps for the progress bar */
-  const totalSteps = 5;
+  const totalSteps = 8;
 
   /* ---- SUCCESS SCREEN ---- */
   if (done) {
@@ -172,7 +175,7 @@ const SignupFlow = () => {
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 O que te motiva a aprender?
               </h2>
-              <p className="text-muted-foreground mb-6">(Opcional — pode pular)</p>
+              <p className="text-muted-foreground mb-6">Escolhe a opção que mais combina contigo.</p>
               <div className="flex flex-col gap-3">
                 {[
                   "Conectar com as minhas raízes",
@@ -192,8 +195,36 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 4: Level */}
+          {/* Step 4: Source — Como soube da Kwendi? */}
           {step === 4 && (
+            <>
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                Como você soube da Kwendi?
+              </h2>
+              <p className="text-muted-foreground mb-6">Ajuda-nos a chegar a mais pessoas.</p>
+              <div className="flex flex-col gap-3">
+                {[
+                  "App Play Store",
+                  "Facebook ou Instagram",
+                  "YouTube",
+                  "Busca do Google",
+                  "TikTok",
+                  "Outro",
+                ].map((opt) => (
+                  <button
+                    key={opt}
+                    className={`btn-duo ${source === opt ? "btn-duo-primary" : "btn-duo-outline"}`}
+                    onClick={() => setSource(opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Step 5: Level */}
+          {step === 5 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual é o seu nível?
@@ -212,13 +243,66 @@ const SignupFlow = () => {
               </div>
             </>
           )}
+
+          {/* Step 6: Chokwe knowledge */}
+          {step === 6 && (
+            <>
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                Quanto você entende de Umbundu?
+              </h2>
+              <p className="text-muted-foreground mb-6">Para adaptarmos as lições a ti.</p>
+              <div className="flex flex-col gap-3">
+                {[
+                  "Não sei nada de Umbundu",
+                  "Conheço algumas palavras comuns",
+                  "Consigo ter conversas simples",
+                  "Consigo falar de assuntos variados",
+                  "Consigo falar sobre a maioria dos assuntos em detalhes",
+                ].map((opt) => (
+                  <button
+                    key={opt}
+                    className={`btn-duo ${chokwe === opt ? "btn-duo-primary" : "btn-duo-outline"} text-sm`}
+                    onClick={() => setChokwe(opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Step 7: Daily goal */}
+          {step === 7 && (
+            <>
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                Qual vai ser a sua meta diária?
+              </h2>
+              <p className="text-muted-foreground mb-6">Podes mudar quando quiseres.</p>
+              <div className="flex flex-col gap-3">
+                {[
+                  "3 minutos / dia",
+                  "10 minutos / dia",
+                  "15 minutos / dia",
+                  "30 minutos / dia",
+                ].map((opt) => (
+                  <button
+                    key={opt}
+                    className={`btn-duo ${dailyGoal === opt ? "btn-duo-primary" : "btn-duo-outline"}`}
+                    onClick={() => setDailyGoal(opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* ---- CONTINUE BUTTON ---- */}
       <div className="pt-4 pb-2">
         <button className="btn-duo btn-duo-primary" onClick={next}>
-          {step === 4 ? "Finalizar" : step === 3 ? "Continuar" : "Continuar"}
+          {step === totalSteps - 1 ? "Vou cumprir a meta" : "Continuar"}
         </button>
       </div>
     </div>
