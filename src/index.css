@@ -135,6 +135,17 @@
   box-shadow: 0 0 0 hsl(var(--kwendi-amber));
 }
 
+/* Verde — CTA principal "Vamos?" */
+.btn-duo-green {
+  background: hsl(var(--kwendi-green));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 4px 0 hsl(var(--kwendi-green-dark));
+}
+.btn-duo-green:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 hsl(var(--kwendi-green-dark));
+}
+
 /* Input field styling */
 .input-duo {
   width: 100%;
