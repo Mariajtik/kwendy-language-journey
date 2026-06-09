@@ -82,9 +82,9 @@ const WelcomeScreen = () => {
           className="text-center text-sm italic mb-6 px-2 font-semibold"
           style={{ color: "hsl(var(--kwendi-forest))" }}
         >
-          "Cada caminho começa com um primeiro passo —
+          "Cada caminho começa com um primeiro passo.
           <br />
-          este é o teu rumo pela língua e cultura de Angola."
+          Este é o teu rumo pela língua e cultura de Angola."
         </motion.p>
 
         {/* ---- ACTION BUTTONS ---- */}
