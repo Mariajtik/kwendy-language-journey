@@ -50,7 +50,7 @@ const WelcomeScreen = () => {
             Kalunga, ndati okasi?
           </p>
           <p className="text-lg font-bold text-foreground leading-relaxed">
-            Onduko yange ame <span className="text-primary">Kwendi</span>!
+            Onduko yange ame <span className="text-primary">Kwendi</span>.
           </p>
         </motion.div>
 
@@ -60,7 +60,7 @@ const WelcomeScreen = () => {
           </p>
           <p className="text-muted-foreground font-semibold">Ou não?</p>
           <p className="text-muted-foreground font-semibold">
-            A Kwendi irá te ensinar
+            Junte-se a nós!
           </p>
         </motion.div>
 
