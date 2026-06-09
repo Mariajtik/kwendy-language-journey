@@ -15,6 +15,8 @@ import { AnimatePresence } from "framer-motion";
 /* Screen imports */
 import SplashScreen from "./screens/SplashScreen";
 import WelcomeScreen from "./screens/WelcomeScreen";
+import ApresentationScreen from "./screens/ApresentationScreen";
+import FeaturesScreen from "./screens/FeaturesScreen";
 import SignupFlow from "./screens/SignupFlow";
 import LoginScreen from "./screens/LoginScreen";
 import StealthModeScreen from "./screens/StealthModeScreen";
@@ -30,6 +32,8 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<SplashScreen />} />
+        <Route path="/apresentation" element={<ApresentationScreen />} />
+        <Route path="/features" element={<FeaturesScreen />} />
         <Route path="/welcome" element={<WelcomeScreen />} />
         <Route path="/signup" element={<SignupFlow />} />
         <Route path="/login" element={<LoginScreen />} />

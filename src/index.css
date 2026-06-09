@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Kwendi — warm earthy palette inspired by Angola */
+    /* Kwendi — Paleta oficial */
     --background: 30 15% 97%;
     --foreground: 15 20% 12%;
 
@@ -16,8 +16,8 @@
     --popover: 30 20% 99%;
     --popover-foreground: 15 20% 12%;
 
-    /* Rich Crimson — matched to logo */
-    --primary: 5 84% 42%;
+    /* Vermelho principal — #FF4D4D (cor do logo Kwendi) */
+    --primary: 0 100% 65%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 30 15% 95%;
@@ -26,8 +26,8 @@
     --muted: 25 12% 92%;
     --muted-foreground: 15 10% 46%;
 
-    /* Warm amber accent */
-    --accent: 32 95% 52%;
+    /* Amarelo da paleta — #FBBD12 */
+    --accent: 45 96% 53%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -35,17 +35,28 @@
 
     --border: 25 15% 88%;
     --input: 25 15% 88%;
-    --ring: 5 84% 42%;
+    --ring: 0 100% 65%;
 
     --radius: 1rem;
 
-    /* Kwendi brand tokens */
-    --kwendi-red: 5 84% 42%;
-    --kwendi-red-dark: 5 84% 32%;
-    --kwendi-gold: 32 95% 52%;
-    --kwendi-amber: 24 88% 48%;
+    /* Kwendi brand tokens — Paleta oficial */
+    --kwendi-red: 0 100% 65%;          /* #FF4D4D */
+    --kwendi-red-dark: 0 70% 50%;      /* sombra do botão vermelho */
+    --kwendi-yellow: 45 96% 53%;       /* #FBBD12 */
+    --kwendi-yellow-dark: 40 90% 42%;
+    --kwendi-gray: 0 2% 36%;           /* #5E5C5C */
+    --kwendi-peach: 22 100% 70%;       /* #FFA767 */
+    --kwendi-brown: 19 38% 53%;        /* #B87656 */
+    --kwendi-green: 101 55% 59%;       /* #86D05D */
+    --kwendi-green-dark: 101 45% 45%;
+    --kwendi-blue: 202 100% 74%;       /* #78D0FF */
+    --kwendi-purple: 282 100% 74%;     /* #DA7FFF */
+    --kwendi-pink: 326 100% 74%;       /* #FF7BBF */
     --kwendi-cream: 36 50% 96%;
-    --kwendi-forest: 145 35% 32%;
+    /* Alias retro-compatível */
+    --kwendi-gold: 45 96% 53%;
+    --kwendi-amber: 40 90% 42%;
+    --kwendi-forest: 101 45% 35%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -122,6 +133,17 @@
 .btn-duo-gold:active {
   transform: translateY(4px);
   box-shadow: 0 0 0 hsl(var(--kwendi-amber));
+}
+
+/* Verde — CTA principal "Vamos?" */
+.btn-duo-green {
+  background: hsl(var(--kwendi-green));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 4px 0 hsl(var(--kwendi-green-dark));
+}
+.btn-duo-green:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 hsl(var(--kwendi-green-dark));
 }
 
 /* Input field styling */

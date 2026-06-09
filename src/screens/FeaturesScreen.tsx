@@ -1,0 +1,203 @@
+/**
+ * FeaturesScreen.tsx
+ * -------------------
+ * Tela que apresenta — de forma sucinta — as principais funcionalidades
+ * do Kwendi e as personagens que acompanham o utilizador ao longo das
+ * lições. Aparece apenas na primeira abertura do app.
+ */
+
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  BookOpen,
+  ShieldCheck,
+  Search,
+  Sparkles,
+  Gem,
+  Crown,
+} from "lucide-react";
+
+/* Personagens */
+import kwendiImg from "@/assets/characters/kwendi.jpg.asset.json";
+import suzanaImg from "@/assets/characters/suzana.jpg.asset.json";
+import kiameImg from "@/assets/characters/kiame.jpg.asset.json";
+import otchaliImg from "@/assets/characters/otchali.jpg.asset.json";
+import hossyImg from "@/assets/characters/hossy.jpg.asset.json";
+import yellenImg from "@/assets/characters/yellen.jpg.asset.json";
+import kekeHanImg from "@/assets/characters/keke-han.jpg.asset.json";
+
+/* ---- Funcionalidades (6 cards organizados) ---- */
+const FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: "Conta & Modo Furtivo",
+    desc: "Cria conta e guarda o teu progresso, ou testa 7 dias sem compromisso.",
+    color: "hsl(var(--kwendi-yellow))",
+  },
+  {
+    icon: BookOpen,
+    title: "Aprende Umbundu",
+    desc: "Abecedário, lições, missões diárias e ofensivas para manter o ritmo.",
+    color: "hsl(var(--kwendi-green))",
+  },
+  {
+    icon: Search,
+    title: "Dicionário Vivo",
+    desc: "Pesquisa por voz ou texto, vê tradução, sinónimos e ouve a pronúncia.",
+    color: "hsl(var(--kwendi-blue))",
+  },
+  {
+    icon: Sparkles,
+    title: "Cultura Angolana",
+    desc: "Curiosidades, gastronomia, música e festas das províncias Umbundu.",
+    color: "hsl(var(--kwendi-peach))",
+  },
+  {
+    icon: Gem,
+    title: "Gemas & Loja",
+    desc: "Ganha gemas a completar missões e decora a tua casa no estilo mwangolé.",
+    color: "hsl(var(--kwendi-purple))",
+  },
+  {
+    icon: Crown,
+    title: "Premium",
+    desc: "Sem anúncios, lições exclusivas, IA de conversação e modo offline.",
+    color: "hsl(var(--kwendi-pink))",
+  },
+];
+
+/* ---- Personagens ---- */
+const CHARACTERS = [
+  { name: "Kwendi", img: kwendiImg.url, bg: "#F8B5BD" },
+  { name: "Suzana (avó)", img: suzanaImg.url, bg: "#E8A88E" },
+  { name: "Kiame (irmã)", img: kiameImg.url, bg: "#F5F5F5" },
+  { name: "Otchali (amiga)", img: otchaliImg.url, bg: "#78D0FF" },
+  { name: "Hossy (amigo)", img: hossyImg.url, bg: "#FBBD12" },
+  { name: "Yellen", img: yellenImg.url, bg: "#86D05D" },
+  { name: "Keke & Han", img: kekeHanImg.url, bg: "#F8B5BD" },
+];
+
+const FeaturesScreen = () => {
+  const navigate = useNavigate();
+
+  const handleContinue = () => {
+    localStorage.setItem("kwendi_seen_features", "1");
+    navigate("/welcome", { replace: true });
+  };
+
+  return (
+    <motion.div
+      className="app-shell flex flex-col"
+      style={{
+        minHeight: "100dvh",
+        background: "hsl(var(--kwendi-red))",
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* ---- Header ---- */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Voltar"
+          className="rounded-full bg-white/20 backdrop-blur p-2 text-white hover:bg-white/30 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* ---- Título ---- */}
+      <div className="px-6 pt-2 pb-6 text-white">
+        <h1 className="text-3xl font-black leading-tight">
+          Aqui, você aprende
+          <br />
+          Umbundu de verdade!
+        </h1>
+        <p className="mt-2 text-white/85 font-semibold">
+          Conhece o que o Kwendi tem para ti.
+        </p>
+      </div>
+
+      {/* ---- Cards de funcionalidades (grid 2 col) ---- */}
+      <div className="px-4 grid grid-cols-2 gap-3">
+        {FEATURES.map((f, i) => {
+          const Icon = f.icon;
+          return (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.06 }}
+              className="rounded-2xl bg-white p-3 shadow-md"
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-2"
+                style={{ background: f.color }}
+              >
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-sm font-extrabold text-foreground leading-tight">
+                {f.title}
+              </h3>
+              <p className="text-[11px] mt-1 text-muted-foreground font-semibold leading-snug">
+                {f.desc}
+              </p>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* ---- Personagens ---- */}
+      <div className="mt-6 text-white">
+        <h2 className="px-6 text-lg font-extrabold mb-3">
+          Conhece a tua família Kwendi
+        </h2>
+        <div className="flex gap-3 overflow-x-auto px-6 pb-2 scrollbar-none">
+          {CHARACTERS.map((c, i) => (
+            <motion.div
+              key={c.name}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
+              className="shrink-0 flex flex-col items-center"
+            >
+              <div
+                className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/80 shadow-md flex items-center justify-center"
+                style={{ background: c.bg }}
+              >
+                <img
+                  src={c.img}
+                  alt={c.name}
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+              <p className="text-xs font-bold mt-2 max-w-[80px] text-center leading-tight">
+                {c.name}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* ---- CTA ---- */}
+      <div className="mt-auto p-6">
+        <button
+          className="btn-duo"
+          style={{
+            background: "white",
+            color: "hsl(var(--kwendi-red))",
+            boxShadow: "0 4px 0 rgba(0,0,0,0.18)",
+          }}
+          onClick={handleContinue}
+        >
+          Continuar
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+export default FeaturesScreen;

@@ -10,25 +10,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/logo.jpg";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
 
-  /** false = pure red; true = red + logo */
-  const [showLogo, setShowLogo] = useState(false);
+  /** false = vermelho puro; true = vermelho + palavra "Kwendi" */
+  const [showWordmark, setShowWordmark] = useState(false);
 
   useEffect(() => {
-    /* Phase 1 → Phase 2 after 5 seconds */
-    const logoTimer = setTimeout(() => setShowLogo(true), 5000);
+    /* Fase 1 → Fase 2 após 5 segundos: aparece a wordmark "Kwendi" */
+    const wordmarkTimer = setTimeout(() => setShowWordmark(true), 5000);
 
-    /* Navigate away 3 seconds after logo appears (total 8s) */
+    /* Após mais 3s, segue para a próxima tela.
+       Primeira visita → /apresentation; depois → /welcome. */
     const navTimer = setTimeout(() => {
-      navigate("/welcome", { replace: true });
+      const seenApresentation = localStorage.getItem("kwendi_seen_apresentation");
+      const next = seenApresentation ? "/welcome" : "/apresentation";
+      navigate(next, { replace: true });
     }, 8000);
 
     return () => {
-      clearTimeout(logoTimer);
+      clearTimeout(wordmarkTimer);
       clearTimeout(navTimer);
     };
   }, [navigate]);
@@ -43,15 +45,22 @@ const SplashScreen = () => {
       transition={{ duration: 0.6 }}
     >
       <AnimatePresence>
-        {showLogo && (
-          <motion.img
-            src={logo}
-            alt="Kwendi logo"
-            className="w-56 rounded-2xl shadow-2xl"
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6, type: "spring" }}
-          />
+        {showWordmark && (
+          <motion.h1
+            key="wordmark"
+            className="text-white font-black tracking-tight text-center select-none"
+            style={{
+              fontFamily: "'Nunito', sans-serif",
+              fontWeight: 900,
+              fontSize: "clamp(3.5rem, 18vw, 6rem)",
+              letterSpacing: "-0.02em",
+            }}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            Kwendi
+          </motion.h1>
         )}
       </AnimatePresence>
     </motion.div>
