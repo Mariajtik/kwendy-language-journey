@@ -268,22 +268,18 @@ const HomeScreen = () => {
         className="absolute bottom-0 left-0 right-0 z-20 mx-auto"
         style={{ maxWidth: "480px" }}
       >
-        {/* Decorative top corners */}
-        <div className="relative">
-          <div
-            className="absolute -top-2 left-3 w-6 h-6 rounded-bl-full"
-            style={{ borderLeft: "3px solid #86D05D", borderBottom: "3px solid #86D05D" }}
-          />
-          <div
-            className="absolute -top-2 right-3 w-6 h-6 rounded-br-full"
-            style={{ borderRight: "3px solid #86D05D", borderBottom: "3px solid #86D05D" }}
-          />
-        </div>
-
         <div
-          className="bg-white rounded-b-3xl px-3 pt-3 pb-4 flex items-center justify-around shadow-lg"
-          style={{ borderTop: "1px solid hsl(var(--border))" }}
+          className="bg-white rounded-t-3xl rounded-b-3xl px-3 pt-3 pb-4 flex items-center justify-around shadow-lg relative"
         >
+          {/* Decorative green arcs as part of top rounded corners */}
+          <div
+            className="absolute top-0 left-3 w-6 h-6 rounded-tl-3xl pointer-events-none"
+            style={{ borderLeft: "3px solid #86D05D", borderTop: "3px solid #86D05D" }}
+          />
+          <div
+            className="absolute top-0 right-3 w-6 h-6 rounded-tr-3xl pointer-events-none"
+            style={{ borderRight: "3px solid #86D05D", borderTop: "3px solid #86D05D" }}
+          />
           {navItems.map((item) => {
             if (item.kind === "more") {
               return (
