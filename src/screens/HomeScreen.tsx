@@ -135,12 +135,7 @@ const HomeScreen = () => {
 
           {/* Decoration / interior design square */}
           <button
-            className="w-10 h-10 rounded-xl flex items-center justify-center border-2"
-            style={{
-              background: "#FFF6E8",
-              borderColor: "#B87656",
-              boxShadow: "0 2px 0 #8B5A40",
-            }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
             aria-label="Decoração"
           >
             <Sofa className="w-5 h-5" color="#B87656" strokeWidth={2.4} />
