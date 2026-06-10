@@ -269,17 +269,9 @@ const HomeScreen = () => {
         style={{ maxWidth: "480px" }}
       >
         <div
-          className="bg-white rounded-t-3xl rounded-b-3xl px-3 pt-3 pb-4 flex items-center justify-around shadow-lg relative"
+          className="bg-white rounded-t-3xl px-3 pt-3 pb-2 flex items-center justify-around shadow-lg relative"
+          style={{ borderTop: "3px solid #86D05D" }}
         >
-          {/* Decorative green arcs as part of top rounded corners */}
-          <div
-            className="absolute top-0 left-3 w-6 h-6 rounded-tl-3xl pointer-events-none"
-            style={{ borderLeft: "3px solid #86D05D", borderTop: "3px solid #86D05D" }}
-          />
-          <div
-            className="absolute top-0 right-3 w-6 h-6 rounded-tr-3xl pointer-events-none"
-            style={{ borderRight: "3px solid #86D05D", borderTop: "3px solid #86D05D" }}
-          />
           {navItems.map((item) => {
             if (item.kind === "more") {
               return (
