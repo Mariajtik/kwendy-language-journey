@@ -20,6 +20,7 @@ import FeaturesScreen from "./screens/FeaturesScreen";
 import SignupFlow from "./screens/SignupFlow";
 import LoginScreen from "./screens/LoginScreen";
 import StealthModeScreen from "./screens/StealthModeScreen";
+import HomeScreen from "./screens/HomeScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<SignupFlow />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/stealth" element={<StealthModeScreen />} />
+        <Route path="/home" element={<HomeScreen />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

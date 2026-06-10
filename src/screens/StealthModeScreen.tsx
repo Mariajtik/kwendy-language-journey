@@ -41,7 +41,7 @@ const StealthModeScreen = () => {
         </h1>
         <button
           className="btn-duo btn-duo-primary max-w-xs mt-8"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         >
           Voltar ao início
         </button>

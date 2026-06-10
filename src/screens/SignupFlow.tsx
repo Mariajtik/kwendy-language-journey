@@ -79,8 +79,8 @@ const SignupFlow = () => {
         <p className="text-muted-foreground text-center mb-8">
           Bem-vindo/a ao Kwendi {username}!
         </p>
-        <button className="btn-duo btn-duo-primary max-w-xs" onClick={() => navigate("/")}>
-          Voltar ao início
+        <button className="btn-duo btn-duo-primary max-w-xs" onClick={() => navigate("/home")}>
+          Começar a aprender
         </button>
       </motion.div>
     );
