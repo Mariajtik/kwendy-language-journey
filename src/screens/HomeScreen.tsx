@@ -19,81 +19,108 @@ import grass from "@/assets/grass.jpg.asset.json";
 /** Africa map (with country borders + Madagascar) + plane departing from Angola */
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden>
-    {/* Africa continent silhouette — more anatomically recognizable */}
+    {/* Africa continent — silhouette inspired by reference image */}
     <path
-      d="M40 8
-         C 52 8, 62 10, 70 14
-         C 78 18, 82 22, 84 28
-         L 86 36
-         C 86 42, 82 46, 80 50
-         C 80 56, 84 60, 84 66
-         C 82 72, 78 76, 72 78
-         C 68 82, 64 86, 58 88
-         C 52 92, 46 92, 42 88
-         C 38 82, 34 76, 30 70
-         C 26 64, 22 58, 20 50
-         C 18 42, 18 34, 22 26
-         C 26 18, 32 12, 40 8 Z"
+      d="M30 10
+         L 44 8 L 58 9 L 70 12 L 78 17 L 82 22
+         L 84 28 L 86 33 L 86 38 L 84 43
+         L 80 46 L 76 50 L 74 54 L 76 58
+         L 78 60 L 76 64 L 74 66
+         L 70 70 L 66 76 L 62 82 L 56 88
+         L 50 90 L 44 88 L 40 82 L 36 74
+         L 30 66 L 26 58 L 22 50 L 18 42
+         L 16 34 L 18 26 L 22 18 L 28 12 Z"
       fill="#E8B27A"
-      stroke="#5E5C5C"
+      stroke="#3d3b3b"
       strokeWidth="1.6"
       strokeLinejoin="round"
     />
 
-    {/* Country borders (stylized internal divisions) */}
-    <g stroke="#5E5C5C" strokeWidth="0.9" fill="none" strokeLinecap="round" strokeLinejoin="round">
-      {/* North Africa horizontal band (Sahara) */}
-      <path d="M22 30 Q 50 26, 84 32" />
-      {/* Sahel band */}
-      <path d="M22 42 Q 50 40, 84 44" />
-      {/* Vertical division through central Africa */}
-      <path d="M50 26 L 50 56" />
-      {/* West Africa division */}
-      <path d="M30 36 L 38 48" />
-      {/* Horn of Africa cut */}
-      <path d="M70 44 L 84 38" />
-      {/* Equatorial line */}
-      <path d="M28 58 Q 50 56, 78 60" />
-      {/* Southern division */}
-      <path d="M36 72 Q 56 70, 72 74" />
-      {/* Angola border outline */}
-      <path d="M30 58 L 30 68 L 44 68 L 44 58" />
+    {/* Country borders — stylized to match reference grid of divisions */}
+    <g stroke="#3d3b3b" strokeWidth="0.7" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* North band (Morocco / Algeria / Tunisia / Libya / Egypt) */}
+      <path d="M18 22 L 32 24" />
+      <path d="M32 24 L 32 14" />
+      <path d="M32 24 L 50 24" />
+      <path d="M50 24 L 50 12" />
+      <path d="M50 24 L 68 26" />
+      <path d="M68 26 L 68 14" />
+      <path d="M68 26 L 82 28" />
+      <path d="M82 28 L 80 18" />
+
+      {/* Sahel band (Mauritania / Mali / Niger / Chad / Sudan) */}
+      <path d="M16 34 L 28 36" />
+      <path d="M28 36 L 28 24" />
+      <path d="M28 36 L 46 38" />
+      <path d="M46 38 L 46 24" />
+      <path d="M46 38 L 64 40" />
+      <path d="M64 40 L 64 26" />
+      <path d="M64 40 L 82 40" />
+      <path d="M82 40 L 84 32" />
+
+      {/* Horn of Africa (Ethiopia / Somalia / Eritrea) */}
+      <path d="M70 42 L 80 44 L 84 42" />
+      <path d="M74 44 L 76 50" />
+
+      {/* Gulf of Guinea coastal countries */}
+      <path d="M20 42 L 22 50" />
+      <path d="M28 42 L 30 50" />
+      <path d="M36 42 L 38 50" />
+      <path d="M44 42 L 46 50" />
+
+      {/* Equatorial central (Cameroon / CAR / DRC) */}
+      <path d="M22 50 L 40 52 L 58 52 L 72 52" />
+      <path d="M40 52 L 42 64" />
+      <path d="M58 52 L 58 64" />
+
+      {/* Great Lakes / East Africa (Kenya / Tanzania / Uganda) */}
+      <path d="M66 52 L 68 64" />
+      <path d="M58 60 L 70 62" />
+
+      {/* Southern band — Angola highlighted separately */}
+      <path d="M26 60 L 44 62" />
+      <path d="M44 62 L 60 64" />
+      <path d="M28 70 L 46 72 L 62 72" />
+      <path d="M46 72 L 46 80" />
+      <path d="M62 72 L 62 80" />
+      <path d="M34 80 L 56 82" />
     </g>
 
     {/* Madagascar */}
     <path
-      d="M88 62 C 90 64, 91 68, 90 74 C 89 78, 87 80, 85 78 C 84 74, 84 68, 86 64 Z"
+      d="M82 68 C 84 70, 85 74, 84 80 C 83 84, 81 86, 79 84 C 78 80, 78 74, 80 70 Z"
       fill="#E8B27A"
-      stroke="#5E5C5C"
+      stroke="#3d3b3b"
       strokeWidth="1.2"
       strokeLinejoin="round"
     />
 
-    {/* Angola highlight */}
-    <rect x="30" y="58" width="14" height="10" fill="#FBBD12" opacity="0.85" />
-    <path d="M30 58 L 30 68 L 44 68 L 44 58 Z" stroke="#5E5C5C" strokeWidth="1" fill="none" />
+    {/* Angola highlight (south-west) */}
+    <path
+      d="M26 60 L 44 62 L 44 70 L 28 70 Z"
+      fill="#FBBD12"
+      stroke="#3d3b3b"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
 
     {/* Dashed flight trail from Angola up to top-left */}
     <path
-      d="M37 62 Q 22 40, 10 18"
-      stroke="#5E5C5C"
+      d="M34 64 Q 20 42, 8 16"
+      stroke="#3d3b3b"
       strokeWidth="1.4"
       strokeLinecap="round"
       strokeDasharray="2 3"
       fill="none"
     />
 
-    {/* Airplane (clearly visible, white body, dark outline) */}
-    <g transform="translate(10 18) rotate(-55)">
-      {/* Fuselage */}
+    {/* Airplane */}
+    <g transform="translate(8 16) rotate(-55)">
       <ellipse cx="0" cy="0" rx="9" ry="2.2" fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" />
-      {/* Main wings */}
       <path d="M-1 0 L -5 -7 L 1 -1 Z M-1 0 L -5 7 L 1 1 Z"
         fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
-      {/* Tail */}
       <path d="M-7 0 L -10 -3 L -8 0 L -10 3 Z"
         fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
-      {/* Cockpit window */}
       <circle cx="5" cy="0" r="1" fill="#78D0FF" stroke="#1f1f1f" strokeWidth="0.6" />
     </g>
   </svg>
