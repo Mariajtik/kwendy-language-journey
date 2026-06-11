@@ -221,7 +221,7 @@ const HomeScreen = () => {
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             aria-label="Mapa de África"
           >
-            <AfricaPlane className="w-7 h-7" />
+            <AfricaPlane className="w-9 h-9" />
           </button>
 
           {/* Campfire + streak */}
