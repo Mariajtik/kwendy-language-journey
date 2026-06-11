@@ -21,15 +21,30 @@ const AfricaPlane = ({ className = "" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden>
     {/* Africa continent — silhouette inspired by reference image */}
     <path
-      d="M30 10
-         L 44 8 L 58 9 L 70 12 L 78 17 L 82 22
-         L 84 28 L 86 33 L 86 38 L 84 43
-         L 80 46 L 76 50 L 74 54 L 76 58
-         L 78 60 L 76 64 L 74 66
-         L 70 70 L 66 76 L 62 82 L 56 88
-         L 50 90 L 44 88 L 40 82 L 36 74
-         L 30 66 L 26 58 L 22 50 L 18 42
-         L 16 34 L 18 26 L 22 18 L 28 12 Z"
+      d="M28 10
+         Q 40 6, 55 8
+         Q 68 9, 74 13
+         L 80 14
+         Q 83 17, 80 22
+         Q 78 28, 82 32
+         Q 87 35, 88 39
+         L 85 43
+         Q 80 45, 75 42
+         Q 71 46, 70 52
+         Q 66 60, 62 68
+         Q 58 76, 52 84
+         Q 48 91, 43 88
+         Q 39 85, 38 79
+         Q 36 71, 34 64
+         Q 36 58, 38 52
+         Q 36 48, 33 46
+         Q 29 46, 27 47
+         Q 22 49, 19 46
+         Q 15 44, 13 40
+         Q 11 36, 13 32
+         Q 10 28, 12 24
+         Q 14 18, 20 14
+         Q 24 12, 28 10 Z"
       fill="#E8B27A"
       stroke="#3d3b3b"
       strokeWidth="1.6"
