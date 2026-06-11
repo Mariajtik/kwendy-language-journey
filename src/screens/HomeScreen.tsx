@@ -16,41 +16,85 @@ import grass from "@/assets/grass.jpg.asset.json";
 
 /* ---- Custom inline SVG icons ---- */
 
-/** Africa map silhouette (with Madagascar) + small plane departing from Angola */
+/** Africa map (with country borders + Madagascar) + plane departing from Angola */
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 32 32" className={className} fill="none" aria-hidden>
-    {/* Africa continent silhouette */}
+  <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden>
+    {/* Africa continent silhouette — more anatomically recognizable */}
     <path
-      d="M12 2c2 0 4 1 5 2s3 1 4 2 2 2 2 4-1 3-1 5 1 3 0 5-2 3-3 5-2 4-4 4-3-2-4-4-3-3-4-5-2-3-2-5 0-3 1-5 1-3 2-4 2-2 4-2z"
-      fill="#B87656"
-      stroke="#8B5A40"
-      strokeWidth="1"
+      d="M40 8
+         C 52 8, 62 10, 70 14
+         C 78 18, 82 22, 84 28
+         L 86 36
+         C 86 42, 82 46, 80 50
+         C 80 56, 84 60, 84 66
+         C 82 72, 78 76, 72 78
+         C 68 82, 64 86, 58 88
+         C 52 92, 46 92, 42 88
+         C 38 82, 34 76, 30 70
+         C 26 64, 22 58, 20 50
+         C 18 42, 18 34, 22 26
+         C 26 18, 32 12, 40 8 Z"
+      fill="#E8B27A"
+      stroke="#5E5C5C"
+      strokeWidth="1.6"
       strokeLinejoin="round"
     />
+
+    {/* Country borders (stylized internal divisions) */}
+    <g stroke="#5E5C5C" strokeWidth="0.9" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* North Africa horizontal band (Sahara) */}
+      <path d="M22 30 Q 50 26, 84 32" />
+      {/* Sahel band */}
+      <path d="M22 42 Q 50 40, 84 44" />
+      {/* Vertical division through central Africa */}
+      <path d="M50 26 L 50 56" />
+      {/* West Africa division */}
+      <path d="M30 36 L 38 48" />
+      {/* Horn of Africa cut */}
+      <path d="M70 44 L 84 38" />
+      {/* Equatorial line */}
+      <path d="M28 58 Q 50 56, 78 60" />
+      {/* Southern division */}
+      <path d="M36 72 Q 56 70, 72 74" />
+      {/* Angola border outline */}
+      <path d="M30 58 L 30 68 L 44 68 L 44 58" />
+    </g>
+
     {/* Madagascar */}
-    <ellipse cx="24" cy="22" rx="1.2" ry="2.4" fill="#B87656" stroke="#8B5A40" strokeWidth="0.8" transform="rotate(20 24 22)" />
-    {/* Angola dot */}
-    <circle cx="11.5" cy="19" r="0.9" fill="#FBBD12" />
-    {/* Plane trail (dashed arc from Angola going up-left) */}
     <path
-      d="M11 19 Q 7 14 4 10"
+      d="M88 62 C 90 64, 91 68, 90 74 C 89 78, 87 80, 85 78 C 84 74, 84 68, 86 64 Z"
+      fill="#E8B27A"
       stroke="#5E5C5C"
-      strokeWidth="0.8"
+      strokeWidth="1.2"
+      strokeLinejoin="round"
+    />
+
+    {/* Angola highlight */}
+    <rect x="30" y="58" width="14" height="10" fill="#FBBD12" opacity="0.85" />
+    <path d="M30 58 L 30 68 L 44 68 L 44 58 Z" stroke="#5E5C5C" strokeWidth="1" fill="none" />
+
+    {/* Dashed flight trail from Angola up to top-left */}
+    <path
+      d="M37 62 Q 22 40, 10 18"
+      stroke="#5E5C5C"
+      strokeWidth="1.4"
       strokeLinecap="round"
-      strokeDasharray="1 1.4"
+      strokeDasharray="2 3"
       fill="none"
     />
-    {/* Plane body */}
-    <g transform="translate(3.5 9.5) rotate(-40)">
-      <path
-        d="M0 0 L5 -0.6 L6 0 L5 0.6 Z"
-        fill="#ffffff"
-        stroke="#5E5C5C"
-        strokeWidth="0.5"
-        strokeLinejoin="round"
-      />
-      {/* wings */}
-      <path d="M2.5 0 L1.5 -2 L3 -0.2 Z M2.5 0 L1.5 2 L3 0.2 Z" fill="#ffffff" stroke="#5E5C5C" strokeWidth="0.4" />
+
+    {/* Airplane (clearly visible, white body, dark outline) */}
+    <g transform="translate(10 18) rotate(-55)">
+      {/* Fuselage */}
+      <ellipse cx="0" cy="0" rx="9" ry="2.2" fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" />
+      {/* Main wings */}
+      <path d="M-1 0 L -5 -7 L 1 -1 Z M-1 0 L -5 7 L 1 1 Z"
+        fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Tail */}
+      <path d="M-7 0 L -10 -3 L -8 0 L -10 3 Z"
+        fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
+      {/* Cockpit window */}
+      <circle cx="5" cy="0" r="1" fill="#78D0FF" stroke="#1f1f1f" strokeWidth="0.6" />
     </g>
   </svg>
 );
