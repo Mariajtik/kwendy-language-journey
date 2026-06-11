@@ -10,11 +10,50 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Home, BookOpen, Search, User, Sofa, Play } from "lucide-react";
+import { Flame, Heart, Home, BookOpen, Search, User, Play } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 
 /* ---- Custom inline SVG icons ---- */
+
+/** Africa map silhouette (with Madagascar) + small plane departing from Angola */
+const AfricaPlane = ({ className = "" }: { className?: string }) => (
+  <svg viewBox="0 0 32 32" className={className} fill="none" aria-hidden>
+    {/* Africa continent silhouette */}
+    <path
+      d="M12 2c2 0 4 1 5 2s3 1 4 2 2 2 2 4-1 3-1 5 1 3 0 5-2 3-3 5-2 4-4 4-3-2-4-4-3-3-4-5-2-3-2-5 0-3 1-5 1-3 2-4 2-2 4-2z"
+      fill="#B87656"
+      stroke="#8B5A40"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+    {/* Madagascar */}
+    <ellipse cx="24" cy="22" rx="1.2" ry="2.4" fill="#B87656" stroke="#8B5A40" strokeWidth="0.8" transform="rotate(20 24 22)" />
+    {/* Angola dot */}
+    <circle cx="11.5" cy="19" r="0.9" fill="#FBBD12" />
+    {/* Plane trail (dashed arc from Angola going up-left) */}
+    <path
+      d="M11 19 Q 7 14 4 10"
+      stroke="#5E5C5C"
+      strokeWidth="0.8"
+      strokeLinecap="round"
+      strokeDasharray="1 1.4"
+      fill="none"
+    />
+    {/* Plane body */}
+    <g transform="translate(3.5 9.5) rotate(-40)">
+      <path
+        d="M0 0 L5 -0.6 L6 0 L5 0.6 Z"
+        fill="#ffffff"
+        stroke="#5E5C5C"
+        strokeWidth="0.5"
+        strokeLinejoin="round"
+      />
+      {/* wings */}
+      <path d="M2.5 0 L1.5 -2 L3 -0.2 Z M2.5 0 L1.5 2 L3 0.2 Z" fill="#ffffff" stroke="#5E5C5C" strokeWidth="0.4" />
+    </g>
+  </svg>
+);
 
 /** Faceted diamond (gem) in #5E5C5C with internal facet lines */
 const Diamond = ({ className = "" }: { className?: string }) => (
@@ -133,12 +172,12 @@ const HomeScreen = () => {
             <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
           </button>
 
-          {/* Decoration / interior design square */}
+          {/* Africa map with plane departing from Angola */}
           <button
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            aria-label="Decoração"
+            aria-label="Mapa de África"
           >
-            <Sofa className="w-5 h-5" color="#B87656" strokeWidth={2.4} />
+            <AfricaPlane className="w-7 h-7" />
           </button>
 
           {/* Campfire + streak */}
