@@ -13,12 +13,18 @@ import { motion } from "framer-motion";
 import { Flame, Heart, Home, BookOpen, Search, User, Play } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
+import africa from "@/assets/africa.png.asset.json";
 
 /* ---- Custom inline SVG icons ---- */
 
 /** Africa map (with country borders + Madagascar) + plane departing from Angola */
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden>
+  <img src={africa.url} alt="Mapa de África" className={`${className} object-contain`} />
+);
+
+/* legacy SVG removed — kept type-stable via component above */
+const _UnusedAfricaSvg = () => (
+  <svg viewBox="0 0 100 100" fill="none" aria-hidden>
     {/* Africa continent — silhouette inspired by reference image */}
     <path
       d="M28 10
