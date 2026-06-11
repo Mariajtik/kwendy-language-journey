@@ -13,133 +13,17 @@ import { motion } from "framer-motion";
 import { Flame, Heart, Home, BookOpen, Search, User, Play } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
+import africa from "@/assets/africa.png.asset.json";
 
 /* ---- Custom inline SVG icons ---- */
 
 /** Africa map (with country borders + Madagascar) + plane departing from Angola */
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 100 100" className={className} fill="none" aria-hidden>
-    {/* Africa continent — silhouette inspired by reference image */}
-    <path
-      d="M28 10
-         Q 40 6, 55 8
-         Q 68 9, 74 13
-         L 80 14
-         Q 83 17, 80 22
-         Q 78 28, 82 32
-         Q 87 35, 88 39
-         L 85 43
-         Q 80 45, 75 42
-         Q 71 46, 70 52
-         Q 66 60, 62 68
-         Q 58 76, 52 84
-         Q 48 91, 43 88
-         Q 39 85, 38 79
-         Q 36 71, 34 64
-         Q 36 58, 38 52
-         Q 36 48, 33 46
-         Q 29 46, 27 47
-         Q 22 49, 19 46
-         Q 15 44, 13 40
-         Q 11 36, 13 32
-         Q 10 28, 12 24
-         Q 14 18, 20 14
-         Q 24 12, 28 10 Z"
-      fill="#E8B27A"
-      stroke="#3d3b3b"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-
-    {/* Country borders — stylized to match reference grid of divisions */}
-    <g stroke="#3d3b3b" strokeWidth="0.7" fill="none" strokeLinecap="round" strokeLinejoin="round">
-      {/* North band (Morocco / Algeria / Tunisia / Libya / Egypt) */}
-      <path d="M18 22 L 32 24" />
-      <path d="M32 24 L 32 14" />
-      <path d="M32 24 L 50 24" />
-      <path d="M50 24 L 50 12" />
-      <path d="M50 24 L 68 26" />
-      <path d="M68 26 L 68 14" />
-      <path d="M68 26 L 82 28" />
-      <path d="M82 28 L 80 18" />
-
-      {/* Sahel band (Mauritania / Mali / Niger / Chad / Sudan) */}
-      <path d="M16 34 L 28 36" />
-      <path d="M28 36 L 28 24" />
-      <path d="M28 36 L 46 38" />
-      <path d="M46 38 L 46 24" />
-      <path d="M46 38 L 64 40" />
-      <path d="M64 40 L 64 26" />
-      <path d="M64 40 L 82 40" />
-      <path d="M82 40 L 84 32" />
-
-      {/* Horn of Africa (Ethiopia / Somalia / Eritrea) */}
-      <path d="M70 42 L 80 44 L 84 42" />
-      <path d="M74 44 L 76 50" />
-
-      {/* Gulf of Guinea coastal countries */}
-      <path d="M20 42 L 22 50" />
-      <path d="M28 42 L 30 50" />
-      <path d="M36 42 L 38 50" />
-      <path d="M44 42 L 46 50" />
-
-      {/* Equatorial central (Cameroon / CAR / DRC) */}
-      <path d="M22 50 L 40 52 L 58 52 L 72 52" />
-      <path d="M40 52 L 42 64" />
-      <path d="M58 52 L 58 64" />
-
-      {/* Great Lakes / East Africa (Kenya / Tanzania / Uganda) */}
-      <path d="M66 52 L 68 64" />
-      <path d="M58 60 L 70 62" />
-
-      {/* Southern band — Angola highlighted separately */}
-      <path d="M26 60 L 44 62" />
-      <path d="M44 62 L 60 64" />
-      <path d="M28 70 L 46 72 L 62 72" />
-      <path d="M46 72 L 46 80" />
-      <path d="M62 72 L 62 80" />
-      <path d="M34 80 L 56 82" />
-    </g>
-
-    {/* Madagascar */}
-    <path
-      d="M82 68 C 84 70, 85 74, 84 80 C 83 84, 81 86, 79 84 C 78 80, 78 74, 80 70 Z"
-      fill="#E8B27A"
-      stroke="#3d3b3b"
-      strokeWidth="1.2"
-      strokeLinejoin="round"
-    />
-
-    {/* Angola highlight (south-west) */}
-    <path
-      d="M26 60 L 44 62 L 44 70 L 28 70 Z"
-      fill="#FBBD12"
-      stroke="#3d3b3b"
-      strokeWidth="1"
-      strokeLinejoin="round"
-    />
-
-    {/* Dashed flight trail from Angola up to top-left */}
-    <path
-      d="M34 64 Q 20 42, 8 16"
-      stroke="#3d3b3b"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeDasharray="2 3"
-      fill="none"
-    />
-
-    {/* Airplane */}
-    <g transform="translate(8 16) rotate(-55)">
-      <ellipse cx="0" cy="0" rx="9" ry="2.2" fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" />
-      <path d="M-1 0 L -5 -7 L 1 -1 Z M-1 0 L -5 7 L 1 1 Z"
-        fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M-7 0 L -10 -3 L -8 0 L -10 3 Z"
-        fill="#ffffff" stroke="#1f1f1f" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="5" cy="0" r="1" fill="#78D0FF" stroke="#1f1f1f" strokeWidth="0.6" />
-    </g>
-  </svg>
+  <img src={africa.url} alt="Mapa de África" className={`${className} object-contain`} />
 );
+
+/* legacy SVG removed — kept type-stable via component above */
+
 
 /** Faceted diamond (gem) in #5E5C5C with internal facet lines */
 const Diamond = ({ className = "" }: { className?: string }) => (
