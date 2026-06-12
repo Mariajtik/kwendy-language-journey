@@ -14,6 +14,7 @@ import { Flame, Heart, Home, BookOpen, Search, User, Play } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
+import plane from "@/assets/plane.png.asset.json";
 
 /* ---- Custom inline SVG icons ---- */
 
@@ -21,23 +22,20 @@ import africa from "@/assets/africa.png.asset.json";
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
   <div className={`${className} relative`}>
     <img src={africa.url} alt="Mapa de África" className="w-full h-full object-contain" />
-    {/* Small plane departing from Angola (lower-left of the continent) */}
-    <svg
-      viewBox="0 0 24 24"
-      className="absolute"
-      style={{ width: "55%", height: "55%", left: "-12%", top: "52%" }}
+    {/* Small plane departing from Angola (red dot annotation) */}
+    <img
+      src={plane.url}
+      alt=""
       aria-hidden
-    >
-      <g transform="rotate(-35 12 12)">
-        <path
-          d="M2 12l9-2 4-6 2 1-2 6 5 1 1 2-5 1-2 6-2 1-2-6-7 1-1-2 0-3z"
-          fill="#ffffff"
-          stroke="#1f1f1f"
-          strokeWidth="1.1"
-          strokeLinejoin="round"
-        />
-      </g>
-    </svg>
+      className="absolute object-contain pointer-events-none"
+      style={{
+        width: "55%",
+        height: "55%",
+        left: "-25%",
+        top: "45%",
+        transform: "rotate(-20deg)",
+      }}
+    />
   </div>
 );
 
