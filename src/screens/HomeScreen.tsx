@@ -29,11 +29,11 @@ const AfricaPlane = ({ className = "" }: { className?: string }) => (
       aria-hidden
       className="absolute object-contain pointer-events-none"
       style={{
-        width: "55%",
-        height: "55%",
-        left: "-25%",
-        top: "45%",
-        transform: "rotate(-20deg)",
+        width: "32%",
+        height: "32%",
+        left: "18%",
+        top: "55%",
+        transform: "rotate(-25deg)",
       }}
     />
   </div>
