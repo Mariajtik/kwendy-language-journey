@@ -19,7 +19,26 @@ import africa from "@/assets/africa.png.asset.json";
 
 /** Africa map (with country borders + Madagascar) + plane departing from Angola */
 const AfricaPlane = ({ className = "" }: { className?: string }) => (
-  <img src={africa.url} alt="Mapa de África" className={`${className} object-contain`} />
+  <div className={`${className} relative`}>
+    <img src={africa.url} alt="Mapa de África" className="w-full h-full object-contain" />
+    {/* Small plane departing from Angola (lower-left of the continent) */}
+    <svg
+      viewBox="0 0 24 24"
+      className="absolute"
+      style={{ width: "55%", height: "55%", left: "-12%", top: "52%" }}
+      aria-hidden
+    >
+      <g transform="rotate(-35 12 12)">
+        <path
+          d="M2 12l9-2 4-6 2 1-2 6 5 1 1 2-5 1-2 6-2 1-2-6-7 1-1-2 0-3z"
+          fill="#ffffff"
+          stroke="#1f1f1f"
+          strokeWidth="1.1"
+          strokeLinejoin="round"
+        />
+      </g>
+    </svg>
+  </div>
 );
 
 /* legacy SVG removed — kept type-stable via component above */
