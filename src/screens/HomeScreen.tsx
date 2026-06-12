@@ -10,7 +10,7 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Home, BookOpen, Search, User, Play } from "lucide-react";
+import { Flame, Heart, Play } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
@@ -86,6 +86,57 @@ const Chest = ({ className = "", color = "#B87656" }: { className?: string; colo
   </svg>
 );
 
+/** Filled house with door + window detail, matches chest style */
+const HouseIcon = ({ className = "", color = "#FBBD12" }: { className?: string; color?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
+    {/* Roof */}
+    <path d="M3 11l9-7 9 7v1H3z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+    {/* Body */}
+    <rect x="5" y="11" width="14" height="9" rx="1.2" fill={color} stroke={color} strokeWidth="1.4" />
+    {/* Door */}
+    <rect x="10.5" y="14" width="3" height="6" rx="0.4" fill="#fff" />
+    {/* Window accent */}
+    <rect x="6.5" y="13" width="2.5" height="2.5" rx="0.3" fill="#fff" />
+  </svg>
+);
+
+/** Filled book with page detail, matches chest style */
+const BookIcon = ({ className = "", color = "#FFA767" }: { className?: string; color?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
+    {/* Cover */}
+    <path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+    {/* Page */}
+    <rect x="6" y="6" width="11" height="10" rx="0.6" fill="#fff" />
+    {/* Lines */}
+    <rect x="7.5" y="8" width="8" height="1" rx="0.3" fill={color} />
+    <rect x="7.5" y="10.2" width="6" height="1" rx="0.3" fill={color} />
+    <rect x="7.5" y="12.4" width="7" height="1" rx="0.3" fill={color} />
+  </svg>
+);
+
+/** Filled magnifier, matches chest style */
+const SearchIcon = ({ className = "", color = "#78D0FF" }: { className?: string; color?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
+    {/* Handle */}
+    <rect x="14.5" y="14.5" width="7" height="2.6" rx="1.3" fill={color} transform="rotate(45 14.5 14.5)" />
+    {/* Lens */}
+    <circle cx="10.5" cy="10.5" r="6.5" fill={color} stroke={color} strokeWidth="1.4" />
+    <circle cx="10.5" cy="10.5" r="4" fill="#fff" />
+  </svg>
+);
+
+/** Filled person bust, matches chest style */
+const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; color?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
+    {/* Head */}
+    <circle cx="12" cy="8" r="4.2" fill={color} stroke={color} strokeWidth="1.4" />
+    {/* Body */}
+    <path d="M3.5 21c0-4.5 3.8-8 8.5-8s8.5 3.5 8.5 8z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+    {/* Accent */}
+    <circle cx="12" cy="8" r="1.6" fill="#fff" opacity="0.35" />
+  </svg>
+);
+
 /** Campfire = lucide Flame + two crossed logs underneath */
 const Campfire = () => (
   <div className="relative w-7 h-7 flex items-end justify-center">
@@ -111,11 +162,11 @@ const Campfire = () => (
 
 /* ---- Bottom nav config ---- */
 const navItems = [
-  { key: "home", icon: Home, color: "#FBBD12", active: true, kind: "icon" as const },
-  { key: "chest", color: "#B87656", kind: "chest" as const },
-  { key: "book", icon: BookOpen, color: "#FFA767", kind: "icon" as const },
-  { key: "search", icon: Search, color: "#78D0FF", kind: "icon" as const },
-  { key: "user", icon: User, color: "#FF7BBF", kind: "icon" as const },
+  { key: "home", Comp: HouseIcon, color: "#FBBD12", active: true, kind: "svg" as const },
+  { key: "chest", Comp: Chest, color: "#B87656", kind: "svg" as const },
+  { key: "book", Comp: BookIcon, color: "#FFA767", kind: "svg" as const },
+  { key: "search", Comp: SearchIcon, color: "#78D0FF", kind: "svg" as const },
+  { key: "user", Comp: UserIcon, color: "#FF7BBF", kind: "svg" as const },
   { key: "more", kind: "more" as const },
 ];
 
@@ -308,25 +359,14 @@ const HomeScreen = () => {
                 </button>
               );
             }
-            if (item.kind === "chest") {
-              return (
-                <button key={item.key} className="p-1" aria-label="Báu">
-                  <Chest className="w-7 h-7" color={item.color} />
-                </button>
-              );
-            }
-            const Icon = item.icon!;
+            const Comp = item.Comp!;
             return (
               <button
                 key={item.key}
                 className="relative p-1 flex flex-col items-center"
                 aria-label={item.key}
               >
-                <Icon
-                  className="w-7 h-7"
-                  color={item.color}
-                  strokeWidth={2.4}
-                />
+                <Comp className="w-7 h-7" color={item.color} />
                 {item.active && (
                   <span
                     className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
