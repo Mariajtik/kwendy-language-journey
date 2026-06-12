@@ -11,10 +11,12 @@
  * After step 5 → success message.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Upload } from "lucide-react";
+import logoImg from "@/assets/logo.jpg";
+import avatarImg from "@/assets/avatar.jpg";
 
 /** Slide-in animation variants for each step */
 const slideVariants = {
@@ -38,6 +40,19 @@ const SignupFlow = () => {
   const [source, setSource] = useState("");
   const [chokwe, setChokwe] = useState("");
   const [dailyGoal, setDailyGoal] = useState("");
+
+  /* Profile photo — defaults to Kwendi logo */
+  const [photo, setPhoto] = useState<string>(logoImg);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /** Handle uploaded image file → preview as base64 */
+  const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   /* Whether the flow is complete */
   const [done, setDone] = useState(false);
@@ -125,7 +140,69 @@ const SignupFlow = () => {
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Como podemos te chamar?
               </h2>
-              <p className="text-muted-foreground mb-6">Escolha um nome de usuário.</p>
+              <p className="text-muted-foreground mb-6">
+                Escolha um nome de usuário e uma foto de perfil.
+              </p>
+
+              {/* Profile photo preview */}
+              <div className="flex flex-col items-center mb-6">
+                <img
+                  src={photo}
+                  alt="Foto de perfil"
+                  className="w-24 h-24 rounded-full object-cover shadow-lg mb-3"
+                  style={{ border: "3px solid hsl(var(--primary))" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary"
+                >
+                  <Upload className="w-4 h-4" />
+                  Carregar foto
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickFile}
+                />
+              </div>
+
+              {/* Default avatar choices */}
+              <p className="text-xs text-muted-foreground mb-2 text-center">
+                Ou escolha uma das opções:
+              </p>
+              <div className="flex justify-center gap-4 mb-6">
+                {[
+                  { src: logoImg, label: "Logo Kwendi" },
+                  { src: avatarImg, label: "Modo furtivo" },
+                ].map((opt) => {
+                  const selected = photo === opt.src;
+                  return (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setPhoto(opt.src)}
+                      className="flex flex-col items-center gap-1"
+                      aria-label={opt.label}
+                    >
+                      <img
+                        src={opt.src}
+                        alt={opt.label}
+                        className="w-14 h-14 rounded-full object-cover"
+                        style={{
+                          border: selected
+                            ? "3px solid hsl(var(--primary))"
+                            : "3px solid hsl(var(--muted))",
+                        }}
+                      />
+                      <span className="text-[10px] text-muted-foreground">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <input
                 className="input-duo mb-6"
                 placeholder="Nome de usuário"
