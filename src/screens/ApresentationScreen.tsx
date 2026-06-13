@@ -133,8 +133,6 @@ const ApresentationScreen = () => {
           loop
           muted
           playsInline
-          webkit-playsinline="true"
-          poster={mountainAsset.url}
           className="absolute inset-0 h-full w-full object-cover"
         />
         {/* Overlay para legibilidade */}
