@@ -10,12 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
-  BookOpen,
-  ShieldCheck,
-  Search,
-  Sparkles,
-  Gem,
-  Crown,
 } from "lucide-react";
 
 /* Personagens */
@@ -27,43 +21,52 @@ import hossyImg from "@/assets/characters/hossy.jpg.asset.json";
 import yellenImg from "@/assets/characters/yellen.jpg.asset.json";
 import kekeHanImg from "@/assets/characters/keke-han.jpg.asset.json";
 
-/* ---- Funcionalidades (6 cards organizados) ---- */
+/* ---- Funcionalidades (6 cards organizados) ----
+ * Emojis curados (estilo "papel/sticker") em vez de ícones lineares,
+ * para combinar com a estética calorosa e infantil do app — o mesmo
+ * espírito do baú/HomeScreen. Nada de cards lineares genéricos. */
 const FEATURES = [
   {
-    icon: ShieldCheck,
+    emoji: "🛡️",
     title: "Conta & Modo Furtivo",
     desc: "Cria conta e guarda o teu progresso, ou testa 7 dias sem compromisso.",
     color: "hsl(var(--kwendi-yellow))",
+    tilt: -6,
   },
   {
-    icon: BookOpen,
+    emoji: "📖",
     title: "Aprende Umbundu",
     desc: "Abecedário, lições, missões diárias e ofensivas para manter o ritmo.",
     color: "hsl(var(--kwendi-green))",
+    tilt: 5,
   },
   {
-    icon: Search,
+    emoji: "🔎",
     title: "Dicionário Vivo",
     desc: "Pesquisa por voz ou texto, vê tradução, sinónimos e ouve a pronúncia.",
     color: "hsl(var(--kwendi-blue))",
+    tilt: -4,
   },
   {
-    icon: Sparkles,
+    emoji: "🪘",
     title: "Cultura Angolana",
     desc: "Curiosidades, gastronomia, música e festas das províncias Umbundu.",
     color: "hsl(var(--kwendi-peach))",
+    tilt: 6,
   },
   {
-    icon: Gem,
+    emoji: "💎",
     title: "Gemas & Loja",
     desc: "Ganha gemas a completar missões e decora a tua casa no estilo mwangolé.",
     color: "hsl(var(--kwendi-purple))",
+    tilt: -5,
   },
   {
-    icon: Crown,
+    emoji: "👑",
     title: "Premium",
     desc: "Sem anúncios, lições exclusivas, IA de conversação e modo offline.",
     color: "hsl(var(--kwendi-pink))",
+    tilt: 4,
   },
 ];
 
@@ -124,21 +127,28 @@ const FeaturesScreen = () => {
       {/* ---- Cards de funcionalidades (grid 2 col) ---- */}
       <div className="px-4 grid grid-cols-2 gap-3">
         {FEATURES.map((f, i) => {
-          const Icon = f.icon;
           return (
             <motion.div
               key={f.title}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: i * 0.06 }}
-              className="rounded-2xl bg-white p-3 shadow-md"
+              className="relative rounded-2xl bg-white p-3 pt-5 shadow-md border-b-4 border-black/5"
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mb-2"
-                style={{ background: f.color }}
+              <motion.div
+                whileHover={{ rotate: 0, scale: 1.08 }}
+                style={{
+                  background: f.color,
+                  rotate: f.tilt,
+                  boxShadow:
+                    "inset 0 -3px 0 rgba(0,0,0,0.12), 0 3px 0 rgba(0,0,0,0.08)",
+                }}
+                className="w-12 h-12 rounded-[18px] flex items-center justify-center mb-2 text-2xl select-none"
               >
-                <Icon className="w-5 h-5 text-white" />
-              </div>
+                <span style={{ filter: "drop-shadow(0 1px 0 rgba(0,0,0,0.18))" }}>
+                  {f.emoji}
+                </span>
+              </motion.div>
               <h3 className="text-sm font-extrabold text-foreground leading-tight">
                 {f.title}
               </h3>
