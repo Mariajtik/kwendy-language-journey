@@ -9,9 +9,8 @@
  * - Slides de texto (a Kwendi falando) numa caixa inferior verde suave
  *   com fade-in/fade-out via framer-motion.
  * - Controles por toque:
- *     • 1 clique  → pausa/retoma o autoplay
- *     • duplo clique direita → próximo slide
- *     • duplo clique esquerda → slide anterior
+ *     • toque no lado direito → próximo slide
+ *     • toque no lado esquerdo → slide anterior
  * - No último slide o texto faz fade-out e surge o botão "Vamos?"
  *   (verde da paleta). Ao clicar, muda para "Vamos!" enquanto processa
  *   e navega para /features.
@@ -57,13 +56,7 @@ const ApresentationScreen = () => {
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  /* Refs para detectar single vs double-tap */
-  const lastTapRef = useRef<{ time: number; side: "L" | "R" | null }>({
-    time: 0,
-    side: null,
-  });
-  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   /* Auto-avanço */
   useEffect(() => {
@@ -75,39 +68,34 @@ const ApresentationScreen = () => {
     return () => clearTimeout(t);
   }, [index, paused, finished]);
 
-  /** Lida com clique/duplo-clique na área do vídeo */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const playPromise = video.play();
+    if (playPromise) {
+      playPromise.catch(() => {
+        // Em alguns browsers mobile o autoplay só começa após interação.
+      });
+    }
+  }, []);
+
+  /** Lida com toque na área do vídeo */
   const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const side: "L" | "R" =
       e.clientX - rect.left < rect.width / 2 ? "L" : "R";
-    const now = Date.now();
-    const last = lastTapRef.current;
 
-    /* Duplo toque (mesmo lado, < 300ms) */
-    if (last.side === side && now - last.time < 300) {
-      if (singleTapTimer.current) {
-        clearTimeout(singleTapTimer.current);
-        singleTapTimer.current = null;
-      }
-      lastTapRef.current = { time: 0, side: null };
+    setPaused(false);
+    videoRef.current?.play().catch(() => undefined);
 
-      if (side === "R") {
-        if (index < SLIDES.length - 1) setIndex(index + 1);
-        else setFinished(true);
-      } else {
-        if (finished) setFinished(false);
-        if (index > 0) setIndex(index - 1);
-      }
-      return;
+    if (side === "R") {
+      if (index < SLIDES.length - 1) setIndex(index + 1);
+      else setFinished(true);
+    } else {
+      if (finished) setFinished(false);
+      if (index > 0) setIndex(index - 1);
     }
-
-    lastTapRef.current = { time: now, side };
-    /* Aguarda 280ms para confirmar single tap → pausa/retoma */
-    if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
-    singleTapTimer.current = setTimeout(() => {
-      setPaused((p) => !p);
-      lastTapRef.current = { time: 0, side: null };
-    }, 280);
   };
 
   const handleSkip = () => {
@@ -127,18 +115,26 @@ const ApresentationScreen = () => {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-black"
+      className="relative w-full overflow-hidden"
+      onPointerDown={() => videoRef.current?.play().catch(() => undefined)}
       style={{ minHeight: "100dvh" }}
     >
       {/* Wrapper centralizado em telas grandes (estilo mockup mobile) */}
-      <div className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden">
+      <div
+        className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden"
+        style={{ background: "linear-gradient(180deg, hsl(var(--kwendi-green)) 0%, hsl(var(--kwendi-forest)) 100%)" }}
+      >
         {/* Vídeo background */}
         <video
+          ref={videoRef}
           src={mountainAsset.url}
           autoPlay
+          preload="auto"
           loop
           muted
           playsInline
+          webkit-playsinline="true"
+          poster={mountainAsset.url}
           className="absolute inset-0 h-full w-full object-cover"
         />
         {/* Overlay para legibilidade */}
