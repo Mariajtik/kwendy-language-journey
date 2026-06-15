@@ -17,6 +17,123 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Upload } from "lucide-react";
 import logoImg from "@/assets/logo.jpg";
 import avatarImg from "@/assets/avatar.jpg";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+/** Angolan provinces shown as quick-pick chips */
+const PROVINCES = [
+  "Bengo", "Benguela", "Bié", "Cabinda", "Cuando", "Cuando Cubango",
+  "Cuanza Norte", "Cuanza Sul", "Cunene", "Huambo", "Huíla",
+  "Icolo e Bengo", "Luanda", "Lunda Norte", "Lunda Sul", "Malanje",
+  "Moxico", "Moxico Leste", "Namibe", "Uíge", "Zaire",
+];
+
+/** World countries with flag emojis (for the "Outro" option) */
+const COUNTRIES: { name: string; flag: string }[] = [
+  { name: "Afeganistão", flag: "🇦🇫" }, { name: "África do Sul", flag: "🇿🇦" },
+  { name: "Albânia", flag: "🇦🇱" }, { name: "Alemanha", flag: "🇩🇪" },
+  { name: "Andorra", flag: "🇦🇩" }, { name: "Angola", flag: "🇦🇴" },
+  { name: "Antígua e Barbuda", flag: "🇦🇬" }, { name: "Arábia Saudita", flag: "🇸🇦" },
+  { name: "Argélia", flag: "🇩🇿" }, { name: "Argentina", flag: "🇦🇷" },
+  { name: "Arménia", flag: "🇦🇲" }, { name: "Austrália", flag: "🇦🇺" },
+  { name: "Áustria", flag: "🇦🇹" }, { name: "Azerbaijão", flag: "🇦🇿" },
+  { name: "Bahamas", flag: "🇧🇸" }, { name: "Bangladesh", flag: "🇧🇩" },
+  { name: "Barbados", flag: "🇧🇧" }, { name: "Barém", flag: "🇧🇭" },
+  { name: "Bélgica", flag: "🇧🇪" }, { name: "Belize", flag: "🇧🇿" },
+  { name: "Benim", flag: "🇧🇯" }, { name: "Bielorrússia", flag: "🇧🇾" },
+  { name: "Bolívia", flag: "🇧🇴" }, { name: "Bósnia e Herzegovina", flag: "🇧🇦" },
+  { name: "Botsuana", flag: "🇧🇼" }, { name: "Brasil", flag: "🇧🇷" },
+  { name: "Brunei", flag: "🇧🇳" }, { name: "Bulgária", flag: "🇧🇬" },
+  { name: "Burquina Faso", flag: "🇧🇫" }, { name: "Burundi", flag: "🇧🇮" },
+  { name: "Butão", flag: "🇧🇹" }, { name: "Cabo Verde", flag: "🇨🇻" },
+  { name: "Camarões", flag: "🇨🇲" }, { name: "Camboja", flag: "🇰🇭" },
+  { name: "Canadá", flag: "🇨🇦" }, { name: "Catar", flag: "🇶🇦" },
+  { name: "Cazaquistão", flag: "🇰🇿" }, { name: "Chade", flag: "🇹🇩" },
+  { name: "Chile", flag: "🇨🇱" }, { name: "China", flag: "🇨🇳" },
+  { name: "Chipre", flag: "🇨🇾" }, { name: "Colômbia", flag: "🇨🇴" },
+  { name: "Comores", flag: "🇰🇲" }, { name: "Congo", flag: "🇨🇬" },
+  { name: "Coreia do Norte", flag: "🇰🇵" }, { name: "Coreia do Sul", flag: "🇰🇷" },
+  { name: "Costa do Marfim", flag: "🇨🇮" }, { name: "Costa Rica", flag: "🇨🇷" },
+  { name: "Croácia", flag: "🇭🇷" }, { name: "Cuba", flag: "🇨🇺" },
+  { name: "Dinamarca", flag: "🇩🇰" }, { name: "Djibuti", flag: "🇩🇯" },
+  { name: "Dominica", flag: "🇩🇲" }, { name: "Egito", flag: "🇪🇬" },
+  { name: "El Salvador", flag: "🇸🇻" }, { name: "Emirados Árabes Unidos", flag: "🇦🇪" },
+  { name: "Equador", flag: "🇪🇨" }, { name: "Eritreia", flag: "🇪🇷" },
+  { name: "Eslováquia", flag: "🇸🇰" }, { name: "Eslovénia", flag: "🇸🇮" },
+  { name: "Espanha", flag: "🇪🇸" }, { name: "Estados Unidos", flag: "🇺🇸" },
+  { name: "Estónia", flag: "🇪🇪" }, { name: "Essuatíni", flag: "🇸🇿" },
+  { name: "Etiópia", flag: "🇪🇹" }, { name: "Fiji", flag: "🇫🇯" },
+  { name: "Filipinas", flag: "🇵🇭" }, { name: "Finlândia", flag: "🇫🇮" },
+  { name: "França", flag: "🇫🇷" }, { name: "Gabão", flag: "🇬🇦" },
+  { name: "Gâmbia", flag: "🇬🇲" }, { name: "Gana", flag: "🇬🇭" },
+  { name: "Geórgia", flag: "🇬🇪" }, { name: "Granada", flag: "🇬🇩" },
+  { name: "Grécia", flag: "🇬🇷" }, { name: "Guatemala", flag: "🇬🇹" },
+  { name: "Guiana", flag: "🇬🇾" }, { name: "Guiné", flag: "🇬🇳" },
+  { name: "Guiné Equatorial", flag: "🇬🇶" }, { name: "Guiné-Bissau", flag: "🇬🇼" },
+  { name: "Haiti", flag: "🇭🇹" }, { name: "Holanda", flag: "🇳🇱" },
+  { name: "Honduras", flag: "🇭🇳" }, { name: "Hungria", flag: "🇭🇺" },
+  { name: "Iémen", flag: "🇾🇪" }, { name: "Ilhas Marshall", flag: "🇲🇭" },
+  { name: "Ilhas Salomão", flag: "🇸🇧" }, { name: "Índia", flag: "🇮🇳" },
+  { name: "Indonésia", flag: "🇮🇩" }, { name: "Irão", flag: "🇮🇷" },
+  { name: "Iraque", flag: "🇮🇶" }, { name: "Irlanda", flag: "🇮🇪" },
+  { name: "Islândia", flag: "🇮🇸" }, { name: "Israel", flag: "🇮🇱" },
+  { name: "Itália", flag: "🇮🇹" }, { name: "Jamaica", flag: "🇯🇲" },
+  { name: "Japão", flag: "🇯🇵" }, { name: "Jordânia", flag: "🇯🇴" },
+  { name: "Kuwait", flag: "🇰🇼" }, { name: "Laos", flag: "🇱🇦" },
+  { name: "Lesoto", flag: "🇱🇸" }, { name: "Letónia", flag: "🇱🇻" },
+  { name: "Líbano", flag: "🇱🇧" }, { name: "Libéria", flag: "🇱🇷" },
+  { name: "Líbia", flag: "🇱🇾" }, { name: "Liechtenstein", flag: "🇱🇮" },
+  { name: "Lituânia", flag: "🇱🇹" }, { name: "Luxemburgo", flag: "🇱🇺" },
+  { name: "Macedónia do Norte", flag: "🇲🇰" }, { name: "Madagáscar", flag: "🇲🇬" },
+  { name: "Malásia", flag: "🇲🇾" }, { name: "Malawi", flag: "🇲🇼" },
+  { name: "Maldivas", flag: "🇲🇻" }, { name: "Mali", flag: "🇲🇱" },
+  { name: "Malta", flag: "🇲🇹" }, { name: "Marrocos", flag: "🇲🇦" },
+  { name: "Maurícia", flag: "🇲🇺" }, { name: "Mauritânia", flag: "🇲🇷" },
+  { name: "México", flag: "🇲🇽" }, { name: "Mianmar", flag: "🇲🇲" },
+  { name: "Micronésia", flag: "🇫🇲" }, { name: "Moçambique", flag: "🇲🇿" },
+  { name: "Moldávia", flag: "🇲🇩" }, { name: "Mónaco", flag: "🇲🇨" },
+  { name: "Mongólia", flag: "🇲🇳" }, { name: "Monténégro", flag: "🇲🇪" },
+  { name: "Namíbia", flag: "🇳🇦" }, { name: "Nauru", flag: "🇳🇷" },
+  { name: "Nepal", flag: "🇳🇵" }, { name: "Nicarágua", flag: "🇳🇮" },
+  { name: "Níger", flag: "🇳🇪" }, { name: "Nigéria", flag: "🇳🇬" },
+  { name: "Noruega", flag: "🇳🇴" }, { name: "Nova Zelândia", flag: "🇳🇿" },
+  { name: "Omã", flag: "🇴🇲" }, { name: "Palau", flag: "🇵🇼" },
+  { name: "Panamá", flag: "🇵🇦" }, { name: "Papua-Nova Guiné", flag: "🇵🇬" },
+  { name: "Paquistão", flag: "🇵🇰" }, { name: "Paraguai", flag: "🇵🇾" },
+  { name: "Peru", flag: "🇵🇪" }, { name: "Polónia", flag: "🇵🇱" },
+  { name: "Portugal", flag: "🇵🇹" }, { name: "Quénia", flag: "🇰🇪" },
+  { name: "Quirguistão", flag: "🇰🇬" }, { name: "Quiribati", flag: "🇰🇮" },
+  { name: "Reino Unido", flag: "🇬🇧" }, { name: "República Centro-Africana", flag: "🇨🇫" },
+  { name: "República Checa", flag: "🇨🇿" }, { name: "República Democrática do Congo", flag: "🇨🇩" },
+  { name: "República Dominicana", flag: "🇩🇴" }, { name: "Roménia", flag: "🇷🇴" },
+  { name: "Ruanda", flag: "🇷🇼" }, { name: "Rússia", flag: "🇷🇺" },
+  { name: "Samoa", flag: "🇼🇸" }, { name: "Santa Lúcia", flag: "🇱🇨" },
+  { name: "São Cristóvão e Neves", flag: "🇰🇳" }, { name: "São Marino", flag: "🇸🇲" },
+  { name: "São Tomé e Príncipe", flag: "🇸🇹" }, { name: "São Vicente e Granadinas", flag: "🇻🇨" },
+  { name: "Seicheles", flag: "🇸🇨" }, { name: "Senegal", flag: "🇸🇳" },
+  { name: "Serra Leoa", flag: "🇸🇱" }, { name: "Sérvia", flag: "🇷🇸" },
+  { name: "Singapura", flag: "🇸🇬" }, { name: "Síria", flag: "🇸🇾" },
+  { name: "Somália", flag: "🇸🇴" }, { name: "Sri Lanka", flag: "🇱🇰" },
+  { name: "Sudão", flag: "🇸🇩" }, { name: "Sudão do Sul", flag: "🇸🇸" },
+  { name: "Suécia", flag: "🇸🇪" }, { name: "Suíça", flag: "🇨🇭" },
+  { name: "Suriname", flag: "🇸🇷" }, { name: "Tailândia", flag: "🇹🇭" },
+  { name: "Taiwan", flag: "🇹🇼" }, { name: "Tajiquistão", flag: "🇹🇯" },
+  { name: "Tanzânia", flag: "🇹🇿" }, { name: "Timor-Leste", flag: "🇹🇱" },
+  { name: "Togo", flag: "🇹🇬" }, { name: "Tonga", flag: "🇹🇴" },
+  { name: "Trindade e Tobago", flag: "🇹🇹" }, { name: "Tunísia", flag: "🇹🇳" },
+  { name: "Turcomenistão", flag: "🇹🇲" }, { name: "Turquia", flag: "🇹🇷" },
+  { name: "Tuvalu", flag: "🇹🇻" }, { name: "Ucrânia", flag: "🇺🇦" },
+  { name: "Uganda", flag: "🇺🇬" }, { name: "Uruguai", flag: "🇺🇾" },
+  { name: "Usbequistão", flag: "🇺🇿" }, { name: "Vanuatu", flag: "🇻🇺" },
+  { name: "Vaticano", flag: "🇻🇦" }, { name: "Venezuela", flag: "🇻🇪" },
+  { name: "Vietname", flag: "🇻🇳" }, { name: "Zâmbia", flag: "🇿🇲" },
+  { name: "Zimbabué", flag: "🇿🇼" },
+];
 
 /** Slide-in animation variants for each step */
 const slideVariants = {
@@ -35,6 +152,8 @@ const SignupFlow = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [originCountry, setOriginCountry] = useState("");
   const [motivation, setMotivation] = useState("");
   const [level, setLevel] = useState("");
   const [source, setSource] = useState("");
@@ -70,7 +189,7 @@ const SignupFlow = () => {
   };
 
   /* Total number of steps for the progress bar */
-  const totalSteps = 8;
+  const totalSteps = 9;
 
   /* ---- SUCCESS SCREEN ---- */
   if (done) {
@@ -246,8 +365,66 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 3: Motivation (optional) */}
+          {/* Step 3: Origin (province or country) */}
           {step === 3 && (
+            <>
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                De onde és?
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Escolhe a tua província. Se não fores de Angola, escolhe "Outro".
+              </p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {PROVINCES.map((opt) => {
+                  const selected = origin === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        setOrigin(opt);
+                        setOriginCountry("");
+                      }}
+                      className={`btn-duo text-sm py-3 ${selected ? "btn-duo-primary" : "btn-duo-outline"}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setOrigin("Outro")}
+                  className={`btn-duo text-sm py-3 col-span-2 ${origin === "Outro" ? "btn-duo-primary" : "btn-duo-outline"}`}
+                >
+                  Outro (fora de Angola)
+                </button>
+              </div>
+
+              {origin === "Outro" && (
+                <div className="mb-2">
+                  <Select
+                    value={originCountry}
+                    onValueChange={(v) => setOriginCountry(v)}
+                  >
+                    <SelectTrigger className="w-full h-12 rounded-2xl border-2 text-base">
+                      <SelectValue placeholder="Seleciona o teu país" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c.name} value={c.name}>
+                          <span className="mr-2">{c.flag}</span>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Step 4: Motivation (optional) */}
+          {step === 4 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 O que te motiva a aprender?
@@ -272,8 +449,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 4: Source — Como soube da Kwendi? */}
-          {step === 4 && (
+          {/* Step 5: Source — Como soube da Kwendi? */}
+          {step === 5 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Como você soube da Kwendi?
@@ -300,8 +477,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 5: Level */}
-          {step === 5 && (
+          {/* Step 6: Level */}
+          {step === 6 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual é o seu nível?
@@ -321,8 +498,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 6: Chokwe knowledge */}
-          {step === 6 && (
+          {/* Step 7: Umbundu knowledge */}
+          {step === 7 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Quanto você entende de Umbundu?
@@ -348,8 +525,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 7: Daily goal */}
-          {step === 7 && (
+          {/* Step 8: Daily goal */}
+          {step === 8 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual vai ser a sua meta diária?
