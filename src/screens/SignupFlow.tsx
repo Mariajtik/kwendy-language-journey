@@ -365,8 +365,66 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 3: Motivation (optional) */}
+          {/* Step 3: Origin (province or country) */}
           {step === 3 && (
+            <>
+              <h2 className="text-2xl font-extrabold text-foreground mb-2">
+                De onde és?
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Escolhe a tua província. Se não fores de Angola, escolhe "Outro".
+              </p>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {PROVINCES.map((opt) => {
+                  const selected = origin === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        setOrigin(opt);
+                        setOriginCountry("");
+                      }}
+                      className={`btn-duo text-sm py-3 ${selected ? "btn-duo-primary" : "btn-duo-outline"}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setOrigin("Outro")}
+                  className={`btn-duo text-sm py-3 col-span-2 ${origin === "Outro" ? "btn-duo-primary" : "btn-duo-outline"}`}
+                >
+                  Outro (fora de Angola)
+                </button>
+              </div>
+
+              {origin === "Outro" && (
+                <div className="mb-2">
+                  <Select
+                    value={originCountry}
+                    onValueChange={(v) => setOriginCountry(v)}
+                  >
+                    <SelectTrigger className="w-full h-12 rounded-2xl border-2 text-base">
+                      <SelectValue placeholder="Seleciona o teu país" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c.name} value={c.name}>
+                          <span className="mr-2">{c.flag}</span>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Step 4: Motivation (optional) */}
+          {step === 4 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 O que te motiva a aprender?
@@ -391,8 +449,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 4: Source — Como soube da Kwendi? */}
-          {step === 4 && (
+          {/* Step 5: Source — Como soube da Kwendi? */}
+          {step === 5 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Como você soube da Kwendi?
@@ -419,8 +477,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 5: Level */}
-          {step === 5 && (
+          {/* Step 6: Level */}
+          {step === 6 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual é o seu nível?
@@ -440,8 +498,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 6: Chokwe knowledge */}
-          {step === 6 && (
+          {/* Step 7: Umbundu knowledge */}
+          {step === 7 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Quanto você entende de Umbundu?
@@ -467,8 +525,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 7: Daily goal */}
-          {step === 7 && (
+          {/* Step 8: Daily goal */}
+          {step === 8 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual vai ser a sua meta diária?
