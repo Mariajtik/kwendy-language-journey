@@ -502,7 +502,10 @@ const HomeScreen = () => {
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <button
-                onClick={() => setStartOpen(false)}
+                onClick={() => {
+                  setStartOpen(false);
+                  if (activeLesson) navigate(`/lesson/${activeLesson.id}`);
+                }}
                 className="btn-duo btn-duo-primary w-full"
               >
                 Começar +10 XP
