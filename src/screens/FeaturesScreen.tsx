@@ -48,7 +48,7 @@ const FEATURES = [
     tilt: -4,
   },
   {
-    emoji: "🥁",
+    emoji: "🪘",
     title: "Cultura Angolana",
     desc: "Curiosidades, gastronomia, música e festas das províncias Umbundu.",
     color: "hsl(var(--kwendi-peach))",
