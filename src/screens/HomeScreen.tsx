@@ -168,16 +168,6 @@ const Campfire = () => (
   </div>
 );
 
-/* ---- Bottom nav config ---- */
-const navItems = [
-  { key: "home", Comp: HouseIcon, color: "#FBBD12", active: true, kind: "svg" as const },
-  { key: "chest", Comp: Chest, color: "#B87656", kind: "svg" as const },
-  { key: "book", Comp: BookIcon, color: "#FFA767", kind: "svg" as const },
-  { key: "search", Comp: SearchIcon, color: "#78D0FF", kind: "svg" as const },
-  { key: "user", Comp: UserIcon, color: "#FF7BBF", kind: "svg" as const },
-  { key: "more", kind: "more" as const },
-];
-
 const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
