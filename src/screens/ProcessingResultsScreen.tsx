@@ -8,7 +8,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import kwendiImg from "@/assets/characters/kwendi.jpg";
+import kwendiAsset from "@/assets/characters/kwendi.jpg.asset.json";
+const kwendiImg = kwendiAsset.url;
 
 const ProcessingResultsScreen = () => {
   const navigate = useNavigate();
