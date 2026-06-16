@@ -121,7 +121,7 @@ const ProcessingResultsScreen = () => {
           {/* Linha preta encostada nas botas (a Kwendi pisa nela) */}
           <div
             className="absolute left-1/2 -translate-x-1/2 h-px bg-black"
-            style={{ bottom: 0, width: "70%" }}
+            style={{ bottom: 24, width: "70%" }}
           />
         </div>
       </div>
