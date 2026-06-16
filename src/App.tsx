@@ -22,6 +22,7 @@ import LoginScreen from "./screens/LoginScreen";
 import StealthModeScreen from "./screens/StealthModeScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ProcessingResultsScreen from "./screens/ProcessingResultsScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<SignupFlow />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+        <Route path="/processing" element={<ProcessingResultsScreen />} />
         <Route path="/stealth" element={<StealthModeScreen />} />
         <Route path="/home" element={<HomeScreen />} />
         <Route path="*" element={<NotFound />} />
