@@ -96,7 +96,11 @@ const LoginScreen = () => {
       </button>
 
       {/* Login button */}
-      <button className="btn-duo btn-duo-primary" onClick={() => setSuccess(true)}>
+      <button
+        className="btn-duo btn-duo-primary disabled:opacity-50"
+        onClick={() => setSuccess(true)}
+        disabled={!/\S+@\S+\.\S+/.test(email) || password.length < 6}
+      >
         Entrar
       </button>
     </motion.div>
