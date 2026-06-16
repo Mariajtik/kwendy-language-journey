@@ -160,6 +160,7 @@ const SignupFlow = () => {
   const [motivation, setMotivation] = useState("");
   const [level, setLevel] = useState("");
   const [source, setSource] = useState("");
+  const [sourceOther, setSourceOther] = useState("");
   const [chokwe, setChokwe] = useState("");
   const [dailyGoal, setDailyGoal] = useState("");
 
@@ -182,7 +183,7 @@ const SignupFlow = () => {
   /** Move to next step, or finish */
   const next = () => {
     if (step < totalSteps - 1) setStep(step + 1);
-    else setDone(true);
+    else navigate("/processing", { state: { level, username } });
   };
 
   /** Move back one step */
@@ -210,7 +211,8 @@ const SignupFlow = () => {
     if (step === 2)
       return origin !== "" && (origin !== "Outro" || originCountry !== "");
     if (step === 3) return motivation !== "";
-    if (step === 4) return source !== "";
+    if (step === 4)
+      return source !== "" && (source !== "Outro" || sourceOther !== "");
     if (step === 5) return level !== "";
     if (step === 6) return chokwe !== "";
     if (step === 7) return dailyGoal !== "";
@@ -499,12 +501,31 @@ const SignupFlow = () => {
                   <button
                     key={opt}
                     className={`btn-duo ${source === opt ? "btn-duo-primary" : "btn-duo-outline"}`}
-                    onClick={() => setSource(opt)}
+                    onClick={() => {
+                      setSource(opt);
+                      if (opt !== "Outro") setSourceOther("");
+                    }}
                   >
                     {opt}
                   </button>
                 ))}
               </div>
+              {source === "Outro" && (
+                <div className="mt-4">
+                  <Select value={sourceOther} onValueChange={setSourceOther}>
+                    <SelectTrigger className="w-full h-12 rounded-2xl border-2 text-base">
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Amigos">Amigos</SelectItem>
+                      <SelectItem value="Escola">Escola</SelectItem>
+                      <SelectItem value="Nenhuma das opções acima">
+                        Nenhuma das opções acima
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
