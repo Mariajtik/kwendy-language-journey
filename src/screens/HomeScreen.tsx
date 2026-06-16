@@ -15,6 +15,7 @@ import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
+import BottomNav from "@/components/BottomNav";
 import {
   Dialog,
   DialogContent,
@@ -240,6 +241,7 @@ const HomeScreen = () => {
           <button
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow flex-shrink-0"
             aria-label="Perfil"
+            onClick={() => navigate("/profile")}
           >
             <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
           </button>
@@ -415,51 +417,7 @@ const HomeScreen = () => {
       </button>
 
       {/* ---- BOTTOM NAV ---- */}
-      <nav
-        className="absolute bottom-0 left-0 right-0 z-20 mx-auto"
-        style={{ maxWidth: "480px" }}
-      >
-        <div
-          className="bg-white rounded-t-3xl px-3 pt-3 pb-2 flex items-center justify-around shadow-lg relative"
-          style={{ borderTop: "3px solid #86D05D" }}
-        >
-          {navItems.map((item) => {
-            if (item.kind === "more") {
-              return (
-                <button
-                  key={item.key}
-                  className="w-11 h-9 rounded-xl flex items-center justify-center gap-0.5"
-                  style={{ background: "#FBBD12" }}
-                  aria-label="Mais"
-                >
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                </button>
-              );
-            }
-            const Comp = item.Comp!;
-            return (
-              <button
-                key={item.key}
-                className="relative p-1 flex flex-col items-center"
-                aria-label={item.key}
-              >
-                <Comp className="w-7 h-7" color={item.color} />
-                {item.active && (
-                  <span
-                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
-                    style={{ background: item.color }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Hidden navigate to silence unused warning when needed */}
-      <span style={{ display: "none" }}>{navigate.length}</span>
+      <BottomNav active="home" />
 
       {/* ---- Locked lesson dialog ---- */}
       <Dialog open={lockedOpen} onOpenChange={setLockedOpen}>
