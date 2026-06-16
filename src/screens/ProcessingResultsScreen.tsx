@@ -118,10 +118,10 @@ const ProcessingResultsScreen = () => {
             alt="Kwendi"
             className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full w-auto object-contain"
           />
-          {/* Linha preta sob os pés (a Kwendi pisa nela) */}
+          {/* Linha preta encostada nas botas (a Kwendi pisa nela) */}
           <div
             className="absolute left-1/2 -translate-x-1/2 h-px bg-black"
-            style={{ bottom: 6, width: "70%" }}
+            style={{ bottom: 0, width: "70%" }}
           />
         </div>
       </div>
