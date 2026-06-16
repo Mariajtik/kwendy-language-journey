@@ -6,20 +6,90 @@
  * that activates stealth mode for 7 days.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Camera, Loader2 } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 const StealthModeScreen = () => {
   const navigate = useNavigate();
 
   /* Editable username — defaults to "Angola" */
   const [username, setUsername] = useState("Angola");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+
+  /* Editable avatar photo */
+  const [photo, setPhoto] = useState<string>(avatar);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  /* Moderation state */
+  const [submitting, setSubmitting] = useState(false);
+  const [policyError, setPolicyError] = useState<string | null>(null);
 
   /* Whether stealth mode has been activated */
   const [activated, setActivated] = useState(false);
+
+  /* Username validation: no punctuation, max 24 chars */
+  const PUNCT_REGEX = /[\p{P}\p{S}]/u;
+  const validateUsername = (value: string): string | null => {
+    if (!value.trim()) return "Insira um nome de usuário.";
+    if (value.length > 24) return "O nome não pode exceder 24 caracteres.";
+    if (PUNCT_REGEX.test(value)) return "Não são permitidos sinais de pontuação.";
+    return null;
+  };
+
+  const onUsernameChange = (value: string) => {
+    setUsername(value);
+    setUsernameError(validateUsername(value));
+    setPolicyError(null);
+  };
+
+  const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setPolicyError("A imagem deve ter no máximo 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+    setPolicyError(null);
+  };
+
+  const handleAdvance = async () => {
+    const err = validateUsername(username);
+    if (err) {
+      setUsernameError(err);
+      return;
+    }
+    setSubmitting(true);
+    setPolicyError(null);
+    try {
+      const isCustomPhoto = photo.startsWith("data:");
+      const { data, error } = await supabase.functions.invoke("moderate-profile", {
+        body: {
+          username,
+          imageBase64: isCustomPhoto ? photo : undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.allowed) {
+        setActivated(true);
+      } else {
+        setPolicyError(
+          data?.reason ||
+            "A equipa Kwendi considerou este conteúdo ofensivo segundo a política da comunidade.",
+        );
+      }
+    } catch (e) {
+      setPolicyError("Não foi possível validar o perfil. Tente novamente.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   /* ---- ACTIVATED STATE ---- */
   if (activated) {
@@ -64,22 +134,51 @@ const StealthModeScreen = () => {
       </button>
 
       <div className="flex flex-col items-center">
-        {/* Avatar */}
-        <img
-          src={avatar}
-          alt="Avatar"
-          className="w-28 h-28 rounded-full shadow-lg mb-4 object-cover"
-        />
+        {/* Editable avatar */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="relative mb-4 group"
+          aria-label="Alterar foto"
+        >
+          <img
+            src={photo}
+            alt="Avatar"
+            className="w-28 h-28 rounded-full shadow-lg object-cover"
+          />
+          <span
+            className="absolute bottom-0 right-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md border-2 border-background"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            <Camera className="w-4 h-4" style={{ color: "hsl(var(--primary-foreground))" }} />
+          </span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onPhotoChange}
+          />
+        </button>
 
         {/* Editable username */}
         <label className="text-sm text-muted-foreground font-semibold mb-1">
           Nome de usuário
         </label>
         <input
-          className="input-duo text-center mb-8 max-w-[200px]"
+          className="input-duo text-center max-w-[220px]"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          maxLength={24}
+          onChange={(e) => onUsernameChange(e.target.value)}
         />
+        {usernameError && (
+          <p className="text-xs text-destructive mt-2 text-center max-w-[260px]">
+            {usernameError}
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground mt-1 mb-6">
+          {username.length}/24
+        </p>
 
         {/* Explanation text */}
         <div className="text-center mb-8 px-2">
@@ -95,12 +194,29 @@ const StealthModeScreen = () => {
           </p>
         </div>
 
+        {/* Policy feedback */}
+        {policyError && (
+          <div className="w-full max-w-xs mb-4 p-3 rounded-2xl border-2 border-destructive/40 bg-destructive/10">
+            <p className="text-sm text-destructive font-semibold text-center">
+              {policyError}
+            </p>
+          </div>
+        )}
+
         {/* Avançar button */}
         <button
-          className="btn-duo btn-duo-gold w-full max-w-xs"
-          onClick={() => setActivated(true)}
+          className="btn-duo btn-duo-gold w-full max-w-xs disabled:opacity-60 flex items-center justify-center gap-2"
+          onClick={handleAdvance}
+          disabled={submitting || !!usernameError}
         >
-          Avançar
+          {submitting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              A verificar...
+            </>
+          ) : (
+            "Avançar"
+          )}
         </button>
       </div>
     </motion.div>
