@@ -1,76 +1,132 @@
-# Plano — Tela Home (Mapa de Lições) + Conexões
+# Kwendi — Plano de Front-End (sem back-end)
 
-## 1. Conexões de navegação para `/home`
+O escopo é enorme. Para entregar com qualidade no mesmo estilo visual atual (rounded, crimson, 3D buttons, baú/HomeScreen) proponho **dividir em 6 fases**. Cada fase é mergeada e testada antes da próxima. Tudo será **somente UI**, com dados mockados em memória — nada de Supabase, OAuth real, IA ou validação de token agora.
 
-- **Modo Furtivo** (`StealthModeScreen.tsx`): botão final → `/home`.
-- **Login** (`LoginScreen.tsx`): sucesso → `/home`.
-- **Começar/Signup** (`SignupFlow.tsx`): última etapa do fluxo → `/home`.
+> Quando o usuário aprovar este plano, começo pela **Fase 1**. Posso entregar as fases seguintes em mensagens subsequentes ou tudo de uma vez — diga sua preferência depois.
 
-## 2. Nova tela `HomeScreen.tsx` (rota `/home`)
+---
 
-Layout inspirado no screenshot anexado (estilo Duolingo), com **background de grama** (`grass.jpg`).
+## Fase 1 — Autenticação (UI)
 
-### Header (top bar)
+**Telas/alterações**
 
-Da esquerda para a direita, sobre faixa translúcida clara para legibilidade:
+- `LoginScreen.tsx` e início de `SignupFlow.tsx`: adicionar 3 botões grandes empilhados no topo:
+  - "Continuar com Google" (ícone G colorido)
+  - "Continuar com Apple" (logo Apple preta)
+  - "Continuar com email" (abre os campos atuais)
+- Separador "ou" entre social e formulário.
+- Input de senha com toggle 👁️ mostrar/ocultar e feedback visual (barra de força: fraca/média/forte por regex de comprimento + variedade).
+- Link "Esqueceu a senha?" abaixo do campo de senha → abre `ForgotPasswordScreen` (nova tela): input email, botão "Enviar código", depois 6 inputs OTP estilizados, depois 2 inputs de nova senha. Tudo apenas visual com transições; ao "validar" mostra toast "Autenticação concluída com sucesso." e volta para login.
+- Nova mini-tela `AuthSuccessScreen` (overlay com checkmark animado + texto) reaproveitável.
 
-1. **Avatar circular** com a foto usada no Modo Furtivo (`src/assets/avatar.jpg`), borda branca.
-2. **Fogueira**: composição = ícone `Flame` (lucide, cinza claro) sobre 2 pequenos retângulos cruzados castanhos `#B87656` simulando troncos. Contador "0".
-3. **Diamante**: SVG inline custom em `#5E5C5C`, com linhas internas dividindo o diamante em facetas (4 partes) para dar detalhe. Texto "1000" em `#5E5C5C` bold.
-4. **Coração** preenchido vermelho `hsl(var(--primary))` + "5".
+**Sem back-end**: cliques nos sociais e no fluxo OTP apenas avançam visualmente.
 
-### Banner do módulo
+---
 
-Card vermelho arredondado: "MÓDULO 1, UNIDADE 1" (small) + "Saúda a tua comunidade" (bold).
+## Fase 2 — Ajustes no SignupFlow existente
 
-### Caminho de lições (zig-zag)
+- Step "Como conheceu o Kwendi?": ao escolher **Outro**, mostrar `<Select>` com opções: Amigos, Escola, Nenhuma das opções acima.
+- Step "Nível": opções Iniciante / Intermediário / Avançado (já parece existir — confirmar e padronizar).
+- Após o teste de nivelamento (mesmo que mock), **nova tela `ProcessingResultsScreen**`:
+  - Imagem da Kwendi sentada sobre linha preta fina.
+  - Nuvem de pensamento acima com rabiscos SVG sendo desenhados/apagados em loop (4s).
+  - Texto fade-in: "Aguarde um pouco, está bem? Daqui a nada receberá os resultados!"
+  - Após 4s, fade-in segundo bloco com pontuação mock, nível e justificativa genérica; rabiscos somem e aparece "Avaliação completa!" com um grande ✦.
+  - Botão "Continuar" → leva para `/home`.
 
-3 botões circulares 3D verticais:
+---
 
-- Lição 1 — vermelho ativo com halo branco, número "1".
-- Lições 2 e 3 — cinza claro.
+## Fase 3 — Bottom Navigation + Popover "..."
 
-Após o avatar e antes da fogueira, um ícone de decoração de interiores (lucide `Sofa` ou `Lamp`)  com borda castanha — representa secção de decoração da casa mwangolé.
+**Novo componente** `BottomNav.tsx` reutilizável com 6 ícones (Casa, Baú, Livro, Lupa, Perfil, ...):
 
-Botão flutuante circular branco no canto inferior direito com triângulo vermelho que faz scroll ao ínicio da tela.
+- Ícone ativo: bounce + glow (crimson).
+- Coroa pequena sobre o Perfil quando rota = `/profile`.
+- "..." abre `Popover` (radix) posicionado acima da nav, scale+fade, com pills brancas: Fala, Escuta, Palavras, Alfabeto/pronúncia. Clique fora fecha. Cada pill navega para `/practice/<tipo>` (placeholder screen).
 
-### Bottom Navigation
+**Novas rotas/telas placeholder** (cada uma só UI básica com header + bottom nav):
 
-Container branco com **cantos inferiores arredondados** (`rounded-b-3xl`), pequenas curvas esverdeadas decorativas nos cantos superiores . 6 ícones, cada um numa cor da paleta:
+- `/missions` (Baú)
+- `/library` (Livro — "Biblioteca" com grid colorido como no screenshot)
+- `/curiosities` (Lupa)
+- `/profile`
+- `/practice/:type`
 
-1. **Casa** (Home) — amarelo `#FBBD12`, ativo com dot embaixo.
-2. **Báu** (segundo ícone) — SVG custom de báu/tesouro em castanho `#B87656` (substitui a mala).
-3. **Livro** — pêssego `#FFA767`.
-4. **Lupa** — azul `#78D0FF`.
-5. **Pessoa** — rosa `#FF7BBF`.
-6. **Três pontinhos** — pontinhos **brancos** dentro de um **quadrado arredondado amarelo `#FBBD12**` da paleta.
+Atualizar `HomeScreen` para usar o novo `BottomNav`.
 
-## 3. Assets
+---
 
-- `src/assets/grass.jpg.asset.json` — criado via `lovable-assets create --file /mnt/user-uploads/grass.jpg`.
+## Fase 4 — Profile + Modal "Módulo em desenvolvimento"
 
-## 4. Arquivos a criar/editar
+`**ProfileScreen.tsx**` (referência: screenshot vermelho):
 
-**Criar:**
+- Header crimson grande com curva orgânica (clipPath) + nome do usuário em branco, ícones compartilhar e settings no topo direito.
+- Tabs: Perfil / Comunidade / Definições.
+- **Aba Perfil**: blocos
+  - Visão geral: Sequência 🔥, XP ⚡, Nível.
+  - Info: nome, diamantes negros, data de ingresso.
+  - Marcos: 4 círculos com `+`.
+  - Conquistas: grid de 4 cards cinza placeholder.
+- **Aba Comunidade**: feed mock com cards (avatar, nome, conquista, reações: "Tá malaik", "Granda mambo!", "Concordo", "Discordo" com emojis). Aba secundária "Minha Tribo" (placeholder vazio com mensagem amigável).
+- **Aba Definições**: lista (Compartilhar, Notificações, Conta, Acessibilidade) — só UI.
 
-- `src/screens/HomeScreen.tsx`
-- `src/assets/grass.jpg.asset.json`
+**Modal "Módulo em desenvolvimento"** (componente reutilizável `ModuleLockedModal`):
 
-**Editar:**
+- Pequeno, centralizado, X no canto.
+- Animação Lottie/CSS de engrenagens girando no topo.
+- Texto: "Desculpe! Este módulo ainda não foi desenvolvido... Estamos trabalhando nisso! Enquanto isso pode:"
+- Botão "Explorar" → entra em modo exploração (todos módulos desbloqueados, mesma lógica do Modo Furtivo).
+- Quando usuário clica num módulo cinza no HomeScreen: primeiro destaca a unidade com círculo branco pulsante, depois abre o modal.
 
-- `src/App.tsx` — registrar rota `/home`.
-- `src/screens/StealthModeScreen.tsx` — botão final → `/home`.
-- `src/screens/LoginScreen.tsx` — botão final → `/home`.
-- `src/screens/SignupFlow.tsx` — último passo → `/home`.
+---
+
+## Fase 5 — Curiosidades (Museu vivo) + Dicionário
+
+`**CuriositiesScreen.tsx**`:
+
+- Header "Curiosidades de Angola" + subtítulo.
+- Search bar grande.
+- Chips horizontais scrolláveis com cores: Natureza (verde), História (vermelho), Cultura (amarelo), Gastronomia (laranja), Línguas (roxo), Monumentos (azul).
+- Grid responsivo (1/2/3 colunas) de **cards premium**: imagem placeholder, overlay gradient escuro, badge categoria, título grande, mini-descrição 3 linhas, botão "Saber mais". Hover/tap: scale 0.97 + sombra.
+- 12 cards mockados com os títulos/subtítulos fornecidos (Imbondeiro, Rainha Nzinga, O Pensador, Palanca Negra Gigante, Welwitschia, Mufete, Agostinho Neto, Nontombi, Umbundu, Fenda da Tundavala, Floresta do Maiombe, Quedas de Kalandula).
+
+**Modal fullscreen `CuriosityModal**`:
+
+- Hero image no topo com overlay gradient, título em branco.
+- Botão X glassmorphism no top-left.
+- Conteúdo scrollável com seções: Introdução, História, Importância cultural, Curiosidades (texto storytelling mock baseado no que o usuário forneceu).
+- Transição: hero animation (layoutId framer-motion).
+
+`**DictionaryScreen.tsx**` (já parte da Lupa? — clarificar abaixo): se a Lupa for Curiosidades, criar rota separada `/dictionary` acessível via Perfil ou popover. Por enquanto coloco em `/dictionary`:
+
+- Search bar grande Umbundu ↔ Português.
+- Lista de cards mock: palavra, tradução, botão ▶ áudio (placeholder), ⭐ favorito.
+
+---
+
+## Fase 6 — Missões + Stealth Mode polish + IA Kwendi "thinking" reusable
+
+- `MissionsScreen.tsx` (Baú): header verde curvado, "Missões diárias" com timer 00h, lista de 4 cards "Descrição da missão" + barra 0/0 (mock estático).
+- `StealthModeScreen.tsx`: adicionar perfil temporário editável (foto + username "Angola" com validação local: ≤24 chars, sem pontuação, toast de aviso quando violado). A "checagem de IA" fica como toast mock ("A equipa Kwendi analisará…") — sem IA real nessa fase.
+- Refatorar a animação Kwendi pensando (Fase 2) em `<KwendiThinking />` reutilizável.
+
+---
 
 ## Detalhes técnicos
 
-- Grama: `background-image` + overlay `rgba(255,255,255,0.2)` para legibilidade do conteúdo.
-- Diamante e báu: SVG inline custom (não há ícone perfeito no lucide).
-- Fogueira: `Flame` lucide + 2 `<div>` rotacionados (-30°/+30°) em castanho.
-- Animação Framer Motion fade-in na entrada.
-- Preview em mobile.
+- Stack: React + Vite + Tailwind + framer-motion + shadcn (Popover, Select, Dialog, Tabs já disponíveis).
+- Tudo segue tokens crimson/cream do `index.css` — sem hardcode de cores.
+- Imagens placeholder via `lovable-assets` ou gradientes coloridos onde ainda não há arte real (cards de curiosidades, avatar). Quando o usuário enviar imagens reais, troco depois.
+- Estado de "usuário logado/exploração" mantido em `localStorage` apenas para alternar entre HomeScreen normal vs HomeScreen-com-tudo-desbloqueado.
+- Zero chamadas de rede, zero Supabase, zero IA gateway nessa entrega.
 
-&nbsp;
+---
 
-O MAIS IMPORTANTE, DEVE ESTAR HARMÓNICO.
+## Perguntas rápidas antes de codar
+
+1. Posso entregar **fase por fase** (recomendo), ou prefere que eu faça tudo de uma vez em uma mensagem só (mais lento, mais difícil de revisar)? Faça fase por fase.
+2. A **Lupa** abre Curiosidades.
+3. O Dicionário é nos 3 pontinhos.
+4. Para os cards de Curiosidades, vou enviar as imagens.
+
+Aprovando este plano, começo pela **Fase 1 (autenticação UI)**.
