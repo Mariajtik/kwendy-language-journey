@@ -19,6 +19,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 import mountainAsset from "@/assets/mountain.mp4.asset.json";
 
 /* ----- Conteúdo dos slides (resumido e fluido) ----- */
@@ -56,6 +57,7 @@ const ApresentationScreen = () => {
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   /* Auto-avanço */
@@ -131,7 +133,7 @@ const ApresentationScreen = () => {
           autoPlay
           preload="auto"
           loop
-          muted
+          muted={muted}
           playsInline
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -172,6 +174,24 @@ const ApresentationScreen = () => {
             Pular
           </button>
         </div>
+
+        {/* Botão de som */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const v = videoRef.current;
+            const next = !muted;
+            setMuted(next);
+            if (v) {
+              v.muted = next;
+              if (!next) v.play().catch(() => undefined);
+            }
+          }}
+          aria-label={muted ? "Ativar som" : "Desativar som"}
+          className="absolute top-14 right-4 z-20 rounded-full bg-white/20 backdrop-blur p-2.5 text-white hover:bg-white/30 transition"
+        >
+          {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
 
         {/* Indicador de pausa */}
         <AnimatePresence>

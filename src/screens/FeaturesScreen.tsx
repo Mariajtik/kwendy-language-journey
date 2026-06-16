@@ -48,7 +48,7 @@ const FEATURES = [
     tilt: -4,
   },
   {
-    emoji: "🪘",
+    emoji: "🥁",
     title: "Cultura Angolana",
     desc: "Curiosidades, gastronomia, música e festas das províncias Umbundu.",
     color: "hsl(var(--kwendi-peach))",
@@ -145,9 +145,7 @@ const FeaturesScreen = () => {
                 }}
                 className="w-12 h-12 rounded-[18px] flex items-center justify-center mb-2 text-2xl select-none"
               >
-                <span style={{ filter: "drop-shadow(0 1px 0 rgba(0,0,0,0.18))" }}>
-                  {f.emoji}
-                </span>
+                <span>{f.emoji}</span>
               </motion.div>
               <h3 className="text-sm font-extrabold text-foreground leading-tight">
                 {f.title}
