@@ -205,6 +205,7 @@ const SignupFlow = () => {
   /* Validação simples para habilitar o botão Continuar */
   const isEmailValid = /\S+@\S+\.\S+/.test(email);
   const canAdvance = (() => {
+    if (step === 0) return username.trim().length > 0;
     if (step === 1) return isEmailValid && password.length >= 6;
     return true;
   })();
