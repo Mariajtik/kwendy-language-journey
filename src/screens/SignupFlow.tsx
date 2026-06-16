@@ -17,6 +17,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Upload } from "lucide-react";
 import logoImg from "@/assets/logo.jpg";
 import avatarImg from "@/assets/avatar.jpg";
+import PasswordInput from "@/components/PasswordInput";
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 import {
   Select,
   SelectContent,
@@ -263,6 +265,14 @@ const SignupFlow = () => {
                 Escolha um nome de usuário e uma foto de perfil.
               </p>
 
+              {/* Social auth atalho */}
+              <SocialAuthButtons mode="signup" />
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ou</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               {/* Profile photo preview */}
               <div className="flex flex-col items-center mb-6">
                 <img
@@ -354,13 +364,14 @@ const SignupFlow = () => {
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Crie uma senha
               </h2>
-              <p className="text-muted-foreground mb-6">Mínimo 6 caracteres.</p>
-              <input
-                className="input-duo mb-6"
-                type="password"
-                placeholder="Senha"
+              <p className="text-muted-foreground mb-6">
+                Mínimo 6 caracteres. Quanto mais variada, mais forte.
+              </p>
+              <PasswordInput
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
+                placeholder="Senha"
+                className="mb-6"
               />
             </>
           )}

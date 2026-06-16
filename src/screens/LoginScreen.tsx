@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check } from "lucide-react";
 import logo from "@/assets/logo.jpg";
+import PasswordInput from "@/components/PasswordInput";
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
@@ -29,18 +31,18 @@ const LoginScreen = () => {
       >
         <div
           className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
-          style={{ background: "hsl(var(--primary))" }}
+          style={{ background: "hsl(var(--kwendi-green))" }}
         >
-          <Check className="w-10 h-10" style={{ color: "hsl(var(--primary-foreground))" }} />
+          <Check className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-2xl font-extrabold text-foreground mb-2">
-          Login realizado com sucesso!
+        <h1 className="text-2xl font-extrabold text-foreground mb-2 text-center">
+          Autenticação concluída com sucesso.
         </h1>
         <button
           className="btn-duo btn-duo-primary max-w-xs mt-8"
           onClick={() => navigate("/home")}
         >
-          Voltar ao início
+          Continuar
         </button>
       </motion.div>
     );
@@ -65,6 +67,16 @@ const LoginScreen = () => {
         <h1 className="text-2xl font-extrabold text-foreground">Entrar na conta</h1>
       </div>
 
+      {/* Social auth */}
+      <SocialAuthButtons mode="login" />
+
+      {/* Separator */}
+      <div className="flex items-center gap-3 my-6">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ou</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
       {/* Form fields */}
       <input
         className="input-duo mb-4"
@@ -73,13 +85,15 @@ const LoginScreen = () => {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
-      <input
-        className="input-duo mb-8"
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <PasswordInput value={password} onChange={setPassword} showStrength={false} className="mb-3" />
+
+      <button
+        type="button"
+        onClick={() => navigate("/forgot-password")}
+        className="text-sm font-bold text-primary self-end mb-6"
+      >
+        Esqueceu a senha?
+      </button>
 
       {/* Login button */}
       <button className="btn-duo btn-duo-primary" onClick={() => setSuccess(true)}>
