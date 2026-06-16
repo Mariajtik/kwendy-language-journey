@@ -8,8 +8,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import kwendiAsset from "@/assets/characters/kwendi.jpg.asset.json";
-const kwendiImg = kwendiAsset.url;
+import kwendiImg from "@/assets/characters/kwendi-cutout.png";
 
 const ProcessingResultsScreen = () => {
   const navigate = useNavigate();
@@ -56,66 +55,72 @@ const ProcessingResultsScreen = () => {
       className="flex flex-col items-center px-6 py-10"
       style={{ minHeight: "100dvh", background: "#ffffff" }}
     >
-      {/* Nuvem de pensamento + rabiscos / "!" */}
-      <div className="relative w-56 h-40 mb-2">
-        <svg viewBox="0 0 200 140" className="w-full h-full">
-          {/* Bolhinhas pequenas saindo */}
-          <circle cx="40" cy="120" r="5" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2" />
-          <circle cx="55" cy="108" r="7" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2" />
-          {/* Nuvem principal */}
-          <path
-            d="M 70 90
-               C 50 90, 40 70, 60 60
-               C 55 40, 80 30, 95 45
-               C 105 25, 140 30, 145 50
-               C 170 50, 180 75, 160 90
-               C 165 105, 140 110, 125 100
-               C 115 115, 85 110, 80 100
-               C 70 105, 60 100, 70 90 Z"
-            fill="#ffffff"
-            stroke="#1a1a1a"
-            strokeWidth="2.5"
-          />
-          <AnimatePresence mode="wait">
-            {phase === "thinking" ? (
-              <motion.g
-                key="scribbles"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <Scribble d="M 80 65 Q 95 55, 110 65 T 140 65" delay={0} />
-                <Scribble d="M 85 75 Q 105 70, 125 78 T 150 75" delay={0.3} />
-                <Scribble d="M 90 85 Q 110 80, 130 88" delay={0.6} />
-              </motion.g>
-            ) : (
-              <motion.text
-                key="bang"
-                x="110"
-                y="92"
-                textAnchor="middle"
-                fontSize="56"
-                fontWeight="900"
-                fill="hsl(5 84% 42%)"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", duration: 0.6 }}
-              >
-                !
-              </motion.text>
-            )}
-          </AnimatePresence>
-        </svg>
-      </div>
+      {/* Kwendi + nuvem de pensamento, com linha sob os pés */}
+      <div className="relative w-full flex flex-col items-center">
+        <div className="relative" style={{ width: 220, height: 280 }}>
+          {/* Nuvem de pensamento, posicionada acima/à esquerda da cabeça */}
+          <svg
+            viewBox="0 0 200 140"
+            className="absolute"
+            style={{ width: 150, height: 105, top: -30, left: -70 }}
+          >
+            {/* Bolhinhas conectando à cabeça */}
+            <circle cx="160" cy="120" r="5" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2" />
+            <circle cx="145" cy="108" r="7" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2" />
+            {/* Nuvem principal */}
+            <path
+              d="M 70 90
+                 C 50 90, 40 70, 60 60
+                 C 55 40, 80 30, 95 45
+                 C 105 25, 140 30, 145 50
+                 C 170 50, 180 75, 160 90
+                 C 165 105, 140 110, 125 100
+                 C 115 115, 85 110, 80 100
+                 C 70 105, 60 100, 70 90 Z"
+              fill="#ffffff"
+              stroke="#1a1a1a"
+              strokeWidth="2.5"
+            />
+            <AnimatePresence mode="wait">
+              {phase === "thinking" ? (
+                <motion.g
+                  key="scribbles"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Scribble d="M 80 65 Q 95 55, 110 65 T 140 65" delay={0} />
+                  <Scribble d="M 85 75 Q 105 70, 125 78 T 150 75" delay={0.3} />
+                  <Scribble d="M 90 85 Q 110 80, 130 88" delay={0.6} />
+                </motion.g>
+              ) : (
+                <motion.text
+                  key="bang"
+                  x="110"
+                  y="92"
+                  textAnchor="middle"
+                  fontSize="56"
+                  fontWeight="900"
+                  fill="hsl(5 84% 42%)"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", duration: 0.6 }}
+                >
+                  !
+                </motion.text>
+              )}
+            </AnimatePresence>
+          </svg>
 
-      {/* Kwendi sentada na linha */}
-      <div className="relative flex flex-col items-center w-full">
-        <img
-          src={kwendiImg}
-          alt="Kwendi"
-          className="w-28 h-28 rounded-full object-cover"
-        />
-        <div className="w-3/5 h-px bg-black mt-[-6px]" />
+          {/* Kwendi de corpo inteiro */}
+          <img
+            src={kwendiImg}
+            alt="Kwendi"
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full w-auto object-contain"
+          />
+        </div>
+        {/* Linha sob os pés */}
+        <div className="w-3/5 h-px bg-black" />
       </div>
 
       {/* Conteúdo dinâmico */}
