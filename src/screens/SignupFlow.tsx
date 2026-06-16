@@ -15,6 +15,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Upload } from "lucide-react";
+import { toast } from "sonner";
 import logoImg from "@/assets/logo.jpg";
 import avatarImg from "@/assets/avatar.jpg";
 import PasswordInput from "@/components/PasswordInput";
@@ -191,7 +192,23 @@ const SignupFlow = () => {
   };
 
   /* Total number of steps for the progress bar */
-  const totalSteps = 9;
+  const totalSteps = 8;
+
+  /** Pula a etapa de email/senha após autenticação social bem-sucedida */
+  const handleSocialAuth = (provider: "google" | "apple") => {
+    toast.success(
+      `Conectado com ${provider === "google" ? "Google" : "Apple"}!`,
+    );
+    setStep(2);
+  };
+
+  /* Validação simples para habilitar o botão Continuar */
+  const isEmailValid = /\S+@\S+\.\S+/.test(email);
+  const canAdvance = (() => {
+    if (step === 0) return username.trim().length > 0;
+    if (step === 1) return isEmailValid && password.length >= 6;
+    return true;
+  })();
 
   /* ---- SUCCESS SCREEN ---- */
   if (done) {
@@ -265,14 +282,6 @@ const SignupFlow = () => {
                 Escolha um nome de usuário e uma foto de perfil.
               </p>
 
-              {/* Social auth atalho */}
-              <SocialAuthButtons mode="signup" />
-              <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ou</span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
               {/* Profile photo preview */}
               <div className="flex flex-col items-center mb-6">
                 <img
@@ -341,43 +350,47 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 1: Email */}
+          {/* Step 1: Email + senha (com login social) */}
           {step === 1 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
-                Qual é o seu email?
+                Crie sua conta
               </h2>
-              <p className="text-muted-foreground mb-6">Usaremos para recuperar sua conta.</p>
+              <p className="text-muted-foreground mb-6">
+                Use um provedor ou cadastre-se com email.
+              </p>
+
+              <SocialAuthButtons mode="signup" onProvider={handleSocialAuth} />
+
+              <div className="flex items-center gap-3 my-5">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  ou
+                </span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               <input
-                className="input-duo mb-6"
+                className="input-duo mb-4"
                 type="email"
                 placeholder="email@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </>
-          )}
-
-          {/* Step 2: Password */}
-          {step === 2 && (
-            <>
-              <h2 className="text-2xl font-extrabold text-foreground mb-2">
-                Crie uma senha
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Mínimo 6 caracteres. Quanto mais variada, mais forte.
-              </p>
               <PasswordInput
                 value={password}
                 onChange={setPassword}
-                placeholder="Senha"
-                className="mb-6"
+                placeholder="Senha (mín. 6 caracteres)"
+                className="mb-2"
               />
+              <p className="text-xs text-muted-foreground mb-6">
+                Sua senha deve ter no mínimo 6 caracteres.
+              </p>
             </>
           )}
 
-          {/* Step 3: Origin (province or country) */}
-          {step === 3 && (
+          {/* Step 2: Origin (province or country) */}
+          {step === 2 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 De onde és?
@@ -434,8 +447,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 4: Motivation (optional) */}
-          {step === 4 && (
+          {/* Step 3: Motivation (optional) */}
+          {step === 3 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 O que te motiva a aprender?
@@ -460,8 +473,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 5: Source — Como soube da Kwendi? */}
-          {step === 5 && (
+          {/* Step 4: Source — Como soube da Kwendi? */}
+          {step === 4 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Como você soube da Kwendi?
@@ -488,8 +501,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 6: Level */}
-          {step === 6 && (
+          {/* Step 5: Level */}
+          {step === 5 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual é o seu nível?
@@ -509,8 +522,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 7: Umbundu knowledge */}
-          {step === 7 && (
+          {/* Step 6: Umbundu knowledge */}
+          {step === 6 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Quanto você entende de Umbundu?
@@ -536,8 +549,8 @@ const SignupFlow = () => {
             </>
           )}
 
-          {/* Step 8: Daily goal */}
-          {step === 8 && (
+          {/* Step 7: Daily goal */}
+          {step === 7 && (
             <>
               <h2 className="text-2xl font-extrabold text-foreground mb-2">
                 Qual vai ser a sua meta diária?
@@ -566,7 +579,11 @@ const SignupFlow = () => {
 
       {/* ---- CONTINUE BUTTON ---- */}
       <div className="pt-4 pb-2">
-        <button className="btn-duo btn-duo-primary" onClick={next}>
+        <button
+          className="btn-duo btn-duo-primary disabled:opacity-50"
+          onClick={next}
+          disabled={!canAdvance}
+        >
           {step === totalSteps - 1 ? "Vou cumprir a meta" : "Continuar"}
         </button>
       </div>
