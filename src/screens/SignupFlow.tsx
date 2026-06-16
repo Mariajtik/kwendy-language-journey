@@ -501,12 +501,31 @@ const SignupFlow = () => {
                   <button
                     key={opt}
                     className={`btn-duo ${source === opt ? "btn-duo-primary" : "btn-duo-outline"}`}
-                    onClick={() => setSource(opt)}
+                    onClick={() => {
+                      setSource(opt);
+                      if (opt !== "Outro") setSourceOther("");
+                    }}
                   >
                     {opt}
                   </button>
                 ))}
               </div>
+              {source === "Outro" && (
+                <div className="mt-4">
+                  <Select value={sourceOther} onValueChange={setSourceOther}>
+                    <SelectTrigger className="w-full h-12 rounded-2xl border-2 text-base">
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Amigos">Amigos</SelectItem>
+                      <SelectItem value="Escola">Escola</SelectItem>
+                      <SelectItem value="Nenhuma das opções acima">
+                        Nenhuma das opções acima
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
