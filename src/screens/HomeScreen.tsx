@@ -7,14 +7,21 @@
  * floating scroll-to-top button, and colorful rounded bottom navigation.
  */
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Play } from "lucide-react";
+import { Flame, Heart, Play, Lock } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 /* ---- Custom inline SVG icons ---- */
 
@@ -174,6 +181,33 @@ const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  type Lesson = {
+    id: number;
+    title: string;
+    status: "active" | "locked";
+    kind?: "chest";
+  };
+  const lessons: Lesson[] = [
+    { id: 1, title: "Olá, mundo", status: "active" },
+    { id: 2, title: "Saudações", status: "locked" },
+    { id: 3, title: "Apresentar-se", status: "locked" },
+    { id: 4, title: "Família", status: "locked" },
+    { id: 5, title: "Báu de tesouro", status: "locked", kind: "chest" },
+  ];
+
+  const [lockedOpen, setLockedOpen] = useState(false);
+  const [startOpen, setStartOpen] = useState(false);
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+
+  const handleLessonClick = (lesson: Lesson) => {
+    setActiveLesson(lesson);
+    if (lesson.status === "locked") setLockedOpen(true);
+    else setStartOpen(true);
+  };
+
+  // Zig-zag horizontal offsets (in px) for the trail
+  const offsets = [0, 60, -60, -40, 40];
+
   const scrollToTop = () =>
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -271,51 +305,96 @@ const HomeScreen = () => {
         </div>
 
         {/* Lesson path (zig-zag) */}
-        <div className="flex flex-col items-center gap-10 mt-4">
-          {/* Lesson 1 — active */}
-          <div className="relative">
-            <div
-              className="absolute inset-0 rounded-full -m-2 border-4 border-white"
-              style={{ background: "rgba(255,255,255,0.4)" }}
+        <div className="relative mt-4 mx-auto" style={{ width: 220 }}>
+          {/* Dashed connecting line behind buttons */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            aria-hidden
+          >
+            <line
+              x1="50%"
+              y1="0"
+              x2="50%"
+              y2="100%"
+              stroke="rgba(255,255,255,0.7)"
+              strokeWidth="3"
+              strokeDasharray="6 8"
+              strokeLinecap="round"
             />
-            <button
-              className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
-              style={{
-                background: "hsl(var(--primary))",
-                boxShadow: "0 6px 0 hsl(var(--kwendi-red-dark))",
-              }}
-              aria-label="Lição 1"
-            >
-              1
-            </button>
-          </div>
+          </svg>
 
-          {/* Lesson 2 — locked, offset right */}
-          <div className="self-end mr-6">
-            <button
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
-              style={{
-                background: "#cfcfcf",
-                boxShadow: "0 6px 0 #a8a8a8",
-              }}
-              aria-label="Lição 2"
-            >
-              2
-            </button>
-          </div>
+          <div className="relative flex flex-col items-center gap-14 py-4">
+            {lessons.map((lesson, idx) => {
+              const isActive = lesson.status === "active";
+              const isChest = lesson.kind === "chest";
+              const offset = offsets[idx % offsets.length];
+              return (
+                <div
+                  key={lesson.id}
+                  className="relative"
+                  style={{ transform: `translateX(${offset}px)` }}
+                >
+                  {/* COMEÇAR speech bubble for active lesson */}
+                  {isActive && (
+                    <motion.div
+                      initial={{ y: -4, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute left-1/2 -translate-x-1/2 -top-12 bg-white rounded-xl px-3 py-1.5 shadow-md"
+                      style={{ boxShadow: "0 3px 0 #cfcfcf" }}
+                    >
+                      <span
+                        className="text-xs font-extrabold tracking-wider"
+                        style={{ color: "hsl(var(--primary))" }}
+                      >
+                        COMEÇAR
+                      </span>
+                      {/* Arrow */}
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
+                        style={{ boxShadow: "2px 2px 0 #cfcfcf" }}
+                      />
+                    </motion.div>
+                  )}
 
-          {/* Lesson 3 — locked, offset left */}
-          <div className="self-start ml-6">
-            <button
-              className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
-              style={{
-                background: "#cfcfcf",
-                boxShadow: "0 6px 0 #a8a8a8",
-              }}
-              aria-label="Lição 3"
-            >
-              3
-            </button>
+                  {/* Pulsing white halo for active */}
+                  {isActive && (
+                    <motion.div
+                      aria-hidden
+                      className="absolute inset-0 rounded-full -m-2 border-4 border-white"
+                      style={{ background: "rgba(255,255,255,0.35)" }}
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+
+                  <button
+                    onClick={() => handleLessonClick(lesson)}
+                    className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
+                    style={
+                      isActive
+                        ? {
+                            background: "hsl(var(--primary))",
+                            boxShadow: "0 6px 0 hsl(var(--kwendi-red-dark))",
+                          }
+                        : {
+                            background: "#cfcfcf",
+                            boxShadow: "0 6px 0 #a8a8a8",
+                          }
+                    }
+                    aria-label={`Lição ${lesson.id}: ${lesson.title}`}
+                  >
+                    {isChest ? (
+                      <Chest className="w-10 h-10" color="#fff" />
+                    ) : isActive ? (
+                      lesson.id
+                    ) : (
+                      <Lock className="w-7 h-7" strokeWidth={3} />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -381,6 +460,63 @@ const HomeScreen = () => {
 
       {/* Hidden navigate to silence unused warning when needed */}
       <span style={{ display: "none" }}>{navigate.length}</span>
+
+      {/* ---- Locked lesson dialog ---- */}
+      <Dialog open={lockedOpen} onOpenChange={setLockedOpen}>
+        <DialogContent className="max-w-xs rounded-3xl text-center">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+              <Lock className="w-8 h-8 text-gray-500" strokeWidth={3} />
+            </div>
+            <DialogTitle className="text-center text-xl font-extrabold">
+              Lição bloqueada
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Conclua a lição anterior para desbloquear esta.
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={() => setLockedOpen(false)}
+            className="btn-duo btn-duo-secondary w-full mt-2"
+          >
+            Entendi
+          </button>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---- Start lesson dialog ---- */}
+      <Dialog open={startOpen} onOpenChange={setStartOpen}>
+        <DialogContent className="max-w-xs rounded-3xl p-0 overflow-hidden">
+          <div
+            className="px-5 py-3 text-white text-xs font-extrabold tracking-widest"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            LIÇÃO {activeLesson?.id}
+          </div>
+          <div className="p-5 text-center">
+            <h2 className="text-xl font-extrabold" style={{ color: "#5E5C5C" }}>
+              {activeLesson?.title}
+            </h2>
+            <p className="mt-2 text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>
+              +10 XP
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <button
+                onClick={() => setStartOpen(false)}
+                className="btn-duo btn-duo-primary w-full"
+              >
+                Começar +10 XP
+              </button>
+              <button
+                disabled
+                className="btn-duo btn-duo-secondary w-full opacity-50 cursor-not-allowed"
+              >
+                Ver dica
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

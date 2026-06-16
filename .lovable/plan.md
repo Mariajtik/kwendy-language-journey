@@ -1,57 +1,52 @@
-## Fase 2 — Inscrição & Processamento (somente front-end)
+## Fase 3 — Mapa de lições + interatividade básica
 
-Continua a especificação original. Sem lógica de back-end, sem IA real — apenas UI e animações.
+Foco em refinar a `HomeScreen` (já existente) seguindo o padrão Duolingo: lição ativa destacada com halo branco, demais bloqueadas em cinza, modal ao tocar em bloqueada, modal de "começar lição" ao tocar na ativa. Sem back-end, sem lição real.
 
-### 1. Etapa "Como você soube da Kwendi?" — sub-opções de "Outro"
-Arquivo: `src/screens/SignupFlow.tsx` (step 4)
+### 1. Lição ativa com halo/destaque (`src/screens/HomeScreen.tsx`)
+- Manter o círculo crimson da lição 1, mas envolvê-lo com um **anel branco pulsante** (`motion` com `scale` 1 → 1.08 em loop, 1.8s, `repeat: Infinity`).
+- Adicionar acima do botão um pequeno balão "COMEÇAR" em branco com seta apontando pra baixo (estilo Duolingo).
 
-- Quando o usuário tocar em **Outro**, revelar abaixo um `Select` (shadcn) com as opções:
-  - Amigos
-  - Escola
-  - Nenhuma das opções acima
-- Novo estado `sourceOther` armazena o valor selecionado.
-- `canAdvance` na step 4 passa a exigir:
-  - `source !== ""` **e** (se `source === "Outro"` então `sourceOther !== ""`).
-- Estilo idêntico ao select de país já usado na etapa de origem.
+### 2. Estado de lições + dados
+- Criar uma constante local `lessons` no `HomeScreen.tsx`:
+  ```ts
+  const lessons = [
+    { id: 1, title: "Olá, mundo", status: "active" },
+    { id: 2, title: "Saudações", status: "locked" },
+    { id: 3, title: "Apresentar-se", status: "locked" },
+    { id: 4, title: "Família", status: "locked" },
+    { id: 5, title: "Báu de tesouro", status: "locked", kind: "chest" },
+  ];
+  ```
+- Renderizar em zig-zag (offsets alternados left/center/right) via `.map`.
+- A última (id 5) usa o `<Chest />` em vez de número.
 
-### 2. Nova tela de processamento dos resultados
-Arquivo novo: `src/screens/ProcessingResultsScreen.tsx`
-Rota nova em `src/App.tsx`: `/processing`
+### 3. Modal de lição bloqueada
+- Novo componente local `LockedLessonDialog` usando `Dialog` (shadcn — já em `src/components/ui/dialog.tsx`).
+- Aparece ao clicar em qualquer lição com `status: "locked"`.
+- Conteúdo:
+  - Ícone de cadeado grande (lucide `Lock`) em cinza.
+  - Título: "Lição bloqueada"
+  - Texto: "Conclua a lição anterior para desbloquear esta."
+  - Botão único `btn-duo btn-duo-secondary` "Entendi" que fecha o modal.
 
-Fluxo de navegação:
-- Ao final do `SignupFlow` (botão "Vou cumprir a meta" da step 7), em vez de ir direto para `/home`, navegar para `/processing`.
-- A tela de sucesso atual ("Conta criada com sucesso") é removida desse fluxo e substituída pelo processamento.
+### 4. Modal de "começar lição" ativa
+- Novo componente local `StartLessonDialog` (mesmo `Dialog` shadcn).
+- Aparece ao clicar na lição ativa (id 1).
+- Conteúdo:
+  - Faixa crimson no topo com "LIÇÃO 1".
+  - Título da lição (ex.: "Olá, mundo").
+  - Linha de XP: "+10 XP".
+  - Botão primário `btn-duo btn-duo-primary` "Começar +10 XP" → por enquanto apenas fecha o modal (placeholder; tela real fica para Fase 4).
+  - Botão secundário "Ver dica" desabilitado/cinza.
 
-Layout (fundo branco, sem app-shell escuro):
-- Centralizado: ilustração da Kwendi (usar `@/assets/characters/kwendi.jpg` em círculo) "sentada" sobre uma linha preta fina horizontal (1px, ~60% da largura).
-- Acima da cabeça da personagem: uma **nuvem de pensamento** desenhada em SVG.
-- Dentro da nuvem, animação de **rabiscos** (paths SVG) sendo desenhados e apagados em loop (`strokeDasharray` + `motion` com `repeat: Infinity`, duração ~1.2s, 3 rabiscos defasados).
-- Abaixo da personagem, com fade-in:
-  > "Aguarde um pouco, está bem? Daqui a nada receberá os resultados!"
-
-Após 4s (timer):
-- Os rabiscos somem (fade-out da nuvem interna), e dentro da nuvem aparece um grande "!" (ou texto "Avaliação completa!").
-- Abaixo, com **fade-in apenas** (sem sair), surgem em sequência (stagger ~600ms):
-  1. "A sua pontuação: **78/100**" (valor mock)
-  2. "O seu nível: **Iniciante**" (lê do estado passado por `location.state`, fallback "Iniciante")
-  3. Linha genérica: "Você acertou a maioria das saudações e cumprimentos, mas ainda há espaço para melhorar a pronúncia."
-- Botão **Continuar** (estilo `btn-duo btn-duo-primary`) aparece por último (fade-in).
-- Ao clicar: `navigate("/home")`.
-
-Detalhes técnicos:
-- `useEffect` com `setTimeout(() => setPhase("done"), 4000)`.
-- `AnimatePresence` para a troca dos rabiscos → "!".
-- Sem áudio, sem back-end, sem cálculo real de pontuação.
-
-### 3. Ajuste em `SignupFlow.tsx`
-- Substituir `setDone(true)` no `next()` final por `navigate("/processing", { state: { level, username } })`.
-- Remover (ou manter sem uso) a tela `done` se não houver mais ramo que a alcance.
+### 5. Ajustes visuais menores
+- Aumentar o gap vertical entre lições para deixar a trilha mais ariosa.
+- Adicionar uma linha pontilhada SVG ligando os círculos da trilha (decorativa, atrás dos botões).
 
 ## Arquivos afetados
-- `src/screens/SignupFlow.tsx` — sub-select em "Outro", validação, navegação final
-- `src/screens/ProcessingResultsScreen.tsx` — **novo**
-- `src/App.tsx` — nova rota `/processing`
+- `src/screens/HomeScreen.tsx` — array `lessons`, halo pulsante, balão COMEÇAR, trilha pontilhada, handlers de clique, dois dialogs locais.
 
-## Fora de escopo (próximas fases)
-- Teste de nivelamento real, IA Kwendi, módulos cinza/destaque com círculo branco e modal de módulo bloqueado → ficam para a Fase 4.
-- Tudo de back-end (envio real de OTP, persistência) continua adiado.
+## Fora de escopo (Fase 4 e seguintes)
+- Tela real de execução de lição (pergunta, alternativas, feedback).
+- Teste de nivelamento real, IA da Kwendi, persistência de progresso.
+- Funcionalidade dos outros itens da bottom nav.
