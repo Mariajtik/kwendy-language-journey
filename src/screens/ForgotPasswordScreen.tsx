@@ -99,7 +99,11 @@ const ForgotPasswordScreen = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <button className="btn-duo btn-duo-primary mt-auto" onClick={handleSendCode}>
+              <button
+                className="btn-duo btn-duo-primary mt-auto disabled:opacity-50"
+                onClick={handleSendCode}
+                disabled={!/\S+@\S+\.\S+/.test(email)}
+              >
                 Enviar código
               </button>
             </>
@@ -135,7 +139,11 @@ const ForgotPasswordScreen = () => {
               >
                 Reenviar código
               </button>
-              <button className="btn-duo btn-duo-primary mt-auto" onClick={handleVerify}>
+              <button
+                className="btn-duo btn-duo-primary mt-auto disabled:opacity-50"
+                onClick={handleVerify}
+                disabled={otp.some((d) => !d)}
+              >
                 Verificar
               </button>
             </>
@@ -158,7 +166,15 @@ const ForgotPasswordScreen = () => {
                 showStrength={false}
                 className="mb-6"
               />
-              <button className="btn-duo btn-duo-primary mt-auto" onClick={handleReset}>
+              <button
+                className="btn-duo btn-duo-primary mt-auto disabled:opacity-50"
+                onClick={handleReset}
+                disabled={
+                  getPasswordStrength(newPwd) < 2 ||
+                  newPwd !== confirmPwd ||
+                  confirmPwd.length === 0
+                }
+              >
                 Redefinir senha
               </button>
             </>

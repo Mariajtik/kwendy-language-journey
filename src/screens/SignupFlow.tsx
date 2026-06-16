@@ -207,6 +207,13 @@ const SignupFlow = () => {
   const canAdvance = (() => {
     if (step === 0) return username.trim().length > 0;
     if (step === 1) return isEmailValid && password.length >= 6;
+    if (step === 2)
+      return origin !== "" && (origin !== "Outro" || originCountry !== "");
+    if (step === 3) return motivation !== "";
+    if (step === 4) return source !== "";
+    if (step === 5) return level !== "";
+    if (step === 6) return chokwe !== "";
+    if (step === 7) return dailyGoal !== "";
     return true;
   })();
 
