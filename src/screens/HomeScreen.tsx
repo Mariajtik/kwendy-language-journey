@@ -160,14 +160,18 @@ const Campfire = () => (
   </div>
 );
 
-/* ---- Bottom nav config ---- */
+/* ---- Bottom nav config ----
+ * Mesmo estilo "selo/sticker" dos cards de Features: tile arredondado
+ * com cor sólida, leve inclinação e emoji centrado. Cores escolhidas
+ * em harmonia (amarelo, castanho-quente, pêssego, azul, rosa, verde)
+ * sem competir com o crimson primário. */
 const navItems = [
-  { key: "home", Comp: HouseIcon, color: "#FBBD12", active: true, kind: "svg" as const },
-  { key: "chest", Comp: Chest, color: "#B87656", kind: "svg" as const },
-  { key: "book", Comp: BookIcon, color: "#FFA767", kind: "svg" as const },
-  { key: "search", Comp: SearchIcon, color: "#78D0FF", kind: "svg" as const },
-  { key: "user", Comp: UserIcon, color: "#FF7BBF", kind: "svg" as const },
-  { key: "more", kind: "more" as const },
+  { key: "home",   emoji: "🏠", color: "hsl(var(--kwendi-yellow))", tilt: -5, active: true },
+  { key: "chest",  emoji: "🧰", color: "hsl(var(--kwendi-peach))",  tilt: 4 },
+  { key: "book",   emoji: "📖", color: "hsl(var(--kwendi-green))",  tilt: -4 },
+  { key: "search", emoji: "🔎", color: "hsl(var(--kwendi-blue))",   tilt: 5 },
+  { key: "user",   emoji: "👤", color: "hsl(var(--kwendi-pink))",   tilt: -5 },
+  { key: "more",   emoji: "•••", color: "hsl(var(--kwendi-purple))", tilt: 4 },
 ];
 
 const HomeScreen = () => {
@@ -196,54 +200,63 @@ const HomeScreen = () => {
         style={{ background: "rgba(255,255,255,0.18)" }}
       />
 
-      {/* ---- HEADER ---- */}
+      {/* ---- HEADER ----
+       * Todos os ícones têm altura uniforme (h-9) e o mesmo gap entre si.
+       * O espaço entre o avatar e o mapa de África é maior (ml-4 no grupo
+       * seguinte) para destacar a identidade do utilizador. */}
       <div className="relative z-10 px-4 pt-4">
         <div
-          className="flex items-center justify-between gap-2 rounded-2xl px-3 py-2 shadow-sm backdrop-blur"
+          className="flex items-center rounded-2xl px-3 py-2 shadow-sm backdrop-blur"
           style={{ background: "rgba(255,255,255,0.7)" }}
         >
           {/* Avatar */}
           <button
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow flex-shrink-0"
+            className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow flex-shrink-0"
             aria-label="Perfil"
           >
             <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
           </button>
 
-          {/* Africa map with plane departing from Angola */}
-          <button
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            aria-label="Mapa de África"
-          >
-            <AfricaPlane className="w-9 h-9" />
-          </button>
+          {/* Grupo de ícones — alinhados, mesma altura e gap uniforme.
+              ml-4 mantém o espaço maior entre avatar e África. */}
+          <div className="flex items-center gap-3 ml-4 flex-1 justify-between">
+            {/* Africa map with plane departing from Angola */}
+            <button
+              className="w-9 h-9 flex items-center justify-center"
+              aria-label="Mapa de África"
+            >
+              <AfricaPlane className="w-9 h-9" />
+            </button>
 
-          {/* Campfire + streak */}
-          <div className="flex items-center gap-1">
-            <Campfire />
-            <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
-              0
-            </span>
-          </div>
+            {/* Campfire + streak */}
+            <div className="flex items-center gap-1 h-9">
+              <div className="w-7 h-9 flex items-center justify-center">
+                <Campfire />
+              </div>
+              <span className="font-extrabold text-sm leading-none" style={{ color: "#5E5C5C" }}>
+                0
+              </span>
+            </div>
 
-          {/* Diamond + gems */}
-          <div className="flex items-center gap-1">
-            <Diamond className="w-6 h-6" />
-            <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
-              1000
-            </span>
-          </div>
+            {/* Diamond + gems */}
+            <div className="flex items-center gap-1 h-9">
+              <Diamond className="w-7 h-7" />
+              <span className="font-extrabold text-sm leading-none" style={{ color: "#5E5C5C" }}>
+                1000
+              </span>
+            </div>
 
-          {/* Hearts */}
-          <div className="flex items-center gap-1">
-            <Heart
-              className="w-5 h-5"
-              fill="hsl(var(--primary))"
-              color="hsl(var(--primary))"
-            />
-            <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-              5
-            </span>
+            {/* Hearts */}
+            <div className="flex items-center gap-1 h-9">
+              <Heart
+                className="w-7 h-7"
+                fill="hsl(var(--primary))"
+                color="hsl(var(--primary))"
+              />
+              <span className="font-extrabold text-sm leading-none" style={{ color: "hsl(var(--primary))" }}>
+                5
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -344,38 +357,35 @@ const HomeScreen = () => {
           className="bg-white rounded-t-3xl px-3 pt-3 pb-2 flex items-center justify-around shadow-lg relative"
           style={{ borderTop: "3px solid #86D05D" }}
         >
-          {navItems.map((item) => {
-            if (item.kind === "more") {
-              return (
-                <button
-                  key={item.key}
-                  className="w-11 h-9 rounded-xl flex items-center justify-center gap-0.5"
-                  style={{ background: "#FBBD12" }}
-                  aria-label="Mais"
-                >
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                  <span className="w-1 h-1 rounded-full bg-white" />
-                </button>
-              );
-            }
-            const Comp = item.Comp!;
-            return (
-              <button
-                key={item.key}
-                className="relative p-1 flex flex-col items-center"
-                aria-label={item.key}
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              className="relative flex flex-col items-center"
+              aria-label={item.key}
+            >
+              <motion.div
+                whileHover={{ rotate: 0, scale: 1.08 }}
+                whileTap={{ scale: 0.94 }}
+                style={{
+                  background: item.color,
+                  rotate: item.active ? 0 : item.tilt,
+                  boxShadow:
+                    "inset 0 -3px 0 rgba(0,0,0,0.12), 0 3px 0 rgba(0,0,0,0.08)",
+                }}
+                className="w-11 h-11 rounded-[16px] flex items-center justify-center text-xl select-none text-white"
               >
-                <Comp className="w-7 h-7" color={item.color} />
-                {item.active && (
-                  <span
-                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
-                    style={{ background: item.color }}
-                  />
-                )}
-              </button>
-            );
-          })}
+                <span className={item.key === "more" ? "text-[10px] font-black tracking-tighter" : ""}>
+                  {item.emoji}
+                </span>
+              </motion.div>
+              {item.active && (
+                <span
+                  className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                  style={{ background: item.color }}
+                />
+              )}
+            </button>
+          ))}
         </div>
       </nav>
 
