@@ -1,44 +1,79 @@
-## Taxonomia proposta: Badges, Marcos e Conquistas
+## Para Além de Fronteiras — tela introdutória
 
-Hoje tudo está misturado: em **Missões → Conquistas** mostramos 19 itens como "badges coloridas", e no **Perfil** existem secções "Marcos" (4 círculos vazios) e "Conquistas" (grelha bloqueada) sem critério claro. Proposta de separação semântica e visual:
+Nova tela de apresentação do jogo cultural pan-africano, no mesmo molde da `ApresentationScreen` (vídeo de fundo, slides estilo stories, botão final "Vamos?"). Acesso pelo ícone do mapa de África (`AfricaPlane`) no header da Home.
 
----
+### 1. Asset do vídeo de fundo
 
-### 1. Badges (recompensa visual de missão)
-- **O que é:** ícone colorido entregue ao concluir uma **missão diária/semanal/especial**. Vida curta, decorativo.
-- **Onde vive:** apenas na tela **Missões**, junto da missão concluída (já é o badge colorido atual ao lado de cada `MissaoCard`).
-- **No Perfil:** **não aparecem** individualmente — só contabilizadas como "missões concluídas" numa stat.
-- **Exemplo:** "Completaste 3 lições hoje" → badge verde naquela missão.
+- Upload do `.mp4` enviado para o CDN via `lovable-assets`:
+  - `src/assets/fronteiras.mp4.asset.json` (pointer JSON; binário fica só no CDN).
+- Reutiliza a mecânica do `mountain.mp4`: `<video autoPlay loop muted playsInline>` com overlay escuro `bg-black/20` para legibilidade.
 
-### 2. Marcos (milestones de progresso pessoal)
-- **O que é:** etapas grandes e **lineares** da jornada do utilizador na app — progresso de nível/módulo/ofensiva. Poucos, ordenados, sempre os mesmos para todos.
-- **Onde vive:** **Perfil → Marcos** (a secção dos 4 círculos que já existe). Cada círculo representa um patamar: ex. Nível 5, Nível 10, Módulo 1 concluído, 30 dias de ofensiva.
-- **Visual:** círculo grande com troféu/ícone, preenche-se à medida que o utilizador avança. Tipo "barra de XP gamificada".
-- **Não dão recompensa nova** — celebram progresso já feito.
+### 2. Nova screen `FronteirasIntroScreen.tsx`
 
-### 3. Conquistas (feitos culturais e de domínio)
-- **O que é:** os **19 itens atuais** de `src/data/conquistas.ts` — feitos com critério específico ("Leia 10 curiosidades", "Sábio das Letras", "Guardião do Umbundu"). Dão XP + diamantes + (às vezes) baú.
-- **Onde vive:**
-  - **Missões → Conquistas:** o mural completo agrupado por categoria (Primeiros passos, Língua, Cultural, Consistência). Local principal de descoberta e resgate.
-  - **Perfil → Conquistas:** **vitrine** das já desbloqueadas (substitui a grelha de cadeados atual). Mostra a badge colorida real (não cadeado) + contador "X de 19". Tocar abre o `ConquistaModal` reutilizado.
+Ficheiro: `src/screens/FronteirasIntroScreen.tsx`.
 
----
+Estrutura quase idêntica à `ApresentationScreen`:
 
-### Resumo de regras
+- Wrapper `max-w-[480px]` centralizado, `100dvh`.
+- Vídeo de fundo (asset novo) + overlay.
+- Barra superior com indicadores de progresso tipo stories + botão "PULAR".
+- Botão de mute/unmute.
+- Toque na metade esquerda = anterior, direita = próximo.
+- Auto-avanço de ~6.5 s por slide.
+- Último slide: fade-out do texto e aparece botão verde "Vamos?" → "Vamos!" com spinner → navega para `/para-alem-fronteiras`.
+- Botão "PULAR" e o final guardam `localStorage.setItem("kwendi_seen_fronteiras_intro", "1")` (intro só aparece na 1.ª vez; nas seguintes o `AfricaPlane` vai direto para `/para-alem-fronteiras`).
 
-| Conceito   | Origem                   | Tela principal      | No Perfil                          | Recompensa |
-| ---------- | ------------------------ | ------------------- | ---------------------------------- | ---------- |
-| Badge      | Concluir uma missão      | Missões (na missão) | Não aparece                        | XP/diamantes da missão |
-| Marco      | Progredir nível/módulo   | Perfil → Marcos     | Sim (4 círculos lineares)          | Nenhuma extra |
-| Conquista  | Cumprir critério cultural| Missões → Conquistas| Vitrine das desbloqueadas          | XP + diamantes + baú |
+**Rascunho dos 5 slides** (Kwendi a apresentar o jogo):
 
----
+1. **"Olá! Apresento-te o Para Além de Fronteiras"** — "Um jogo para descobrir África pelos olhos de quem a vive."
+2. — "Cada país tem a sua história, os seus sabores, os seus heróis. Mas conhecemos mesmo os nossos vizinhos?"
+3. — "«Sou angolano, conheço Angola.» E o Senegal? E o Quénia? E a Etiópia?"
+4. — "Aqui vais responder a curiosidades de todo o continente — e ganhar diamantes a cada acerto."
+5. — "Vamos atravessar fronteiras juntos? A primeira escala já está marcada."
 
-### Mudanças concretas (a implementar depois da aprovação)
+(Textos editáveis depois.)
 
-1. **`ProfileScreen.tsx` → secção "Marcos":** definir 4 marcos reais (ex. Nv 5, Nv 10, Módulo 1, 30 dias ofensiva) com regra de desbloqueio baseada em `saldo` e progresso, em vez do array hard-coded `[false,false,false,false]`.
-2. **`ProfileScreen.tsx` → secção "Conquistas":** trocar a grelha de cadeados pela **vitrine real**: mapear `conquistas.filter(c => c.desbloqueada)`, mostrar a badge colorida (`/assets/missoes/badge-<cor>.png`) com o ícone Lucide ao centro, contador "X / 19" no cabeçalho, e link "Ver todas →" que navega para `/missoes?tab=conquistas`. Estado vazio: ilustração + "Desbloqueia a tua primeira conquista nas Missões".
-3. **Missões → Conquistas:** sem mudanças estruturais — já é o local correto. Apenas reforçar título da secção como "Conquistas culturais" para distinguir das "badges de missão" acima.
-4. **Glossário interno:** comentário no topo de `conquistas.ts` a documentar a taxonomia para futuras adições não voltarem a misturar conceitos.
+### 3. Tela placeholder do jogo
 
-Sem alterações em dados de conquistas, baús, ou lógica de missões.
+Ficheiro: `src/screens/FronteirasScreen.tsx`, rota `/para-alem-fronteiras`.
+
+- Header simples com botão de voltar (`/home`).
+- Imagem `africa.png` ao centro, com o `plane.png` orbitando suavemente (Framer Motion).
+- Título: **"Para Além de Fronteiras"**.
+- Subtítulo: **"Em breve — aguarda as primeiras escalas."**
+- Caixa cinza-clara: "As perguntas estão a ser preparadas pelo Soba. Volta em breve."
+- Botão `btn-duo` "Voltar à Home".
+
+### 4. Routing (`src/App.tsx`)
+
+```tsx
+import FronteirasIntroScreen from "./screens/FronteirasIntroScreen";
+import FronteirasScreen from "./screens/FronteirasScreen";
+...
+<Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
+<Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
+```
+
+### 5. Liga o `AfricaPlane` na Home
+
+Em `src/screens/HomeScreen.tsx`, o `<button aria-label="Mapa de África">` (linhas ~222–227) ganha `onClick`:
+
+```tsx
+onClick={() => {
+  const seen = localStorage.getItem("kwendi_seen_fronteiras_intro");
+  navigate(seen ? "/para-alem-fronteiras" : "/fronteiras-intro");
+}}
+```
+
+### 6. Fora do âmbito (não mexer agora)
+
+- Lógica de quiz, banco de perguntas, pontuação, mapa interativo — fica para quando forneceres as perguntas.
+- Sem alterações em `useSaldo`, `useMissoes`, dados existentes.
+
+### Ficheiros tocados
+
+- **Novo**: `src/assets/fronteiras.mp4.asset.json` (via CLI)
+- **Novo**: `src/screens/FronteirasIntroScreen.tsx`
+- **Novo**: `src/screens/FronteirasScreen.tsx`
+- **Edit**: `src/App.tsx` (2 rotas + imports)
+- **Edit**: `src/screens/HomeScreen.tsx` (onClick no `AfricaPlane`)
