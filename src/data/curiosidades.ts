@@ -32,6 +32,11 @@ import agostinhoImg from "@/assets/curiosidades/agostinho-neto.jpg.asset.json";
 import nontombiImg from "@/assets/curiosidades/nontombi.jpg.asset.json";
 import tundavalaImg from "@/assets/curiosidades/tundavala.jpg.asset.json";
 import kalandulaImg from "@/assets/curiosidades/kalandula.jpg.asset.json";
+import pensadorImg from "@/assets/curiosidades/pensador.jpg.asset.json";
+import mufeteImg from "@/assets/curiosidades/mufete.jpg.asset.json";
+import umbunduImg from "@/assets/curiosidades/umbundu.png.asset.json";
+import maiombeImg from "@/assets/curiosidades/maiombe.jpg.asset.json";
+import mussiviImg from "@/assets/curiosidades/mussivi.jpg.asset.json";
 
 export const CATEGORIAS: Record<
   Categoria,
@@ -107,6 +112,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "pensador",
+    imagem: pensadorImg.url,
     categoria: "cultura",
     titulo: "O Pensador",
     subtitulo: "O símbolo da sabedoria angolana",
@@ -196,6 +202,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "mufete",
+    imagem: mufeteImg.url,
     categoria: "gastronomia",
     titulo: "Mufete",
     subtitulo: "O sabor tradicional de Luanda",
@@ -288,6 +295,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "umbundu",
+    imagem: umbunduImg.url,
     categoria: "linguas",
     titulo: "Umbundu",
     subtitulo: "A língua mais falada de Angola",
@@ -345,6 +353,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "maiombe",
+    imagem: maiombeImg.url,
     categoria: "natureza",
     titulo: "Floresta do Maiombe",
     subtitulo: "O pulmão verde de Cabinda",
@@ -406,6 +415,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "mussivi",
+    imagem: mussiviImg.url,
     categoria: "natureza",
     titulo: "Mussivi",
     subtitulo: "A jóia das florestas de Angola",
