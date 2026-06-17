@@ -16,6 +16,8 @@ import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
 import BottomNav from "@/components/BottomNav";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import { useSaldo } from "@/hooks/useSaldo";
 import {
   Dialog,
   DialogContent,
@@ -50,28 +52,7 @@ const AfricaPlane = ({ className = "" }: { className?: string }) => (
 /* legacy SVG removed — kept type-stable via component above */
 
 
-/** Faceted diamond (gem) in #5E5C5C with internal facet lines */
-const Diamond = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <path
-      d="M6 3h12l4 6-10 12L2 9l4-6z"
-      fill="#5E5C5C"
-      stroke="#3d3b3b"
-      strokeWidth="1.2"
-      strokeLinejoin="round"
-    />
-    {/* Top facet divisions */}
-    <path
-      d="M6 3l3 6h6l3-6M2 9h20M9 9l3 12M15 9l-3 12"
-      stroke="#3d3b3b"
-      strokeWidth="1"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    {/* Highlight */}
-    <path d="M9 9l1.5-4h2L14 9z" fill="#7a7878" />
-  </svg>
-);
+const Diamond = DiamanteNegro;
 
 /** Treasure chest (báu) icon */
 const Chest = ({ className = "", color = "#B87656" }: { className?: string; color?: string }) => (
@@ -171,6 +152,7 @@ const Campfire = () => (
 const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { saldo } = useSaldo();
 
   type Lesson = {
     id: number;
@@ -248,7 +230,7 @@ const HomeScreen = () => {
           <div className="flex items-center gap-1">
             <Campfire />
             <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
-              0
+              {saldo.ofensiva}
             </span>
           </div>
 
@@ -256,7 +238,7 @@ const HomeScreen = () => {
           <div className="flex items-center gap-1">
             <Diamond className="w-6 h-6" />
             <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
-              1000
+              {saldo.diamantes.toLocaleString()}
             </span>
           </div>
 

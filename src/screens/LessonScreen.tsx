@@ -5,10 +5,12 @@
  * feedback verde/vermelho, tela de conclusão com XP.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, Check, X as XIcon } from "lucide-react";
+import { useMissoes } from "@/hooks/useMissoes";
+import { setSaldo } from "@/hooks/useSaldo";
 
 type Question = {
   prompt: string;
@@ -42,6 +44,7 @@ const LessonScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const total = QUESTIONS.length;
+  const { registrarAcao } = useMissoes();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -59,10 +62,26 @@ const LessonScreen = () => {
     setChecked(true);
     if (selected === q.correct) {
       setCorrectCount((c) => c + 1);
+      registrarAcao("resposta_correta_seguida", 1);
+      registrarAcao("palavra_traduzida", 1);
     } else {
       setHearts((h) => Math.max(0, h - 1));
     }
   };
+
+  // Ao concluir lição: registra ações e credita XP + diamantes
+  useEffect(() => {
+    if (!done) return;
+    const xp = correctCount * 4;
+    registrarAcao("licao_completa", 1);
+    registrarAcao("minuto_pratica", 3);
+    setSaldo((s) => ({
+      ...s,
+      xp: s.xp + xp,
+      diamantes: s.diamantes + correctCount * 2,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   const handleContinue = () => {
     if (index + 1 >= total) {
