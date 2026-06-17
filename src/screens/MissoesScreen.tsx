@@ -250,6 +250,13 @@ const MissoesScreen = () => {
             </>
           ) : (
             <div className="space-y-6">
+              <div className="px-1">
+                <h2 className="text-lg font-extrabold text-foreground">Conquistas culturais</h2>
+                <p className="text-xs text-muted-foreground">
+                  Feitos de longo prazo — distintos das badges de missão.
+                </p>
+              </div>
+
               {/* Mascote Soba apresenta a aba */}
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border-2 border-border" style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}>
                 <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0" style={{ background: "#E8A48C" }}>

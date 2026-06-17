@@ -5,7 +5,7 @@
  * Perfil, Comunidade, Definições. UI only — data is mocked.
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Share2,
@@ -23,12 +23,17 @@ import {
   Plus,
   Lock,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import avatar from "@/assets/avatar.jpg";
 import BottomNav from "@/components/BottomNav";
 import CommunityFeed from "@/components/CommunityFeed";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useMissoes } from "@/hooks/useMissoes";
+import BadgeStar from "@/components/missoes/BadgeStar";
+import ConquistaModal from "@/components/missoes/ConquistaModal";
+import type { ConquistaView } from "@/hooks/useMissoes";
+import { CONQUISTAS } from "@/data/conquistas";
 
 /* ----- Mocked profile data ----- */
 const profileBase = {
@@ -38,7 +43,6 @@ const profileBase = {
   following: 0,
   followers: 0,
   moduleProgress: { current: 1, total: 5, name: "Saúda a tua comunidade" },
-  marcos: [false, false, false, false],
 };
 
 const Diamond = DiamanteNegro;
@@ -46,15 +50,33 @@ const Diamond = DiamanteNegro;
 type Tab = "perfil" | "comunidade" | "definicoes";
 
 const ProfileScreen = () => {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("perfil");
+  const [conquistaAberta, setConquistaAberta] = useState<ConquistaView | null>(null);
   const { saldo } = useSaldo();
-  const { conquistas } = useMissoes();
+  const { conquistas, resgatarConquista } = useMissoes();
+  const desbloqueadas = useMemo(
+    () => conquistas.filter((c) => c.desbloqueada),
+    [conquistas]
+  );
+  const totalConquistas = CONQUISTAS.length;
+
+  // Marcos: 4 patamares lineares de progresso pessoal
+  const marcos = useMemo(() => {
+    const completo = profileBase.moduleProgress.current >= profileBase.moduleProgress.total;
+    return [
+      { label: "Nv 5",       unlocked: saldo.xp >= 2000 },
+      { label: "Nv 10",      unlocked: saldo.xp >= 5000 },
+      { label: "Módulo 1",   unlocked: completo },
+      { label: "30 dias",    unlocked: saldo.ofensiva >= 30 },
+    ];
+  }, [saldo.xp, saldo.ofensiva]);
+
   const profile = {
     ...profileBase,
     streak: saldo.ofensiva,
     xp: saldo.xp,
     diamonds: saldo.diamantes,
-    conquistas: conquistas.filter((c) => c.desbloqueada).length || 4,
   };
 
   const progressPct = (profile.moduleProgress.current / profile.moduleProgress.total) * 100;
@@ -194,23 +216,32 @@ const ProfileScreen = () => {
 
             {/* Marcos */}
             <section>
-              <h2 className="text-lg font-extrabold text-foreground mb-3">Marcos</h2>
+              <h2 className="text-lg font-extrabold text-foreground mb-1">Marcos</h2>
+              <p className="text-xs text-muted-foreground mb-3">
+                Patamares da tua jornada.
+              </p>
               <div className="grid grid-cols-4 gap-3">
-                {profile.marcos.map((unlocked, i) => (
-                  <div key={i} className="flex flex-col items-center">
+                {marcos.map((mk, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
                     <div
                       className="w-16 h-16 rounded-full border-2 flex items-center justify-center"
                       style={{
-                        borderColor: unlocked ? "hsl(var(--primary))" : "hsl(var(--border))",
-                        background: unlocked ? "hsl(var(--primary) / 0.1)" : "transparent",
+                        borderColor: mk.unlocked ? "hsl(var(--primary))" : "hsl(var(--border))",
+                        background: mk.unlocked ? "hsl(var(--primary) / 0.1)" : "transparent",
                       }}
                     >
-                      {unlocked ? (
+                      {mk.unlocked ? (
                         <Trophy className="w-7 h-7" style={{ color: "hsl(var(--primary))" }} />
                       ) : (
                         <Plus className="w-6 h-6 text-muted-foreground" strokeWidth={2.5} />
                       )}
                     </div>
+                    <span
+                      className="text-[10px] font-extrabold leading-none"
+                      style={{ color: mk.unlocked ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))" }}
+                    >
+                      {mk.label}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -218,17 +249,48 @@ const ProfileScreen = () => {
 
             {/* Conquistas */}
             <section>
-              <h2 className="text-lg font-extrabold text-foreground mb-3">Conquistas</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: profile.conquistas }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-[3/4] rounded-2xl bg-muted flex items-center justify-center"
-                  >
-                    <Lock className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                ))}
+              <div className="flex items-end justify-between mb-3">
+                <div>
+                  <h2 className="text-lg font-extrabold text-foreground leading-tight">Conquistas</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {desbloqueadas.length} de {totalConquistas} desbloqueadas
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate("/missoes")}
+                  className="text-xs font-extrabold flex items-center gap-0.5"
+                  style={{ color: "hsl(var(--primary))" }}
+                >
+                  Ver todas <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
+
+              {desbloqueadas.length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
+                  <Lock className="w-6 h-6 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm font-bold text-foreground">
+                    Ainda sem conquistas
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Desbloqueia a tua primeira em Missões → Conquistas.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-3">
+                  {desbloqueadas.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setConquistaAberta(c)}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <BadgeStar cor={c.badge} className="w-14 h-14" />
+                      <span className="text-[10px] font-extrabold leading-tight text-center text-foreground line-clamp-2">
+                        {c.titulo}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </section>
 
           </div>
@@ -269,6 +331,15 @@ const ProfileScreen = () => {
       </div>
 
       <BottomNav active="user" />
+
+      <ConquistaModal
+        conquista={conquistaAberta}
+        onClose={() => setConquistaAberta(null)}
+        onResgatar={(id) => {
+          resgatarConquista(id);
+          setConquistaAberta(null);
+        }}
+      />
     </motion.div>
   );
 };
