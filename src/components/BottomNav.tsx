@@ -166,7 +166,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
                 aria-label={item.label}
               >
                 <item.Comp className="w-7 h-7" color={item.color} />
-                {isActive && (
+                {isActive && item.key === "user" && (
                   <motion.span
                     layoutId="bottom-nav-active-crown"
                     className="absolute -top-3"
@@ -177,6 +177,12 @@ const BottomNav = ({ active }: BottomNavProps) => {
                       fill="#FBBD12"
                     />
                   </motion.span>
+                )}
+                {isActive && item.key !== "user" && (
+                  <span
+                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                    style={{ background: item.color }}
+                  />
                 )}
               </button>
             );
