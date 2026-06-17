@@ -7,14 +7,16 @@
  * enquanto aguardamos as primeiras escalas.
  */
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Play, X } from "lucide-react";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
 
 const FronteirasScreen = () => {
   const navigate = useNavigate();
+  const [playerOpen, setPlayerOpen] = useState(false);
 
   return (
     <div className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden bg-background">
@@ -74,11 +76,58 @@ const FronteirasScreen = () => {
 
         <button
           onClick={() => navigate("/home")}
-          className="btn-duo btn-duo-green mt-8 mx-auto"
+          className="btn-duo btn-duo-blue mt-8 mx-auto"
         >
           Voltar à Home
         </button>
+
+        {/* Trilha sonora — Apple Music */}
+        <button
+          onClick={() => setPlayerOpen(true)}
+          className="mt-6 mx-auto flex items-center gap-3 rounded-full bg-[hsl(var(--kwendi-blue))] px-5 py-3 text-white shadow-md hover:opacity-90 transition"
+          aria-label="Tocar África Minha de Bonga e Plutónio"
+        >
+          <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/25">
+            <Play className="w-4 h-4 fill-white" />
+          </span>
+          <span className="text-left">
+            <span className="block text-[11px] uppercase tracking-wider font-extrabold opacity-80">Trilha sonora</span>
+            <span className="block text-sm font-black leading-tight">África Minha · Bonga & Plutónio</span>
+          </span>
+        </button>
       </div>
+
+      {/* Modal do player Apple Music */}
+      {playerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setPlayerOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-[460px] rounded-t-3xl sm:rounded-3xl bg-card p-4 pt-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPlayerOpen(false)}
+              aria-label="Fechar"
+              className="absolute top-3 right-3 rounded-full bg-muted p-2 hover:bg-muted/80"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <iframe
+              title="África Minha — Bonga & Plutónio"
+              allow="autoplay *; encrypted-media *;"
+              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+              height={175}
+              style={{ width: "100%", overflow: "hidden", borderRadius: 12, background: "transparent" }}
+              src="https://embed.music.apple.com/ao/song/%C3%A1frica-minha-feat-bonga/1177428682"
+            />
+            <p className="mt-3 text-xs text-muted-foreground text-center">
+              Pré-visualização via Apple Music. Toca o ▶ para começar.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
