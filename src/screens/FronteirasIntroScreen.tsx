@@ -102,7 +102,7 @@ const FronteirasIntroScreen = () => {
     >
       <div
         className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden"
-        style={{ background: "linear-gradient(180deg, hsl(var(--kwendi-green)) 0%, hsl(var(--kwendi-forest)) 100%)" }}
+        style={{ background: "linear-gradient(180deg, hsl(var(--kwendi-blue)) 0%, hsl(var(--kwendi-blue-dark)) 100%)" }}
       >
         <video
           ref={videoRef}
@@ -173,7 +173,7 @@ const FronteirasIntroScreen = () => {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.55, ease: "easeOut" }}
                 className="rounded-2xl px-5 py-5 text-white shadow-lg"
-                style={{ background: "hsl(var(--kwendi-green) / 0.78)", backdropFilter: "blur(6px)" }}
+                style={{ background: "hsl(var(--kwendi-blue) / 0.82)", backdropFilter: "blur(6px)" }}
               >
                 {current.bold && (
                   <p className="text-2xl leading-tight mb-1 font-semibold">
@@ -192,7 +192,7 @@ const FronteirasIntroScreen = () => {
                 className="pointer-events-auto flex flex-col items-center"
               >
                 <button
-                  className="btn-duo btn-duo-green max-w-xs flex items-center justify-center gap-2"
+                  className="btn-duo btn-duo-blue max-w-xs flex items-center justify-center gap-2"
                   onClick={handleGo}
                   disabled={loading}
                 >
