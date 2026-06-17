@@ -89,7 +89,14 @@ const MissoesScreen = () => {
   useEffect(() => {
     if (!conquista) return;
     const atualizada = m.conquistas.find((c) => c.id === conquista.id);
-    if (atualizada && atualizada !== conquista) setConquista(atualizada);
+    if (
+      atualizada &&
+      (atualizada.progresso !== conquista.progresso ||
+        atualizada.desbloqueada !== conquista.desbloqueada ||
+        atualizada.resgatada !== conquista.resgatada)
+    ) {
+      setConquista(atualizada);
+    }
   }, [m.conquistas, conquista]);
 
   // Simulação rápida para demonstrar o sistema sem lições integradas
