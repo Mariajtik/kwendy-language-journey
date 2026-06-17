@@ -8,7 +8,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Crown,
   Flame,
@@ -24,13 +24,24 @@ import avatar from "@/assets/avatar.jpg";
 /* ----- Mocked data ----- */
 const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
 
+const REACTIONS = [
+  { key: "malaik", label: "Tá malaik", emoji: "🔥" },
+  { key: "mambo", label: "Granda mambo!", emoji: "🚀" },
+  { key: "concordo", label: "Concordo", emoji: "✅" },
+  { key: "discordo", label: "Discordo", emoji: "❌" },
+  { key: "erreh", label: "Erreh!", emoji: "😂" },
+] as const;
+type ReactionKey = (typeof REACTIONS)[number]["key"];
+
+type Comment = { id: number; user: string; text: string };
+
 type Post = {
   id: number;
   user: string;
   badge: { icon: typeof Flame; label: string; color: string };
   text: string;
-  reactions: number;
-  comments: number;
+  reactions: Record<ReactionKey, number>;
+  comments: Comment[];
   tribe?: boolean;
 };
 
@@ -40,24 +51,31 @@ const posts: Post[] = [
     user: "Nzinga",
     badge: { icon: Flame, label: "Sequência 7 dias", color: "#FF7A2E" },
     text: "Acabei de aprender a saudação 'Wakolelepo!' — significa 'Olá, como estás?' em Umbundu. 🇦🇴",
-    reactions: 24,
-    comments: 3,
+    reactions: { malaik: 14, mambo: 6, concordo: 4, discordo: 0, erreh: 0 },
+    comments: [
+      { id: 1, user: "Kiame", text: "Boa! Vou usar amanhã com a minha avó." },
+      { id: 2, user: "Suzana", text: "Wakolelepo, mana! 🙌" },
+    ],
   },
   {
     id: 2,
     user: "Kiame",
     badge: { icon: Trophy, label: "Marco desbloqueado", color: "hsl(var(--primary))" },
     text: "Completei o Módulo 1: Saúda a tua comunidade! Próximo passo: família. 💪",
-    reactions: 41,
-    comments: 7,
+    reactions: { malaik: 20, mambo: 15, concordo: 6, discordo: 0, erreh: 0 },
+    comments: [
+      { id: 1, user: "Hossy", text: "Granda mambo, parabéns!" },
+    ],
   },
   {
     id: 3,
     user: "Suzana",
     badge: { icon: Zap, label: "+250 XP esta semana", color: "#FBBD12" },
     text: "Curiosidade: o povo Ovimbundu vive principalmente no planalto central de Angola. 🌍",
-    reactions: 18,
-    comments: 2,
+    reactions: { malaik: 8, mambo: 4, concordo: 6, discordo: 0, erreh: 0 },
+    comments: [
+      { id: 1, user: "Yellen", text: "Adoro estas curiosidades 🙏" },
+    ],
   },
 ];
 
@@ -74,9 +92,63 @@ const ranking = [
 
 type SubTab = "feed" | "tribo" | "ranking";
 
+type PostState = {
+  reactions: Record<ReactionKey, number>;
+  myReaction: ReactionKey | null;
+  comments: Comment[];
+  showComments: boolean;
+  draft: string;
+};
+
 const CommunityFeed = () => {
   const [tab, setTab] = useState<SubTab>("feed");
   const [draft, setDraft] = useState("");
+  const [state, setState] = useState<Record<number, PostState>>(() =>
+    Object.fromEntries(
+      posts.map((p) => [
+        p.id,
+        {
+          reactions: { ...p.reactions },
+          myReaction: null,
+          comments: p.comments,
+          showComments: false,
+          draft: "",
+        } as PostState,
+      ]),
+    ),
+  );
+
+  const updatePost = (id: number, patch: Partial<PostState>) =>
+    setState((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
+
+  const toggleReaction = (id: number, key: ReactionKey) => {
+    const ps = state[id];
+    const next = { ...ps.reactions };
+    if (ps.myReaction === key) {
+      next[key] = Math.max(0, next[key] - 1);
+      updatePost(id, { reactions: next, myReaction: null });
+    } else {
+      if (ps.myReaction) next[ps.myReaction] = Math.max(0, next[ps.myReaction] - 1);
+      next[key] = next[key] + 1;
+      updatePost(id, { reactions: next, myReaction: key });
+    }
+  };
+
+  const submitComment = (id: number) => {
+    const ps = state[id];
+    const text = ps.draft.trim();
+    if (!text) return;
+    const newComment: Comment = {
+      id: Date.now(),
+      user: "Tu",
+      text,
+    };
+    updatePost(id, { comments: [...ps.comments, newComment], draft: "" });
+    toast({
+      title: "Comentário enviado para revisão",
+      description: "A IA Kwendi irá rever antes de aparecer publicamente.",
+    });
+  };
 
   const tabs = useMemo(
     () => [
@@ -173,7 +245,17 @@ const CommunityFeed = () => {
               </div>
             ) : (
               (tab === "tribo" ? posts.filter((p) => p.tribe) : posts).map((p) => (
-                <PostCard key={p.id} post={p} />
+                <PostCard
+                  key={p.id}
+                  post={p}
+                  state={state[p.id]}
+                  onReact={(k) => toggleReaction(p.id, k)}
+                  onToggleComments={() =>
+                    updatePost(p.id, { showComments: !state[p.id].showComments })
+                  }
+                  onDraft={(v) => updatePost(p.id, { draft: v })}
+                  onSubmitComment={() => submitComment(p.id)}
+                />
               ))
             )}
           </div>
@@ -218,8 +300,28 @@ const CommunityFeed = () => {
 };
 
 /* ----- Post card ----- */
-const PostCard = ({ post }: { post: Post }) => {
+const PostCard = ({
+  post,
+  state,
+  onReact,
+  onToggleComments,
+  onDraft,
+  onSubmitComment,
+}: {
+  post: Post;
+  state: PostState;
+  onReact: (k: ReactionKey) => void;
+  onToggleComments: () => void;
+  onDraft: (v: string) => void;
+  onSubmitComment: () => void;
+}) => {
   const BadgeIcon = post.badge.icon;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const totalReactions = Object.values(state.reactions).reduce((a, b) => a + b, 0);
+  const activeEmoji = state.myReaction
+    ? REACTIONS.find((r) => r.key === state.myReaction)!.emoji
+    : null;
+
   return (
     <article className="rounded-2xl border-2 border-border bg-card p-4">
       <header className="flex items-center gap-3 mb-2">
@@ -242,15 +344,132 @@ const PostCard = ({ post }: { post: Post }) => {
       </header>
       <p className="text-sm text-foreground leading-relaxed">{post.text}</p>
       <footer className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-        <button className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-          <Flame className="w-4 h-4" />
-          {post.reactions}
-        </button>
-        <button className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
+        <div className="relative">
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-full text-xs font-bold transition-colors"
+            style={{
+              background: state.myReaction ? "hsl(var(--primary) / 0.1)" : "transparent",
+              color: state.myReaction ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+            }}
+          >
+            {activeEmoji ? (
+              <span className="text-base leading-none">{activeEmoji}</span>
+            ) : (
+              <Flame className="w-4 h-4" />
+            )}
+            {totalReactions}
+          </button>
+          <AnimatePresence>
+            {pickerOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setPickerOpen(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.7, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, y: 8 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                  className="absolute bottom-full left-0 mb-2 z-20 flex items-center gap-1 rounded-full border-2 border-border bg-card shadow-lg px-2 py-1.5"
+                >
+                  {REACTIONS.map((r) => {
+                    const active = state.myReaction === r.key;
+                    return (
+                      <button
+                        key={r.key}
+                        title={r.label}
+                        onClick={() => {
+                          onReact(r.key);
+                          setPickerOpen(false);
+                        }}
+                        className="text-xl leading-none p-1 rounded-full transition-transform hover:scale-125"
+                        style={{
+                          background: active ? "hsl(var(--primary) / 0.15)" : "transparent",
+                          transform: active ? "scale(1.1)" : undefined,
+                        }}
+                      >
+                        {r.emoji}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+        <button
+          onClick={onToggleComments}
+          className="flex items-center gap-1.5 text-xs font-bold transition-colors"
+          style={{
+            color: state.showComments ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+          }}
+        >
           <MessageCircle className="w-4 h-4" />
-          {post.comments}
+          {state.comments.length}
         </button>
       </footer>
+
+      <AnimatePresence initial={false}>
+        {state.showComments && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              {state.comments.map((c) => (
+                <div key={c.id} className="flex items-start gap-2">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white font-extrabold text-[11px] flex-shrink-0"
+                    style={{ background: "hsl(var(--primary))" }}
+                  >
+                    {c.user[0]}
+                  </div>
+                  <div className="flex-1 min-w-0 bg-secondary/60 rounded-2xl px-3 py-1.5">
+                    <div className="text-[11px] font-extrabold text-foreground">
+                      {c.user}
+                    </div>
+                    <p className="text-xs text-foreground leading-snug break-words">
+                      {c.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center gap-2 pt-1">
+                <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                <input
+                  value={state.draft}
+                  onChange={(e) => onDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onSubmitComment();
+                    }
+                  }}
+                  maxLength={200}
+                  placeholder="Escreve um comentário…"
+                  className="flex-1 min-w-0 bg-secondary/60 rounded-full px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none"
+                />
+                <button
+                  onClick={onSubmitComment}
+                  disabled={!state.draft.trim()}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-40 flex-shrink-0"
+                  style={{ background: "hsl(var(--primary))" }}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground pl-9">
+                A IA Kwendi revê comentários antes de publicar.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </article>
   );
 };

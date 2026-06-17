@@ -1,49 +1,43 @@
-# Aba Comunidade no Perfil
+## Objetivo
 
-## Lógica atual da aba "Comunidade" (em ProfileScreen)
+Adicionar **reações** e **comentários** funcionais (UI only) a cada publicação na aba Comunidade do Perfil.
 
-Hoje ela mostra apenas um resumo do próprio utilizador:
+## Reações (5 tipos, com emoji sugestivo)
 
-- Card com **Seguidores / Seguindo**
-- Card com **Progresso** compacto (módulo atual)
-- Grade de **Conquistas** (4 trancadas)
-- Botão **"Abrir Comunidade"** que navega para `/comunidade` (CommunityScreen)
 
-Ou seja, era uma versão "preview" do perfil social — não tinha feed, ranking nem composer. Toda a comunidade real vivia numa rota separada.
+| Reação        | Emoji                                    |
+| ------------- | ---------------------------------------- |
+| Tá malaik     | olhos redondos e boca curvada para baixo |
+| Granda mambo! | coração                                  |
+| Concordo      | ✅                                        |
+| Discordo      | ❌                                        |
+| &nbsp;        | &nbsp;                                   |
 
-## O que vou mudar
 
-Substituir o conteúdo da aba "Comunidade" do `ProfileScreen` pelo conteúdo completo da `CommunityScreen` (feed, composer, subtabs, ranking, conquistas), removendo o botão "Abrir Comunidade" e o resumo redundante.
+> A 5ª pode ser ajustada; proponho "Erreh!" 😂 para reforçar o tom angolano. Se preferires outra, diz.
 
-### Mudanças em `src/screens/ProfileScreen.tsx`
+## Mudanças em `src/components/CommunityFeed.tsx`
 
-- Remover o bloco atual da aba `comunidade` (resumo + botão).
-- Renderizar dentro dessa aba:
-  - **Subtabs** internas: `Comunidade` · (`Minha Tribo` se `FOLLOWING_COUNT > 0`) · `Ranking` · `Conquistas` — com a mesma animação de underline (`layoutId` distinto, ex.: `profile-community-subtab`).
-  - **Banner de moderação** da IA Kwendi.
-  - **Composer** (textarea + contador 280 + botão Publicar) com o mesmo `toast` "A IA Kwendi irá rever…".
-  - **Feed** de posts (PostCard) — reaproveitando os mocks (`Nzinga`, `Kiame`, `Suzana`).
-  - **Ranking** com pódio (ouro/prata/bronze) e destaque para "Tu".
-  - **Conquistas** em grid 3×3 trancadas.
-- Reaproveitar `BottomNav active="user"` já existente.
-- Manter scroll dentro do `app-shell`; subtabs ficam fixas logo abaixo do header de tabs principais (sticky com `top` ajustado, ou simplesmente roláveis no fluxo).
+1. **Tipo `Post**`: substituir `reactions: number` por `reactions: Record<ReactionKey, number>` e `comments: number` por `comments: Comment[]` (com `id`, `user`, `text`). Adicionar campo opcional `myReaction?: ReactionKey` no estado local.
+2. **Estado local por post** (via `useState` num `Map<postId, {reactions, myReaction, comments, showComments, draft}>` inicializado a partir dos mocks) — mantém tudo client-side.
+3. **Botão de reação no `PostCard**`:
+  - Botão principal mostra o emoji da reação escolhida ( 🔥 somente quando não tem reações) + total agregado.
+  - Ao tocar/segurar (`onClick` simples + popover), abre **popover horizontal flutuante** com os 5 emojis em linha, com `motion` (scale + fade, mola). Tocar num emoji aplica/troca/remove a reação e fecha o popover.
+  - Reação ativa fica destacada (fundo `primary/10`, escala 1.1).
+4. **Botão de comentários no `PostCard**`:
+  - Mostra total de comentários.
+  - Ao tocar, expande inline (animação `height auto` via framer-motion) uma secção com:
+    - Lista de comentários (avatar inicial + nome + texto, separados por linhas finas).
+    - Composer de comentário: avatar do user + input + botão enviar (ícone `Send`), max 200 chars, com aviso "A IA Kwendi revê antes de publicar" via `toast` ao enviar.
+  - Comentário novo entra no estado local e aparece na lista (mock — sem persistência).
+5. **Mocks iniciais**: converter os 3 posts atuais para o novo formato com algumas reações distribuídas e 1–2 comentários cada para demonstrar visual.
+6. **Tokens semânticos apenas** (`hsl(var(--primary))`, `--border`, `--muted-foreground`, etc.) — sem cores hardcoded novas além dos emojis.
 
-### Mudanças em `src/screens/CommunityScreen.tsx`
+## Fora de âmbito
 
-- Manter o ficheiro por agora (a rota `/comunidade` continua válida — Lupa/atalhos podem usar), mas como o acesso principal passa a ser via Perfil → Comunidade, **não removerei** o ficheiro neste passo para não quebrar a rota. (Posso remover num passo seguinte se quiseres.)
+- Backend, persistência, moderação real, notificações.
+- Mudanças na aba Ranking ou no resto do `ProfileScreen`.
 
-### Componentes auxiliares
+## Arquivos afetados
 
-- Mover o `PostCard` e os mocks (`posts`, `ranking`, `FOLLOWING_COUNT`) para dentro do `ProfileScreen.tsx` (escopo local) — ou extrair para `src/components/CommunityFeed.tsx` reutilizável e usar tanto em `ProfileScreen` quanto em `CommunityScreen`.
-- **Decisão**: extrair para `src/components/CommunityFeed.tsx` (mantém DRY entre as duas telas).
-
-## Detalhes técnicos
-
-- Novo ficheiro `src/components/CommunityFeed.tsx` exportando `<CommunityFeed />` que encapsula: subtabs + banner + composer + feed + ranking + conquistas. Sem header próprio nem BottomNav.
-- `ProfileScreen` importa e renderiza `<CommunityFeed />` na aba `comunidade`.
-- `CommunityScreen` passa a ser um wrapper fino (header "Comunidade" + `<CommunityFeed />` + BottomNav) para a rota `/comunidade` continuar funcional.
-- Sem backend, sem chamadas Supabase. Apenas UI e `toast`.
-
-## Pergunta opcional
-
-Queres que eu **remova a rota `/comunidade**` e o `CommunityScreen.tsx` (já que tudo vive no perfil agora), ou manter ambos? — Remova e me explique porquê queria manter.
+- `src/components/CommunityFeed.tsx` (única edição)
