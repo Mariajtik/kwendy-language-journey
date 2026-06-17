@@ -34,7 +34,7 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
-import sobaMascote from "@/assets/missoes/soba-mascote.png.asset.json";
+import trofeu30dias from "@/assets/missoes/trofeu.png.asset.json";
 
 /* ----- Mocked profile data ----- */
 const profileBase = {
@@ -69,7 +69,7 @@ const ProfileScreen = () => {
       { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
       { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
       { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
-      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: sobaMascote.url },
+      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias.url },
     ];
   }, [saldo.xp, saldo.ofensiva]);
 
