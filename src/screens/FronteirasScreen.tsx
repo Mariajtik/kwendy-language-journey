@@ -40,18 +40,6 @@ const FronteirasScreen = () => {
           alt="Mapa de África"
           className="absolute inset-0 w-full h-full object-contain"
         />
-        <motion.img
-          src={plane.url}
-          alt=""
-          aria-hidden
-          className="absolute top-1/2 left-1/2 w-12 h-12 object-contain"
-          style={{ originX: 0.5, originY: 0.5 }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
-          // Posiciona o avião num raio fixo do centro
-          initial={false}
-        >
-        </motion.img>
         {/* Avião posicionado via container orbital */}
         <motion.div
           className="absolute top-1/2 left-1/2 w-0 h-0"
