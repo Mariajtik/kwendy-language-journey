@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { Crown } from "lucide-react";
 
 /* ---------- Inline icons (copied/shared with HomeScreen) ---------- */
 
@@ -166,10 +167,16 @@ const BottomNav = ({ active }: BottomNavProps) => {
               >
                 <item.Comp className="w-7 h-7" color={item.color} />
                 {isActive && (
-                  <span
-                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
-                    style={{ background: item.color }}
-                  />
+                  <motion.span
+                    layoutId="bottom-nav-active-crown"
+                    className="absolute -top-3"
+                  >
+                    <Crown
+                      className="w-4 h-4"
+                      style={{ color: "#FBBD12" }}
+                      fill="#FBBD12"
+                    />
+                  </motion.span>
                 )}
               </button>
             );
