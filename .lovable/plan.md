@@ -1,136 +1,144 @@
-## Objetivo
+## Sistema de Missões & Conquistas — Kwendi
 
-Transformar `CuriosidadesScreen` num "Museu vivo interativo da cultura angolana" — descoberta, orgulho, imersão, elegância. Sem backend. E usar somente as cores da paleta de cores fornecida.
+Reformulação completa da tela `/missoes` (hoje placeholder). Tudo com **mock local** (`localStorage` via hook `useMissoes`), mas estruturado em arquivos de dados (`src/data/missoes.ts`, `src/data/conquistas.ts`, `src/data/recompensas.ts`) que amanhã viram tabelas Supabase sem refatorar a UI.
 
-## Arquitetura
+---
 
-```
-src/screens/CuriosidadesScreen.tsx        (refeito)
-src/data/curiosidades.ts                  (novo — conteúdo + tipos)
-src/components/CuriosidadeCard.tsx        (novo — card premium)
-src/components/CuriosidadeModal.tsx       (novo — modal fullscreen)
-```
+### 1. Estrutura da tela `/missoes`
 
-## Dados (`src/data/curiosidades.ts`)
-
-Tipos:
-
-```ts
-type Categoria = "natureza" | "historia" | "cultura" | "gastronomia" | "linguas" | "monumentos";
-type Section = { heading: string; body: string };
-type Curiosidade = {
-  id: string;
-  categoria: Categoria;
-  titulo: string;
-  subtitulo: string;
-  resumo: string;          // máx ~3 linhas
-  imagem?: string;         // placeholder por ora — utilizador adicionará depois
-  sections: Section[];
-  destaque?: string;       // citação curta tipo "Pode viver mais de mil anos"
-};
-```
-
-Cores por categoria (tokens semânticos via `--cur-{cat}`):
-
-
-| Categoria   | Cor                | Token         |
-| ----------- | ------------------ | ------------- |
-| Natureza    | Verde              | `142 55% 42%` |
-| História    | Vermelho (primary) | já existe     |
-| Cultura     | Amarelo            | `45 95% 50%`  |
-| Gastronomia | Laranja            | `22 90% 55%`  |
-| Línguas     | Roxo               | `268 60% 55%` |
-| Monumentos  | Azul               | `205 85% 55%` |
-
-
-Adicionados a `index.css` como `--cur-natureza`, etc.
-
-### 13 cards (storytelling, não-Wikipedia)
-
-Cada um com `subtitulo`, `resumo` (2–3 linhas), e `sections` lapidadas a partir do briefing do user. Lista final:
-
-1. **Imbondeiro** (Natureza) — *A árvore que cresce ao contrário*
-2. **Rainha Nzinga** (História) — *A guerreira que enfrentou impérios*
-3. **O Pensador** (Cultura) — *O símbolo da sabedoria angolana*
-4. **Palanca Negra Gigante** (Natureza) — *O símbolo vivo de Angola*
-5. **Welwitschia Mirabilis** (Natureza) — *A planta que desafia o tempo*
-6. **Mufete** (Gastronomia) — *O sabor tradicional de Luanda*
-7. **Agostinho Neto** (História) — *Manguxi Kilamba*
-8. **Nontombi** (Cultura) — *O penteado ancestral africano*
-9. **Umbundu** (Línguas) — *A língua mais falada de Angola*
-10. **Fenda da Tundavala** (Monumentos) — *O abismo natural da Huíla*
-11. **Floresta do Maiombe** (Natureza) — *O pulmão verde de Cabinda*
-12. **Quedas de Kalandula** (Monumentos) — *A força das águas angolanas*
-13. **Mussivi** (Natureza) — *A jóia das florestas de Angola*
-
-Estrutura interna por card segue o briefing (Introdução / História ou Lenda / Importância cultural / Curiosidade final, adaptado a cada tema). Texto reescrito em tom emocional/elegante — sem citações tipo "(gov.br)" nem listas cruas. Cada `body` 2–5 frases curtas.
-
-> Placeholders de imagem: gradiente da cor da categoria + ícone Lucide temático (ex: `Trees`, `Crown`, `UtensilsCrossed`, `Languages`, `Mountain`). O user troca depois.
-
-## Tela (`CuriosidadesScreen`)
+Tabs no topo (estilo Duolingo, pílulas grandes):
 
 ```
-┌────────────────────────────────┐
-│ Curiosidades de Angola         │   ← title (extrabold, 2xl)
-│ Descubra histórias, símbolos…  │   ← subtitle (muted)
-│                                │
-│ 🔍 [Pesquisar…             ]   │   ← input arredondado
-│                                │
-│ [Todas][Natureza][História]…   │   ← chips horizontais scrolláveis,
-│                                │     cor activa = cor da categoria
-│ ┌────────────────────────┐     │
-│ │  [imagem c/ overlay]   │     │   ← grid 1 col mobile,
-│ │  BADGE CATEGORIA       │     │     2 col ≥640px, 3 col ≥1024px
-│ │  Título                │     │
-│ │  Resumo (3 linhas)     │     │
-│ │  [ Saber mais ]        │     │
-│ └────────────────────────┘     │
-│  …                             │
-└────────────────────────────────┘
-  BottomNav active="search"
+[ Missões ]   [ Conquistas ]
 ```
 
-- Filtro de texto: case-insensitive em `titulo + subtitulo + resumo`.
-- Filtro de categoria: chip activa highlight com cor da categoria, "Todas" por defeito.
-- Animação: `motion` `fade-up` stagger nos cards ao montar / ao mudar filtro (`AnimatePresence` + `layout`).
-- Botões: `whileTap={{ scale: 0.97 }}`.
+**Header sempre visível**: saldo de Kindeles (moeda), XP do dia, streak (🔥).
 
-## Card (`CuriosidadeCard`)
+---
 
-- `rounded-3xl border-2 border-border bg-card overflow-hidden`, sombra 3D suave.
-- Topo: `aspect-[16/10]` com fundo gradient da categoria + ícone gigante semi-transparente; overlay `from-transparent to-black/50`.
-- Badge categoria absoluta `top-3 left-3` (pill, cor da categoria).
-- Corpo: título extrabold, resumo `line-clamp-3` muted.
-- Footer: botão "Saber mais" pill com cor da categoria → abre modal.
-- Tap: `scale: 0.97`, sombra aumenta.
+### 2. Aba MISSÕES
 
-## Modal (`CuriosidadeModal`)
+Três seções em cards expansíveis:
 
-- Fullscreen via `framer-motion` `<AnimatePresence>` + `fixed inset-0 z-50`.
-- Entrada: imagem hero faz `layoutId={\`cur-${id}}` (hero animation a partir do card).
-- Topo: imagem 280px altura, overlay gradient `to-b from-transparent to-background`, título + subtítulo + badge sobrepostos em baixo.
-- Botão X: top-left, glassmorphism (`bg-white/20 backdrop-blur rounded-full w-10 h-10`).
-- Conteúdo scrollável (`overflow-y-auto`): para cada `section` → `h2` (cor da categoria) + parágrafo. Por fim, se houver `destaque`, card grande em itálico com aspas.
-- Trap simples: `body.style.overflow = "hidden"` ao abrir.
-- Fechar: X, Escape, click no overlay (fora do conteúdo opcional — manter dentro do conteúdo). Animação saída: slide-down + fade.
+**A. Diárias** (4 missões, reset 24h, timer regressivo no canto)
 
-## Regras visuais
+- Completar 1 lição
+- Ouvir 3 áudios em Umbundu
+- Traduzir 10 palavras
+- Acertar 5 respostas seguidas
 
-- Todas as cores via tokens semânticos (`--cur-*`, `--primary`, `--border`, etc.). Zero `bg-white`/`text-black` hardcoded.
-- Tipografia rounded/extrabold já no projeto.
-- `app-shell` + `pb-32` para BottomNav.
-- Animações: cards fade-up, modal scale+fade, hero layoutId, chips com `layoutId` para a "pílula" activa.
+**B. Semanais** (3 missões, reset domingo 23:59)
 
-## Fora de âmbito
+- Completar 7 lições
+- 30 min de prática
+- Concluir 1 história
 
-- Backend, persistência de favoritos, partilha.
-- Upload real de imagens (placeholders por agora — user troca quando enviar).
-- IA real a moderar — só conteúdo estático.
+**C. Especiais / Eventos** (1–2 por vez, datas culturais)
 
-## Ficheiros afectados
+- "Mês da Cultura Umbundu" · "Dia da Independência (11/nov)" · "Carnaval de Luanda"
+- Card destacado com banner ilustrado e prazo longo
 
-- **novo** `src/data/curiosidades.ts`
-- **novo** `src/components/CuriosidadeCard.tsx`
-- **novo** `src/components/CuriosidadeModal.tsx`
-- **edita** `src/screens/CuriosidadesScreen.tsx` (reescrita completa)
-- **edita** `src/index.css` (adiciona tokens `--cur-*`)
+**Card de missão** — layout:
+
+```
+┌─────────────────────────────────────┐
+│ 🎯 Ícone   Título da missão         │
+│            Descrição curta          │
+│            ▓▓▓▓▓▓░░░░  3/5          │
+│                       🪙 20  ⭐ 50  │
+└─────────────────────────────────────┘
+```
+
+- Barra de progresso animada (Framer Motion).
+- Quando 100%: botão **"Resgatar"** pulsante → modal de recompensa com confete e som.
+- Concluídas viram cinza com check verde.
+
+---
+
+### 3. Sistema de RECOMPENSAS
+
+Quatro moedas/tipos, combinados conforme a missão:
+
+
+| Tipo                 | Símbolo | Como ganha                               | Onde gasta                                                          |
+| -------------------- | ------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| **XP**               | ⭐       | Toda missão e lição                      | Sobe nível do perfil (coroa)                                        |
+| **Kindeles** (moeda) | 🪙      | Missões diárias/semanais                 | Na loja compra vidas, bloqueios de ofesnivas e mais, e mais (pense) |
+| **Baús**             | 📦      | Recompensa final de semanais e especiais | Abrem com itens aleatórios                                          |
+| **Badges culturais** | 🛡️     | Marcos e conquistas                      | Exibidos no perfil                                                  |
+
+
+**Baús** (3 raridades, usando suas imagens de referência):
+
+- 🟫 **Comum** (madeira) — fim de diária
+- ⚪ **Raro** (prata) — fim de semanal
+- 🟡 **Lendário** (ouro) — fim de evento ou conquista grande
+
+Abertura do baú = animação 2s (chacoalha → estoura) + lista de itens drop: kindeles, XP bônus, fragmentos de badge, item cosmético.
+
+**Tabela de drops** definida em `src/data/recompensas.ts` (probabilidades) — fácil de ajustar.
+
+---
+
+### 4. Aba CONQUISTAS (18 badges no MVP)
+
+Grid 3 colunas (mobile), badges circulares estilo as suas imagens (estrela ao centro, cor por categoria). Tap → modal com descrição, progresso, data de desbloqueio.
+
+**Estados visuais**: bloqueada (cinza escuro + cadeado) · em progresso (colorida com barra) · desbloqueada (brilho + estrela cheia).
+
+**18 conquistas iniciais**, agrupadas em 4 categorias:
+
+**Primeiros passos** (4) — rosa
+
+1. Primeira Palavra · 2. Primeira Lição · 3. Primeiro Áudio · 4. Bem-vindo, Kwendi
+
+**Linguagem Umbundu** (5) — vermelho/crimson
+5. 50 palavras · 6. 200 palavras · 7. Guardião do Umbundu (500) · 8. Mestre da Pronúncia · 9. Tradutor
+
+**Explorador Cultural** (5) — laranja
+10. Explorador Cultural (10 curiosidades) · 11. Contador de Histórias · 12. Conhecedor de Angola · 13. Provador (gastronomia) · 14. Naturalista (fauna/flora)
+
+**Consistência** (4) — azul
+15. 7 dias de streak · 16. 30 dias · 17. 100 dias · 18. Madrugador (lição antes das 8h)
+
+Cada conquista em `conquistas.ts`: `{ id, titulo, descricao, categoria, icone, condicao, recompensa }`.
+
+---
+
+### 5. Hook `useMissoes` (mock local, API futura-proof)
+
+```
+useMissoes() → {
+  diarias, semanais, especiais,
+  conquistas,
+  saldo: { xp, kindeles, baus },
+  registrarAcao(tipo, qtd),    // ex.: registrarAcao('licao_completa', 1)
+  resgatarRecompensa(id),
+  abrirBau(id)
+}
+```
+
+Persistência em `localStorage` (`kwendi_missoes_v1`). Quando migrar para Supabase, troca-se apenas a implementação interna do hook — UI não muda.
+
+---
+
+### 6. Detalhes técnicos
+
+- **Tabs**: shadcn `Tabs` estilizado com cores Kwendi (crimson ativo).
+- **Animações**: Framer Motion para barras, confete (`canvas-confetti`), shake do baú.
+- **Ícones**: Lucide (Target, Flame, Coins, Trophy, Lock, Sparkles) + emojis para badges culturais.
+- **Sem backend agora**: tudo mock. Estrutura de pastas:
+  - `src/screens/MissoesScreen.tsx` (substitui placeholder)
+  - `src/components/missoes/` (MissaoCard, BauModal, RecompensaModal, ConquistaCard, ConquistaModal, HeaderRecursos, AbaMissoes, AbaConquistas)
+  - `src/data/missoes.ts`, `conquistas.ts`, `recompensas.ts`
+  - `src/hooks/useMissoes.ts`
+- Adicionar dependência: `bun add canvas-confetti @types/canvas-confetti`
+- Quando você quiser ligar ao Supabase depois: tabelas `missoes_progresso`, `conquistas_usuario`, `recompensas_log`, todas com `user_id` + RLS — o hook é o único ponto de troca.
+
+---
+
+### Fora do escopo desta entrega
+
+- Loja de gasto de Kindeles (próxima etapa).
+- Notificações push de missão concluída.
+- Conexão real ao Supabase (estruturado mas não implementado).
