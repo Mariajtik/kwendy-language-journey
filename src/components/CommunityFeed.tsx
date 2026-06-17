@@ -26,7 +26,7 @@ const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
 
 const REACTIONS = [
   { key: "malaik", label: "Tá malaik", emoji: "🔥" },
-  { key: "mambo", label: "Granda mambo!", emoji: "🚀" },
+  { key: "mambo", label: "Granda mambo!", emoji: "❤️" },
   { key: "concordo", label: "Concordo", emoji: "✅" },
   { key: "discordo", label: "Discordo", emoji: "❌" },
   { key: "erreh", label: "Erreh!", emoji: "😂" },
