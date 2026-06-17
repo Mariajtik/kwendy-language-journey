@@ -32,7 +32,6 @@ import agostinhoImg from "@/assets/curiosidades/agostinho-neto.jpg.asset.json";
 import nontombiImg from "@/assets/curiosidades/nontombi.jpg.asset.json";
 import tundavalaImg from "@/assets/curiosidades/tundavala.jpg.asset.json";
 import kalandulaImg from "@/assets/curiosidades/kalandula.jpg.asset.json";
-import morroImg from "@/assets/curiosidades/morro.jpg.asset.json";
 
 export const CATEGORIAS: Record<
   Categoria,
@@ -108,7 +107,6 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "pensador",
-    imagem: morroImg.url,
     categoria: "cultura",
     titulo: "O Pensador",
     subtitulo: "O símbolo da sabedoria angolana",
