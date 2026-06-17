@@ -10,10 +10,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Play, Pause, Check, X, Sparkles, Trophy, Flame, Award } from "lucide-react";
+import { ChevronLeft, Play, Pause, Check, X, Trophy, Flame } from "lucide-react";
 import { PERGUNTAS, type Pergunta } from "@/data/fronteirasPerguntas";
 import musicAsset from "@/assets/perola-omboio.mp3.asset.json";
 import { useSaldo } from "@/hooks/useSaldo";
+import { useMissoes } from "@/hooks/useMissoes";
+import { CONQUISTAS, type ConquistaDef } from "@/data/conquistas";
 
 const TRACK_URL = musicAsset.url;
 const TOTAL_POR_PARTIDA = 10;
@@ -36,18 +38,6 @@ const DEFAULT_STATS: FronteirasStats = {
   diasJogados: [],
   conquistas: [],
 };
-
-const CONQUISTAS_FRONTEIRAS = [
-  { id: "fr-1", titulo: "Explorador de Fronteiras", desc: "Jogar a primeira partida", icone: Sparkles },
-  { id: "fr-2", titulo: "Sabedoria Angolana", desc: "10 respostas corretas acumuladas", icone: Award },
-  { id: "fr-3", titulo: "Mestre do Continente", desc: "50 respostas corretas acumuladas", icone: Trophy },
-  { id: "fr-4", titulo: "Sequência de Ouro", desc: "Streak de 5 acertos numa partida", icone: Flame },
-  { id: "fr-5", titulo: "Pontuação Perfeita", desc: "Acertar 10/10 numa partida", icone: Trophy },
-  { id: "fr-6", titulo: "Viajante Constante", desc: "Jogar em 3 dias diferentes", icone: Sparkles },
-  { id: "fr-7", titulo: "Maratonista Cultural", desc: "Acumular 10 minutos de jogo", icone: Flame },
-] as const;
-
-type ConquistaFr = (typeof CONQUISTAS_FRONTEIRAS)[number];
 
 function loadStats(): FronteirasStats {
   if (typeof window === "undefined") return DEFAULT_STATS;
@@ -87,6 +77,7 @@ function shuffleOpcoes(p: Pergunta): Pergunta {
 const FronteirasJogoScreen = () => {
   const navigate = useNavigate();
   const { update } = useSaldo();
+  const { desbloquearConquista } = useMissoes();
 
   /* ---------- Música de fundo ---------- */
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -123,7 +114,7 @@ const FronteirasJogoScreen = () => {
   const [terminou, setTerminou] = useState(false);
   const [xpGanho, setXpGanho] = useState(0);
   const [diaGanho, setDiaGanho] = useState(0);
-  const [novasConquistas, setNovasConquistas] = useState<ConquistaFr[]>([]);
+  const [novasConquistas, setNovasConquistas] = useState<ConquistaDef[]>([]);
   const startRef = useRef<number>(performance.now());
 
   const perguntaAtual = perguntas[indice];
@@ -188,28 +179,31 @@ const FronteirasJogoScreen = () => {
       conquistas: prev.conquistas.slice(),
     };
 
-    const desbloqueadas: ConquistaFr[] = [];
-    const desbloquear = (id: string) => {
-      if (next.conquistas.includes(id)) return;
-      const def = CONQUISTAS_FRONTEIRAS.find((c) => c.id === id);
+    // Avalia conquistas centrais (categoria "fronteiras")
+    const desbloqueadas: ConquistaDef[] = [];
+    const tentar = (id: string, condicao: boolean, progresso?: number) => {
+      const def = CONQUISTAS.find((c) => c.id === id);
       if (!def) return;
-      next.conquistas.push(id);
-      desbloqueadas.push(def);
+      if (condicao) {
+        // se ainda não estava marcada localmente, mostramos na lista de novas
+        if (!next.conquistas.includes(id)) {
+          next.conquistas.push(id);
+          desbloqueadas.push(def);
+        }
+        desbloquearConquista(id, progresso ?? def.meta);
+      } else if (progresso != null) {
+        // só atualiza progresso parcial sem desbloquear
+        desbloquearConquista(id, Math.min(progresso, def.meta - 1));
+      }
     };
 
-    if (next.partidas >= 1) desbloquear("fr-1");
-    if (next.acertosTotais >= 10) desbloquear("fr-2");
-    if (next.acertosTotais >= 50) desbloquear("fr-3");
-    if (melhorStreak >= 5) desbloquear("fr-4");
-    if (acertos === TOTAL_POR_PARTIDA) desbloquear("fr-5");
-    if (diasJogados.length >= 3) desbloquear("fr-6");
-    if (next.tempoTotalMs >= 10 * 60 * 1000) desbloquear("fr-7");
-
-    // bónus por conquista nova
-    if (desbloqueadas.length) {
-      xp += desbloqueadas.length * 40;
-      dia += desbloqueadas.length * 5;
-    }
+    tentar("fr1", next.partidas >= 1, next.partidas);
+    tentar("fr2", next.acertosTotais >= 10, next.acertosTotais);
+    tentar("fr3", next.acertosTotais >= 50, next.acertosTotais);
+    tentar("fr4", melhorStreak >= 5);
+    tentar("fr5", acertos === TOTAL_POR_PARTIDA);
+    tentar("fr6", diasJogados.length >= 3, diasJogados.length);
+    tentar("fr7", next.tempoTotalMs >= 10 * 60 * 1000);
 
     saveStats(next);
     update((s) => ({ ...s, xp: s.xp + xp, diamantes: s.diamantes + dia }));
@@ -423,8 +417,8 @@ const FronteirasJogoScreen = () => {
                     Conquistas desbloqueadas
                   </p>
                   <div className="flex flex-col gap-2">
-                    {novasConquistas.map((c) => {
-                      const Icone = c.icone;
+                     {novasConquistas.map((c) => {
+                       const Icone = c.icone;
                       return (
                         <div
                           key={c.id}
@@ -434,7 +428,7 @@ const FronteirasJogoScreen = () => {
                           <Icone className="w-6 h-6 shrink-0" />
                           <div>
                             <p className="font-black text-sm">{c.titulo}</p>
-                            <p className="text-xs opacity-90">{c.desc}</p>
+                            <p className="text-xs opacity-90">{c.descricao}</p>
                           </div>
                         </div>
                       );
