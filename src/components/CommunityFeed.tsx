@@ -72,7 +72,7 @@ const ranking = [
   { name: "Tu", xp: 0 },
 ];
 
-type SubTab = "feed" | "tribo" | "ranking" | "conquistas";
+type SubTab = "feed" | "tribo" | "ranking";
 
 const CommunityFeed = () => {
   const [tab, setTab] = useState<SubTab>("feed");
@@ -83,7 +83,6 @@ const CommunityFeed = () => {
       { id: "feed" as const, label: "Comunidade" },
       ...(FOLLOWING_COUNT > 0 ? [{ id: "tribo" as const, label: "Minha Tribo" }] : []),
       { id: "ranking" as const, label: "Ranking" },
-      { id: "conquistas" as const, label: "Conquistas" },
     ],
     [],
   );
@@ -212,20 +211,6 @@ const CommunityFeed = () => {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {tab === "conquistas" && (
-        <div className="grid grid-cols-3 gap-3">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-2xl bg-muted flex flex-col items-center justify-center gap-1 border-2 border-border"
-            >
-              <Trophy className="w-7 h-7 text-muted-foreground" />
-              <span className="text-[10px] font-bold text-muted-foreground">Bloqueada</span>
-            </div>
-          ))}
         </div>
       )}
     </div>
