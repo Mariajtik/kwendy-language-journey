@@ -80,22 +80,22 @@ const FronteirasScreen = () => {
         >
           Voltar à Home
         </button>
-
-        {/* Trilha sonora — Apple Music */}
-        <button
-          onClick={() => setPlayerOpen(true)}
-          className="mt-6 mx-auto flex items-center gap-3 rounded-full bg-[hsl(var(--kwendi-blue))] px-5 py-3 text-white shadow-md hover:opacity-90 transition"
-          aria-label="Tocar África Minha de Bonga e Plutónio"
-        >
-          <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/25">
-            <Play className="w-4 h-4 fill-white" />
-          </span>
-          <span className="text-left">
-            <span className="block text-[11px] uppercase tracking-wider font-extrabold opacity-80">Trilha sonora</span>
-            <span className="block text-sm font-black leading-tight">África Minha · Bonga & Plutónio</span>
-          </span>
-        </button>
       </div>
+
+      {/* Trilha sonora — Apple Music (botão flutuante, sempre visível) */}
+      <button
+        onClick={() => setPlayerOpen(true)}
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-full bg-[hsl(var(--kwendi-blue))] px-5 py-3 text-white shadow-lg hover:opacity-90 transition"
+        aria-label="Tocar África Minha de Bonga e Plutónio"
+      >
+        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/25">
+          <Play className="w-4 h-4 fill-white" />
+        </span>
+        <span className="text-left">
+          <span className="block text-[11px] uppercase tracking-wider font-extrabold opacity-80">Trilha sonora</span>
+          <span className="block text-sm font-black leading-tight">África Minha · Bonga & Plutónio</span>
+        </span>
+      </button>
 
       {/* Modal do player Apple Music */}
       {playerOpen && (
