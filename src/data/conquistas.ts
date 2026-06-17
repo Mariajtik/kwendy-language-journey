@@ -1,5 +1,18 @@
 /**
- * Catálogo de conquistas (badges culturais) — 18 itens iniciais.
+ * Catálogo de Conquistas (feitos culturais e de domínio).
+ *
+ * Taxonomia do projeto — não misturar:
+ *   • Badge    → recompensa visual entregue ao concluir uma MISSÃO
+ *                (diária/semanal/especial). Vive em MissaoCard.
+ *   • Marco    → milestone linear do progresso do utilizador (nível,
+ *                módulo, ofensiva). Vive em ProfileScreen → "Marcos".
+ *   • Conquista (este ficheiro) → feito com critério específico
+ *                (cultural, linguístico, consistência). Dá XP + diamantes
+ *                e às vezes baú. Vive no mural Missões → "Conquistas"
+ *                e na vitrine ProfileScreen → "Conquistas".
+ *
+ * Ao adicionar um item aqui, garanta que é uma Conquista — não uma
+ * recompensa de missão e não um marco de progresso.
  */
 import type { LucideIcon } from "lucide-react";
 import {
