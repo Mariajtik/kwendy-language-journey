@@ -2,8 +2,9 @@
  * ConquistaCard — badge circular para o grid de conquistas.
  */
 import { motion } from "framer-motion";
-import { CATEGORIA_INFO, BADGE_IMAGENS, BADGE_BLOQUEADA, type ConquistaDef } from "@/data/conquistas";
+import { CATEGORIA_INFO, type ConquistaDef } from "@/data/conquistas";
 import type { ConquistaView } from "@/hooks/useMissoes";
+import BadgeStar from "./BadgeStar";
 
 interface Props {
   conquista: ConquistaView;
@@ -14,7 +15,6 @@ const ConquistaCard = ({ conquista, onClick }: Props) => {
   const { titulo, categoria, meta, progresso, desbloqueada, badge } = conquista;
   const cor = CATEGORIA_INFO[categoria].cor;
   const pct = Math.min(100, (progresso / meta) * 100);
-  const src = desbloqueada ? BADGE_IMAGENS[badge] : BADGE_BLOQUEADA;
 
   return (
     <motion.button
@@ -33,7 +33,7 @@ const ConquistaCard = ({ conquista, onClick }: Props) => {
               : "drop-shadow(0 2px 3px rgba(0,0,0,0.15))",
           }}
         >
-          <img src={src} alt={titulo} className="w-full h-full object-contain" />
+          <BadgeStar cor={badge} locked={!desbloqueada} className="w-full h-full" />
         </motion.div>
 
         {!desbloqueada && progresso > 0 && (

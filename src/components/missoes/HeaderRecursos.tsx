@@ -1,7 +1,7 @@
 /**
  * HeaderRecursos — pílula com XP, Kindeles, baús e streak.
  */
-import { Flame, Star, Package } from "lucide-react";
+import { Flame, Zap, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 
@@ -41,8 +41,8 @@ const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => (
     className="flex items-center justify-between gap-2 px-4 py-2.5 rounded-2xl bg-card border-2 border-border"
     style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
   >
-    <Item icon={<Star className="w-4 h-4" />} value={xp} color="var(--kwendi-yellow)" />
-    <Item icon={<DiamanteNegro className="w-4 h-4" />} value={diamantes} color="var(--kwendi-gray)" />
+    <Item icon={<Zap className="w-4 h-4 fill-current" />} value={xp} color="var(--kwendi-yellow)" />
+    <Item icon={<DiamanteNegro className="w-4 h-4" />} value={diamantes} color="0 0% 12%" />
     <Item icon={<Package className="w-4 h-4" />} value={baus} color="var(--kwendi-brown)" />
     <Item icon={<Flame className="w-4 h-4" />} value={streak} color="var(--kwendi-red)" />
   </motion.div>

@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Star, Package } from "lucide-react";
+import { Zap, Package } from "lucide-react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import type { Recompensa } from "@/data/missoes";
 
@@ -56,7 +56,7 @@ const RecompensaModal = ({ recompensa, titulo = "Missão concluída!", onClose }
 
             <div className="mt-4 flex justify-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
-                <Star className="w-5 h-5" style={{ color: "hsl(var(--kwendi-yellow))" }} />
+                <Zap className="w-5 h-5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />
                 <span className="font-extrabold">+{recompensa.xp} XP</span>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
