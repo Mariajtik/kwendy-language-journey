@@ -49,6 +49,7 @@ export const CATEGORIAS: Record<
 export const curiosidades: Curiosidade[] = [
   {
     id: "imbondeiro",
+    imagem: imbondeiroImg.url,
     categoria: "natureza",
     titulo: "O Imbondeiro",
     subtitulo: "A árvore que cresce ao contrário",
@@ -76,6 +77,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "nzinga",
+    imagem: nzingaImg.url,
     categoria: "historia",
     titulo: "Rainha Nzinga",
     subtitulo: "A guerreira que enfrentou impérios",
@@ -106,6 +108,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "pensador",
+    imagem: morroImg.url,
     categoria: "cultura",
     titulo: "O Pensador",
     subtitulo: "O símbolo da sabedoria angolana",
@@ -136,6 +139,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "palanca",
+    imagem: palancaImg.url,
     categoria: "natureza",
     titulo: "Palanca Negra Gigante",
     subtitulo: "O símbolo vivo de Angola",
@@ -166,6 +170,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "welwitschia",
+    imagem: welwitschiaImg.url,
     categoria: "natureza",
     titulo: "Welwitschia Mirabilis",
     subtitulo: "A planta que desafia o tempo",
@@ -223,6 +228,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "agostinho-neto",
+    imagem: agostinhoImg.url,
     categoria: "historia",
     titulo: "Agostinho Neto",
     subtitulo: "Manguxi Kilamba",
@@ -253,6 +259,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "nontombi",
+    imagem: nontombiImg.url,
     categoria: "cultura",
     titulo: "Nontombi",
     subtitulo: "O penteado ancestral africano",
@@ -313,6 +320,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "tundavala",
+    imagem: tundavalaImg.url,
     categoria: "monumentos",
     titulo: "Fenda da Tundavala",
     subtitulo: "O abismo natural da Huíla",
@@ -369,6 +377,7 @@ export const curiosidades: Curiosidade[] = [
   },
   {
     id: "kalandula",
+    imagem: kalandulaImg.url,
     categoria: "monumentos",
     titulo: "Quedas de Kalandula",
     subtitulo: "A força das águas angolanas",
