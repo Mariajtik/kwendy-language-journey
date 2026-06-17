@@ -33,7 +33,16 @@ const CuriosidadeModal = ({ item, onClose }: Props) => {
   useEffect(() => {
     const sal = getSaldo();
     if (sal.curiosidadesLidas.includes(item.id)) return;
-    setSaldo((s) => ({ ...s, curiosidadesLidas: [...s.curiosidadesLidas, item.id] }));
+    setSaldo((s) => {
+      const lidas = [...s.curiosidadesLidas, item.id];
+      const cosmeticos = [...s.cosmeticos];
+      // Recompensa: Chapéu de palha por ler Pensador + Agostinho Neto
+      const temAmbos = lidas.includes("pensador") && lidas.includes("agostinho-neto");
+      if (temAmbos && !cosmeticos.includes("chapeu-palha")) {
+        cosmeticos.push("chapeu-palha");
+      }
+      return { ...s, curiosidadesLidas: lidas, cosmeticos };
+    });
     registrarAcao("curiosidade_lida", 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id]);

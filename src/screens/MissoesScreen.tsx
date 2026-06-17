@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Sparkles, Wand2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import sobaAsset from "@/assets/missoes/soba-mascote.png.asset.json";
+import suzanaAsset from "@/assets/characters/suzana.jpg.asset.json";
 import bauComum from "@/assets/missoes/bau-comum-fechado.png.asset.json";
 import bauRaro from "@/assets/missoes/bau-raro-fechado.png.asset.json";
 import bauLendario from "@/assets/missoes/bau-lendario-fechado.png.asset.json";
@@ -252,9 +252,11 @@ const MissoesScreen = () => {
             <div className="space-y-6">
               {/* Mascote Soba apresenta a aba */}
               <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border-2 border-border" style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}>
-                <img src={sobaAsset.url} alt="Soba" className="w-14 h-14 object-contain" />
+                <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0" style={{ background: "#E8A48C" }}>
+                  <img src={suzanaAsset.url} alt="Avó Suzana" className="w-full h-full object-cover object-top" />
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-extrabold text-foreground leading-tight">Soba das Conquistas</p>
+                  <p className="text-sm font-extrabold text-foreground leading-tight">Avó Suzana</p>
                   <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                     "Cada badge é uma história. Coleciona, Kwendi!"
                   </p>

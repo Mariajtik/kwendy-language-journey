@@ -230,6 +230,14 @@ const ProfileScreen = () => {
                 ))}
               </div>
             </section>
+
+            {/* Cosméticos */}
+            <section>
+              <h2 className="text-lg font-extrabold text-foreground mb-3">Cosméticos</h2>
+              <div className="grid grid-cols-3 gap-3">
+                <ChapeuPalhaCard unlocked={saldo.cosmeticos.includes("chapeu-palha")} />
+              </div>
+            </section>
           </div>
         )}
 
@@ -319,6 +327,23 @@ const Counter = ({ value, label }: { value: number; label: string }) => (
   <div className="text-center">
     <div className="text-lg font-extrabold text-foreground leading-none">{value}</div>
     <div className="text-[11px] font-bold text-muted-foreground mt-1">{label}</div>
+  </div>
+);
+
+const ChapeuPalhaCard = ({ unlocked }: { unlocked: boolean }) => (
+  <div
+    className="aspect-square rounded-2xl border-2 border-border bg-card flex flex-col items-center justify-center p-2 text-center"
+    style={{ opacity: unlocked ? 1 : 0.55 }}
+  >
+    <div className="text-3xl mb-1" style={{ filter: unlocked ? "none" : "grayscale(1)" }}>
+      👒
+    </div>
+    <div className="text-[10px] font-extrabold text-foreground leading-tight">
+      Chapéu de palha
+    </div>
+    <div className="text-[9px] font-bold text-muted-foreground leading-tight mt-0.5">
+      {unlocked ? "Desbloqueado" : "Lê Pensador + Agostinho"}
+    </div>
   </div>
 );
 
