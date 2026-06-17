@@ -1,12 +1,13 @@
 /**
  * HeaderRecursos — pílula com XP, Kindeles, baús e streak.
  */
-import { Coins, Flame, Star, Package } from "lucide-react";
+import { Flame, Star, Package } from "lucide-react";
 import { motion } from "framer-motion";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
 
 interface Props {
   xp: number;
-  kindeles: number;
+  diamantes: number;
   baus: number;
   streak?: number;
 }
@@ -33,7 +34,7 @@ const Item = ({
   </div>
 );
 
-const HeaderRecursos = ({ xp, kindeles, baus, streak = 0 }: Props) => (
+const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => (
   <motion.div
     initial={{ y: -8, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
@@ -41,7 +42,7 @@ const HeaderRecursos = ({ xp, kindeles, baus, streak = 0 }: Props) => (
     style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
   >
     <Item icon={<Star className="w-4 h-4" />} value={xp} color="var(--kwendi-yellow)" />
-    <Item icon={<Coins className="w-4 h-4" />} value={kindeles} color="var(--kwendi-peach)" />
+    <Item icon={<DiamanteNegro className="w-4 h-4" />} value={diamantes} color="var(--kwendi-gray)" />
     <Item icon={<Package className="w-4 h-4" />} value={baus} color="var(--kwendi-brown)" />
     <Item icon={<Flame className="w-4 h-4" />} value={streak} color="var(--kwendi-red)" />
   </motion.div>
