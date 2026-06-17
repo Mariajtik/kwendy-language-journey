@@ -6,7 +6,6 @@
  */
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Share2,
@@ -15,7 +14,6 @@ import {
   Zap,
   Trophy,
   Calendar,
-  Users,
   ChevronRight,
   Bell,
   Globe,
@@ -27,6 +25,7 @@ import {
 } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import BottomNav from "@/components/BottomNav";
+import CommunityFeed from "@/components/CommunityFeed";
 
 /* ----- Mocked profile data ----- */
 const profile = {
@@ -55,7 +54,6 @@ const Diamond = ({ className = "" }: { className?: string }) => (
 type Tab = "perfil" | "comunidade" | "definicoes";
 
 const ProfileScreen = () => {
-  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("perfil");
 
   const progressPct = (profile.moduleProgress.current / profile.moduleProgress.total) * 100;
@@ -234,63 +232,7 @@ const ProfileScreen = () => {
           </div>
         )}
 
-        {tab === "comunidade" && (
-          <div className="space-y-5">
-            {/* Seguir/Seguindo resumo */}
-            <section className="rounded-2xl border-2 border-border p-4 bg-card flex items-center justify-around">
-              <Counter value={profile.followers} label="Seguidores" />
-              <div className="w-px h-8 bg-border" />
-              <Counter value={profile.following} label="Seguindo" />
-            </section>
-
-            {/* Progresso compacto */}
-            <section className="rounded-2xl border-2 border-border p-4 bg-card">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold text-foreground">Progresso</span>
-                <span className="text-xs font-bold text-muted-foreground">
-                  {profile.moduleProgress.current}/{profile.moduleProgress.total}
-                </span>
-              </div>
-              <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${progressPct}%`, background: "hsl(var(--primary))" }}
-                />
-              </div>
-            </section>
-
-            {/* Conquistas resumo */}
-            <section>
-              <h3 className="font-extrabold text-foreground mb-2">Conquistas</h3>
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-[3/4] rounded-2xl bg-muted flex items-center justify-center"
-                  >
-                    <Lock className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Abrir Comunidade */}
-            <button
-              onClick={() => navigate("/comunidade")}
-              className="w-full flex items-center justify-between rounded-2xl px-5 py-4 text-white font-extrabold"
-              style={{
-                background: "hsl(var(--primary))",
-                boxShadow: "0 5px 0 hsl(var(--kwendi-red-dark))",
-              }}
-            >
-              <span className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Abrir Comunidade
-              </span>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        )}
+        {tab === "comunidade" && <CommunityFeed />}
 
         {tab === "definicoes" && (
           <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">

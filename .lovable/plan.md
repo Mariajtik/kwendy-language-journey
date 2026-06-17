@@ -1,125 +1,49 @@
-## Bottom Navigation + Profile + Comunidade (UI only, sem backend)
+# Aba Comunidade no Perfil
 
-Tudo será frontend com dados mock. Nada de Supabase nesta fase.
+## Lógica atual da aba "Comunidade" (em ProfileScreen)
 
-### 1. Bottom Navigation (extrair em componente)
+Hoje ela mostra apenas um resumo do próprio utilizador:
 
-Criar `src/components/BottomNav.tsx` reutilizável, baseado na nav que já existe no `HomeScreen`. Aceita `active` (string) e cuida da navegação.
+- Card com **Seguidores / Seguindo**
+- Card com **Progresso** compacto (módulo atual)
+- Grade de **Conquistas** (4 trancadas)
+- Botão **"Abrir Comunidade"** que navega para `/comunidade` (CommunityScreen)
 
-Mapeamento dos ícones:
+Ou seja, era uma versão "preview" do perfil social — não tinha feed, ranking nem composer. Toda a comunidade real vivia numa rota separada.
 
+## O que vou mudar
 
-| Ícone  | Rota            | Comportamento                                       |
-| ------ | --------------- | --------------------------------------------------- |
-| Casa   | `/home`         | Tela home (já existe)                               |
-| Baú    | `/missoes`      | Tela "Missões" (placeholder)                        |
-| Livro  | `/historias`    | Tela "Histórias" (placeholder)                      |
-| Lupa   | `/curiosidades` | Tela "Curiosidades" (placeholder)                   |
-| Perfil | `/profile`      | Tela completa de perfil                             |
-| `...`  | —               | **Não navega.** Abre popover flutuante acima da nav |
+Substituir o conteúdo da aba "Comunidade" do `ProfileScreen` pelo conteúdo completo da `CommunityScreen` (feed, composer, subtabs, ranking, conquistas), removendo o botão "Abrir Comunidade" e o resumo redundante.
 
+### Mudanças em `src/screens/ProfileScreen.tsx`
 
-O `HomeScreen` passa a usar `<BottomNav active="home" />` em vez de ter a nav inline.
+- Remover o bloco atual da aba `comunidade` (resumo + botão).
+- Renderizar dentro dessa aba:
+  - **Subtabs** internas: `Comunidade` · (`Minha Tribo` se `FOLLOWING_COUNT > 0`) · `Ranking` · `Conquistas` — com a mesma animação de underline (`layoutId` distinto, ex.: `profile-community-subtab`).
+  - **Banner de moderação** da IA Kwendi.
+  - **Composer** (textarea + contador 280 + botão Publicar) com o mesmo `toast` "A IA Kwendi irá rever…".
+  - **Feed** de posts (PostCard) — reaproveitando os mocks (`Nzinga`, `Kiame`, `Suzana`).
+  - **Ranking** com pódio (ouro/prata/bronze) e destaque para "Tu".
+  - **Conquistas** em grid 3×3 trancadas.
+- Reaproveitar `BottomNav active="user"` já existente.
+- Manter scroll dentro do `app-shell`; subtabs ficam fixas logo abaixo do header de tabs principais (sticky com `top` ajustado, ou simplesmente roláveis no fluxo).
 
-### 2. Popover dos "..."
+### Mudanças em `src/screens/CommunityScreen.tsx`
 
-- Implementado dentro de `BottomNav` (estado local `moreOpen`).
-- Posicionado `absolute` acima do botão `...`, com seta apontando para baixo.
-- Animação Framer Motion: `scale: 0.9 → 1` + `opacity: 0 → 1` (saída inversa via `AnimatePresence`).
-- Fundo branco, `rounded-2xl`, sombra suave.
-- Opções em pills horizontais brancas empilhadas, exactamente como o mockup:
-  - **Fala** → `/secao/fala`
-  - **Escuta** → `/secao/escuta`
-  - **Palavras** → `/secao/palavras`
-  - **Alfabeto/pronúncia** → `/secao/alfabeto`
-- Fecha ao clicar fora (listener em `document` ou overlay invisível) e ao clicar numa opção.
+- Manter o ficheiro por agora (a rota `/comunidade` continua válida — Lupa/atalhos podem usar), mas como o acesso principal passa a ser via Perfil → Comunidade, **não removerei** o ficheiro neste passo para não quebrar a rota. (Posso remover num passo seguinte se quiseres.)
 
-### 3. Telas placeholder simples
+### Componentes auxiliares
 
-Cinco telas com layout idêntico (header com título, ícone temático, texto "Em breve", e `BottomNav` com o item correcto activo):
+- Mover o `PostCard` e os mocks (`posts`, `ranking`, `FOLLOWING_COUNT`) para dentro do `ProfileScreen.tsx` (escopo local) — ou extrair para `src/components/CommunityFeed.tsx` reutilizável e usar tanto em `ProfileScreen` quanto em `CommunityScreen`.
+- **Decisão**: extrair para `src/components/CommunityFeed.tsx` (mantém DRY entre as duas telas).
 
-- `src/screens/MissoesScreen.tsx` (`/missoes`)
-- `src/screens/HistoriasScreen.tsx` (`/historias`)
-- `src/screens/CuriosidadesScreen.tsx` (`/curiosidades`)
-- `src/screens/SecaoScreen.tsx` (`/secao/:tipo`) — reaproveita a mesma tela para Fala/Escuta/Palavras/Alfabeto, mostrando o título correspondente.
+## Detalhes técnicos
 
-### 4. ProfileScreen (`/profile`)
+- Novo ficheiro `src/components/CommunityFeed.tsx` exportando `<CommunityFeed />` que encapsula: subtabs + banner + composer + feed + ranking + conquistas. Sem header próprio nem BottomNav.
+- `ProfileScreen` importa e renderiza `<CommunityFeed />` na aba `comunidade`.
+- `CommunityScreen` passa a ser um wrapper fino (header "Comunidade" + `<CommunityFeed />` + BottomNav) para a rota `/comunidade` continuar funcional.
+- Sem backend, sem chamadas Supabase. Apenas UI e `toast`.
 
-`src/screens/ProfileScreen.tsx` — tela completa, fundo `kwendi-cream`.
+## Pergunta opcional
 
-**Header curvo vermelho:**
-
-- Bloco grande `bg-primary` com curva orgânica no canto inferior esquerdo (border-radius assimétrico tipo `0 0 0 60% / 0 0 0 30%`, como no mockup).
-- Top-right: dois ícones (compartilhar `Share2`, definições `Settings`).
-- Username em branco, grande, bold (mock: "Angola").
-- Avatar circular sobreposto ao header (semelhante ao mockup).
-
-**Tabs (sticky abaixo do header):**
-
-- `Perfil` | `Comunidade` | `Definições`
-- Estado local `activeTab`. Underline crimson no activo.
-
-**Tab "Perfil" mostra:**
-
-- Bloco **Visão geral**: 3 cartões pequenos (Sequência 🔥, XP ⚡, Nível) + bloco INFO (nome, diamantes negros, data de ingresso "Membro desde Junho 2026").
-- Bloco **Seguir / Seguindo**: dois contadores (mock 0 / 0) com botão "Seguir" desactivado.
-- Bloco **Progresso**: barra de progresso do módulo actual (mock 1/5 lições).
-- Bloco **Marcos**: linha de círculos `+` (desbloqueáveis), tal como mockup.
-- Bloco **Conquistas**: grelha de 4 cartões cinza placeholder.
-
-**Tab "Comunidade" mostra (versão dentro do perfil):**
-
-- Seguir/Seguindo (resumo)
-- Progresso
-- Conquistas
-- Botão "Abrir Comunidade" → navega para `/comunidade`.
-
-**Tab "Definições":**
-
-- Lista simples de itens (Conta, Notificações, Idioma, Sobre, Sair) — apenas UI, sem ação.
-
-### 5. CommunityScreen (`/comunidade`) — tela completa
-
-`src/screens/CommunityScreen.tsx`. Subtabs no topo:
-
-- **Comunidade** (default): publicações recentes (mock). Cards com avatar, username, badge da conquista/sequência/progresso, texto, botões reagir 🔥 e comentar 💬.
-- **Minha Tribo** (só aparece se `following.length > 0`; mock booleano local). Mostra publicações dos seguidos.
-- **Ranking**: lista numerada top 10 (mock).
-- **Feed**: alias de Comunidade (manteremos só "Comunidade" + "Minha Tribo" + "Ranking" + "Conquistas" para clarificar; "Feed" no enunciado mapeia para "Comunidade").
-- **Conquistas**: grelha global de conquistas disponíveis.
-
-**Composer de post (placeholder):**
-
-- Input "Partilha algo sobre África, Angola, Umbundu ou o Kwendi…" + botão "Publicar".
-- Ao clicar Publicar mostra `toast` informando que "A IA irá rever a tua publicação antes de aparecer na comunidade" (sem backend — só feedback visual).
-- Comentários e reacções também só visualmente.
-
-**Aviso de moderação por IA:** banner cinza no topo do feed:
-
-> "Somente conteúdo sobre África, Angola, língua Umbundu e Kwendi é permitido. A IA Kwendi revê cada publicação."
-
-A integração real com IA (moderação de posts/comentários + sugestão automática de partilha ao desbloquear marcos) fica documentada como TODO no código mas **não será implementada nesta fase** — backend virá depois.
-
-### 6. Rotas adicionadas em `App.tsx`
-
-```
-/profile         → ProfileScreen
-/comunidade      → CommunityScreen
-/missoes         → MissoesScreen
-/historias       → HistoriasScreen
-/curiosidades    → CuriosidadesScreen
-/secao/:tipo     → SecaoScreen
-```
-
-### 7. HomeScreen — pequenas alterações
-
-- Substituir a nav inline por `<BottomNav active="home" />`.
-- Header avatar continua a abrir o perfil (`navigate("/profile")`).
-
-### Detalhes técnicos
-
-- Tudo usa tokens de design existentes (`hsl(var(--primary))`, `kwendi-cream`, etc.) — sem cores hard-coded fora dos ícones que já estavam.
-- Animações via `framer-motion` (`AnimatePresence`, `motion.div`).
-- Sem chamadas a Supabase. Mocks como constantes no topo de cada ficheiro.
-- Estado de tabs e popover puramente local com `useState`.
-- Click-fora do popover: overlay transparente `fixed inset-0 z-10` por baixo do popover, ou listener `pointerdown` no document.
+Queres que eu **remova a rota `/comunidade**` e o `CommunityScreen.tsx` (já que tudo vive no perfil agora), ou manter ambos? — Remova e me explique porquê queria manter.
