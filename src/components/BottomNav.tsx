@@ -166,7 +166,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
                 aria-label={item.label}
               >
                 <item.Comp className="w-7 h-7" color={item.color} />
-                {isActive && (
+                {isActive && item.key === "user" && (
                   <motion.span
                     layoutId="bottom-nav-active-crown"
                     className="absolute -top-3"
