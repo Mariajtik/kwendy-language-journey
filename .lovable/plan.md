@@ -1,79 +1,23 @@
-## Para Além de Fronteiras — tela introdutória
+## Mudanças em `src/screens/FronteirasScreen.tsx`
 
-Nova tela de apresentação do jogo cultural pan-africano, no mesmo molde da `ApresentationScreen` (vídeo de fundo, slides estilo stories, botão final "Vamos?"). Acesso pelo ícone do mapa de África (`AfricaPlane`) no header da Home.
+1. **Remover** o botão grande flutuante "Trilha sonora" e o modal com iframe do Apple Music.
+2. **Adicionar** um botão circular dourado fixo no canto superior direito (`absolute top-4 right-4 z-30`):
+   - Fundo dourado (`hsl(45 90% 55%)`), sombra 3D no estilo Duo, ~48px.
+   - Ícone `Play` (lucide) quando pausado, `Pause` quando a tocar.
+   - `aria-label` "Tocar música de fundo" / "Pausar música".
+3. **Adicionar** elemento `<audio ref loop preload="auto">` apontando para o MP3 (asset CDN).
+4. **Estado** `isPlaying` controla play/pause; tentativa de autoplay no mount (silencioso se o browser bloquear — o utilizador clica no botão).
+5. Ao desmontar a tela, pausar o áudio.
 
-### 1. Asset do vídeo de fundo
+## Asset
 
-- Upload do `.mp4` enviado para o CDN via `lovable-assets`:
-  - `src/assets/fronteiras.mp4.asset.json` (pointer JSON; binário fica só no CDN).
-- Reutiliza a mecânica do `mountain.mp4`: `<video autoPlay loop muted playsInline>` com overlay escuro `bg-black/20` para legibilidade.
+- Tu envias o `.mp3` da música "África Minha – Bonga & Plutónio" no próximo turno.
+- Faço upload via `lovable-assets` para `src/assets/africa-minha.mp3.asset.json` e referencio o `.url` no `<audio>`.
 
-### 2. Nova screen `FronteirasIntroScreen.tsx`
+## Fora de scope
 
-Ficheiro: `src/screens/FronteirasIntroScreen.tsx`.
+- Sem player visual com seek/volume — apenas play/pause discreto.
+- Sem persistência entre telas (a música pára ao sair de `/para-alem-fronteiras`).
+- Apple Music/Spotify embeds removidos — os links que enviaste ficam só como referência da faixa.
 
-Estrutura quase idêntica à `ApresentationScreen`:
-
-- Wrapper `max-w-[480px]` centralizado, `100dvh`.
-- Vídeo de fundo (asset novo) + overlay.
-- Barra superior com indicadores de progresso tipo stories + botão "PULAR".
-- Botão de mute/unmute.
-- Toque na metade esquerda = anterior, direita = próximo.
-- Auto-avanço de ~6.5 s por slide.
-- Último slide: fade-out do texto e aparece botão verde "Vamos?" → "Vamos!" com spinner → navega para `/para-alem-fronteiras`.
-- Botão "PULAR" e o final guardam `localStorage.setItem("kwendi_seen_fronteiras_intro", "1")` (intro só aparece na 1.ª vez; nas seguintes o `AfricaPlane` vai direto para `/para-alem-fronteiras`).
-
-**Rascunho dos 5 slides** (Kwendi a apresentar o jogo):
-
-1. **"Olá! Apresento-te o Para Além de Fronteiras"** — "Um jogo para descobrir África pelos olhos de quem a vive."
-2. — "Cada país tem a sua história, os seus sabores, os seus heróis. Mas conhecemos mesmo os nossos vizinhos?"
-3. — "«Sou angolano, conheço Angola.» E o Senegal? E o Quénia? E a Etiópia?"
-4. — "Aqui vais responder a curiosidades de todo o continente — e ganhar diamantes a cada acerto."
-5. — "Vamos atravessar fronteiras juntos? A primeira escala já está marcada."
-
-(Textos editáveis depois.)
-
-### 3. Tela placeholder do jogo
-
-Ficheiro: `src/screens/FronteirasScreen.tsx`, rota `/para-alem-fronteiras`.
-
-- Header simples com botão de voltar (`/home`).
-- Imagem `africa.png` ao centro, com o `plane.png` orbitando suavemente (Framer Motion).
-- Título: **"Para Além de Fronteiras"**.
-- Subtítulo: **"Em breve — aguarda as primeiras escalas."**
-- Caixa cinza-clara: "As perguntas estão a ser preparadas pelo Soba. Volta em breve."
-- Botão `btn-duo` "Voltar à Home".
-
-### 4. Routing (`src/App.tsx`)
-
-```tsx
-import FronteirasIntroScreen from "./screens/FronteirasIntroScreen";
-import FronteirasScreen from "./screens/FronteirasScreen";
-...
-<Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
-<Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
-```
-
-### 5. Liga o `AfricaPlane` na Home
-
-Em `src/screens/HomeScreen.tsx`, o `<button aria-label="Mapa de África">` (linhas ~222–227) ganha `onClick`:
-
-```tsx
-onClick={() => {
-  const seen = localStorage.getItem("kwendi_seen_fronteiras_intro");
-  navigate(seen ? "/para-alem-fronteiras" : "/fronteiras-intro");
-}}
-```
-
-### 6. Fora do âmbito (não mexer agora)
-
-- Lógica de quiz, banco de perguntas, pontuação, mapa interativo — fica para quando forneceres as perguntas.
-- Sem alterações em `useSaldo`, `useMissoes`, dados existentes.
-
-### Ficheiros tocados
-
-- **Novo**: `src/assets/fronteiras.mp4.asset.json` (via CLI)
-- **Novo**: `src/screens/FronteirasIntroScreen.tsx`
-- **Novo**: `src/screens/FronteirasScreen.tsx`
-- **Edit**: `src/App.tsx` (2 rotas + imports)
-- **Edit**: `src/screens/HomeScreen.tsx` (onClick no `AfricaPlane`)
+**Próximo passo:** envia o ficheiro `.mp3` para eu fazer o upload e implementar.
