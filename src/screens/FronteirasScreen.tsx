@@ -7,16 +7,43 @@
  * enquanto aguardamos as primeiras escalas.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, Play, X } from "lucide-react";
+import { ChevronLeft, Play, Pause } from "lucide-react";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
+// TODO: substituir por src/assets/africa-minha.mp3.asset.json assim que o MP3
+// for enviado pelo utilizador e carregado via `lovable-assets create`.
+const TRACK_URL = "";
 
 const FronteirasScreen = () => {
   const navigate = useNavigate();
-  const [playerOpen, setPlayerOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Tentativa de autoplay silenciosa — muitos browsers exigem gesto do utilizador,
+  // por isso ignoramos a rejeição e deixamos o botão tratar do início.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !TRACK_URL) return;
+    audio.volume = 0.6;
+    audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    return () => {
+      audio.pause();
+    };
+  }, []);
+
+  const toggle = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    }
+  };
 
   return (
     <div className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden bg-background">
@@ -34,6 +61,26 @@ const FronteirasScreen = () => {
         </span>
         <div className="w-9" />
       </div>
+
+      {/* Botão dourado de play/pause no canto superior direito */}
+      <button
+        onClick={toggle}
+        aria-label={isPlaying ? "Pausar música de fundo" : "Tocar música de fundo"}
+        className="absolute top-4 right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full transition active:translate-y-0.5"
+        style={{
+          background: "hsl(45 90% 55%)",
+          boxShadow: "0 4px 0 hsl(38 80% 38%)",
+        }}
+      >
+        {isPlaying ? (
+          <Pause className="w-5 h-5 text-white fill-white" />
+        ) : (
+          <Play className="w-5 h-5 text-white fill-white translate-x-[1px]" />
+        )}
+      </button>
+
+      {/* Áudio de fundo (loop) */}
+      <audio ref={audioRef} src={TRACK_URL} loop preload="auto" />
 
       {/* Mapa + avião orbital */}
       <div className="relative mx-auto mt-10 h-64 w-64">
@@ -81,53 +128,6 @@ const FronteirasScreen = () => {
           Voltar à Home
         </button>
       </div>
-
-      {/* Trilha sonora — Apple Music (botão flutuante, sempre visível) */}
-      <button
-        onClick={() => setPlayerOpen(true)}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-full bg-[hsl(var(--kwendi-blue))] px-5 py-3 text-white shadow-lg hover:opacity-90 transition"
-        aria-label="Tocar África Minha de Bonga e Plutónio"
-      >
-        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/25">
-          <Play className="w-4 h-4 fill-white" />
-        </span>
-        <span className="text-left">
-          <span className="block text-[11px] uppercase tracking-wider font-extrabold opacity-80">Trilha sonora</span>
-          <span className="block text-sm font-black leading-tight">África Minha · Bonga & Plutónio</span>
-        </span>
-      </button>
-
-      {/* Modal do player Apple Music */}
-      {playerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => setPlayerOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-[460px] rounded-t-3xl sm:rounded-3xl bg-card p-4 pt-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setPlayerOpen(false)}
-              aria-label="Fechar"
-              className="absolute top-3 right-3 rounded-full bg-muted p-2 hover:bg-muted/80"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <iframe
-              title="África Minha — Bonga & Plutónio"
-              allow="autoplay *; encrypted-media *;"
-              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
-              height={175}
-              style={{ width: "100%", overflow: "hidden", borderRadius: 12, background: "transparent" }}
-              src="https://embed.music.apple.com/ao/song/%C3%A1frica-minha-feat-bonga/1177428682"
-            />
-            <p className="mt-3 text-xs text-muted-foreground text-center">
-              Pré-visualização via Apple Music. Toca o ▶ para começar.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
