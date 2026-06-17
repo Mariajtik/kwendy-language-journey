@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Package } from "lucide-react";
 import { BAUS, emojiDrop, rotuloDrop, type DropItem } from "@/data/recompensas";
 import type { Raridade } from "@/data/missoes";
 
@@ -68,13 +67,13 @@ const BauModal = ({ raridade, drops, onClose }: Props) => {
                   ? { duration: 0.5 }
                   : { duration: 0.6, repeat: Infinity }
               }
-              className="w-24 h-24 rounded-3xl grid place-items-center"
-              style={{ background: `hsl(${config.cor} / 0.2)` }}
+              className="w-32 h-32 grid place-items-center"
+              style={{ filter: `drop-shadow(0 6px 10px hsl(${config.cor} / 0.45))` }}
             >
-              <Package
-                className="w-14 h-14"
-                style={{ color: `hsl(${config.cor})` }}
-                strokeWidth={2.2}
+              <img
+                src={config.imagem}
+                alt={config.label}
+                className="w-full h-full object-contain"
               />
             </motion.div>
           </div>

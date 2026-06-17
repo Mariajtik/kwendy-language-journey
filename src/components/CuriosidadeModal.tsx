@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { X, Quote } from "lucide-react";
 import { CATEGORIAS, type Curiosidade } from "@/data/curiosidades";
+import { useMissoes } from "@/hooks/useMissoes";
+import { setSaldo, getSaldo } from "@/hooks/useSaldo";
 
 interface Props {
   item: Curiosidade;
@@ -14,6 +16,7 @@ interface Props {
 const CuriosidadeModal = ({ item, onClose }: Props) => {
   const cat = CATEGORIAS[item.categoria];
   const color = `hsl(var(${cat.token}))`;
+  const { registrarAcao } = useMissoes();
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -25,6 +28,15 @@ const CuriosidadeModal = ({ item, onClose }: Props) => {
       window.removeEventListener("keydown", onKey);
     };
   }, [onClose]);
+
+  // Conta como "curiosidade lida" (dedupe por id na sessão do utilizador)
+  useEffect(() => {
+    const sal = getSaldo();
+    if (sal.curiosidadesLidas.includes(item.id)) return;
+    setSaldo((s) => ({ ...s, curiosidadesLidas: [...s.curiosidadesLidas, item.id] }));
+    registrarAcao("curiosidade_lida", 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
 
   return (
     <motion.div

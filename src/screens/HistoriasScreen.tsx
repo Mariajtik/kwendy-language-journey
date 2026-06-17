@@ -2,10 +2,18 @@
  * HistoriasScreen.tsx — placeholder "Histórias" tab.
  */
 import { motion } from "framer-motion";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Check } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import { useMissoes } from "@/hooks/useMissoes";
+import { setSaldo } from "@/hooks/useSaldo";
 
-const HistoriasScreen = () => (
+const HistoriasScreen = () => {
+  const { registrarAcao } = useMissoes();
+  const concluirHistoria = () => {
+    registrarAcao("historia_concluida", 1);
+    setSaldo((s) => ({ ...s, xp: s.xp + 80, diamantes: s.diamantes + 20 }));
+  };
+  return (
   <motion.div
     className="app-shell relative bg-background"
     style={{ minHeight: "100dvh" }}
@@ -30,10 +38,18 @@ const HistoriasScreen = () => (
         <p className="text-sm text-muted-foreground mt-1 max-w-xs">
           Os primeiros contos estão a ser narrados por anciãos das províncias.
         </p>
+        <button
+          onClick={concluirHistoria}
+          className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-extrabold text-white"
+          style={{ background: "hsl(var(--kwendi-peach))", boxShadow: "0 3px 0 hsl(var(--kwendi-peach) / 0.6)" }}
+        >
+          <Check className="w-4 h-4" /> Marcar conto como concluído (demo)
+        </button>
       </div>
     </div>
     <BottomNav active="book" />
   </motion.div>
-);
+  );
+};
 
 export default HistoriasScreen;

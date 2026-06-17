@@ -2,8 +2,9 @@
  * ConquistaModal — detalhe da conquista com progresso e resgate.
  */
 import { AnimatePresence, motion } from "framer-motion";
-import { Coins, Star, Package, Lock, X } from "lucide-react";
-import { CATEGORIA_INFO } from "@/data/conquistas";
+import { Star, Package, X } from "lucide-react";
+import { CATEGORIA_INFO, BADGE_IMAGENS, BADGE_BLOQUEADA } from "@/data/conquistas";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import type { ConquistaView } from "@/hooks/useMissoes";
 
 interface Props {
@@ -38,29 +39,21 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
 
           {(() => {
             const cor = CATEGORIA_INFO[conquista.categoria].cor;
-            const Icone = conquista.icone;
             const pct = Math.min(100, (conquista.progresso / conquista.meta) * 100);
+            const badgeSrc = conquista.desbloqueada ? BADGE_IMAGENS[conquista.badge] : BADGE_BLOQUEADA;
             return (
               <>
-                <div
-                  className="mx-auto w-24 h-24 rounded-full grid place-items-center border-[6px] mb-3"
-                  style={{
-                    background: conquista.desbloqueada
-                      ? `radial-gradient(circle at 30% 30%, hsl(${cor}) 0%, hsl(${cor} / 0.7) 100%)`
-                      : "hsl(var(--muted))",
-                    borderColor: conquista.desbloqueada
-                      ? `hsl(${cor} / 0.5)`
-                      : "hsl(var(--border))",
-                    boxShadow: conquista.desbloqueada
-                      ? `0 0 30px hsl(${cor} / 0.5)`
-                      : "none",
-                  }}
-                >
-                  {conquista.desbloqueada ? (
-                    <Icone className="w-12 h-12 text-white" strokeWidth={2.3} />
-                  ) : (
-                    <Lock className="w-10 h-10 text-muted-foreground/60" />
-                  )}
+                <div className="mx-auto w-28 h-28 mb-3 grid place-items-center">
+                  <img
+                    src={badgeSrc}
+                    alt={conquista.titulo}
+                    className="w-full h-full object-contain"
+                    style={{
+                      filter: conquista.desbloqueada
+                        ? `drop-shadow(0 0 18px hsl(${cor} / 0.5))`
+                        : "grayscale(0.2)",
+                    }}
+                  />
                 </div>
 
                 <span
@@ -100,8 +93,8 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
                     {conquista.recompensa.xp}
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted">
-                    <Coins className="w-3.5 h-3.5" style={{ color: "hsl(var(--kwendi-peach))" }} />
-                    {conquista.recompensa.kindeles}
+                    <DiamanteNegro className="w-3.5 h-3.5" />
+                    {conquista.recompensa.diamantes}
                   </span>
                   {conquista.recompensa.bau && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted capitalize">

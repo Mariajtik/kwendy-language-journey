@@ -44,7 +44,7 @@ const MissaoCard = ({ missao, onResgatar }: Props) => {
             </div>
             <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold">
               <span style={{ color: "hsl(var(--kwendi-yellow))" }}>⭐{recompensa.xp}</span>
-              <span style={{ color: "hsl(var(--kwendi-peach))" }}>🪙{recompensa.kindeles}</span>
+              <span style={{ color: "#5E5C5C" }}>💎{recompensa.diamantes}</span>
               {recompensa.bau && <span>📦</span>}
             </div>
           </div>

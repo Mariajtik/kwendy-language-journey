@@ -4,7 +4,8 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Coins, Star, Package } from "lucide-react";
+import { Star, Package } from "lucide-react";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import type { Recompensa } from "@/data/missoes";
 
 interface Props {
@@ -59,8 +60,8 @@ const RecompensaModal = ({ recompensa, titulo = "Missão concluída!", onClose }
                 <span className="font-extrabold">+{recompensa.xp} XP</span>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
-                <Coins className="w-5 h-5" style={{ color: "hsl(var(--kwendi-peach))" }} />
-                <span className="font-extrabold">+{recompensa.kindeles}</span>
+                <DiamanteNegro className="w-5 h-5" />
+                <span className="font-extrabold">+{recompensa.diamantes}</span>
               </div>
               {recompensa.bau && (
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">

@@ -22,13 +22,14 @@ export type AcaoTipo =
   | "palavra_traduzida"
   | "resposta_correta_seguida"
   | "minuto_pratica"
-  | "historia_concluida";
+  | "historia_concluida"
+  | "curiosidade_lida";
 
 export type Raridade = "comum" | "raro" | "lendario";
 
 export interface Recompensa {
   xp: number;
-  kindeles: number;
+  diamantes: number;
   bau?: Raridade;
 }
 
@@ -55,7 +56,7 @@ export const MISSOES_DIARIAS: MissaoDef[] = [
     cor: "var(--kwendi-green)",
     acao: "licao_completa",
     meta: 1,
-    recompensa: { xp: 20, kindeles: 10 },
+    recompensa: { xp: 20, diamantes: 10 },
     tipo: "diaria",
   },
   {
@@ -66,7 +67,7 @@ export const MISSOES_DIARIAS: MissaoDef[] = [
     cor: "var(--kwendi-blue)",
     acao: "audio_ouvido",
     meta: 3,
-    recompensa: { xp: 15, kindeles: 8 },
+    recompensa: { xp: 15, diamantes: 8 },
     tipo: "diaria",
   },
   {
@@ -77,7 +78,7 @@ export const MISSOES_DIARIAS: MissaoDef[] = [
     cor: "var(--kwendi-purple)",
     acao: "palavra_traduzida",
     meta: 10,
-    recompensa: { xp: 25, kindeles: 12 },
+    recompensa: { xp: 25, diamantes: 12 },
     tipo: "diaria",
   },
   {
@@ -88,7 +89,7 @@ export const MISSOES_DIARIAS: MissaoDef[] = [
     cor: "var(--kwendi-red)",
     acao: "resposta_correta_seguida",
     meta: 5,
-    recompensa: { xp: 30, kindeles: 15, bau: "comum" },
+    recompensa: { xp: 30, diamantes: 15, bau: "comum" },
     tipo: "diaria",
   },
 ];
@@ -102,7 +103,7 @@ export const MISSOES_SEMANAIS: MissaoDef[] = [
     cor: "var(--kwendi-yellow)",
     acao: "licao_completa",
     meta: 7,
-    recompensa: { xp: 150, kindeles: 80, bau: "raro" },
+    recompensa: { xp: 150, diamantes: 80, bau: "raro" },
     tipo: "semanal",
   },
   {
@@ -113,7 +114,7 @@ export const MISSOES_SEMANAIS: MissaoDef[] = [
     cor: "var(--kwendi-peach)",
     acao: "minuto_pratica",
     meta: 30,
-    recompensa: { xp: 100, kindeles: 50, bau: "raro" },
+    recompensa: { xp: 100, diamantes: 50, bau: "raro" },
     tipo: "semanal",
   },
   {
@@ -124,7 +125,7 @@ export const MISSOES_SEMANAIS: MissaoDef[] = [
     cor: "var(--kwendi-brown)",
     acao: "historia_concluida",
     meta: 1,
-    recompensa: { xp: 120, kindeles: 60, bau: "raro" },
+    recompensa: { xp: 120, diamantes: 60, bau: "raro" },
     tipo: "semanal",
   },
 ];
@@ -136,9 +137,9 @@ export const MISSOES_ESPECIAIS: MissaoDef[] = [
     descricao: "Explore 15 curiosidades culturais.",
     icone: Sparkles,
     cor: "var(--kwendi-purple)",
-    acao: "licao_completa",
+    acao: "curiosidade_lida",
     meta: 15,
-    recompensa: { xp: 500, kindeles: 200, bau: "lendario" },
+    recompensa: { xp: 500, diamantes: 200, bau: "lendario" },
     tipo: "especial",
     prazo: "Termina em 30 dias",
   },
@@ -150,7 +151,7 @@ export const MISSOES_ESPECIAIS: MissaoDef[] = [
     cor: "var(--kwendi-red)",
     acao: "licao_completa",
     meta: 11,
-    recompensa: { xp: 350, kindeles: 150, bau: "lendario" },
+    recompensa: { xp: 350, diamantes: 150, bau: "lendario" },
     tipo: "especial",
     prazo: "Até 11 de Novembro",
   },

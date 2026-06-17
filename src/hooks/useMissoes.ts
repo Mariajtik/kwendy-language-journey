@@ -1,9 +1,10 @@
 /**
  * useMissoes — hook central de progresso de missões/conquistas.
- * Persiste em localStorage. API estável: ao migrar para Supabase
- * substitui-se apenas a implementação interna.
+ * Saldo (diamantes/xp/baús) vive em `useSaldo` (compartilhado com Home/Perfil).
+ * Aqui guardamos só o progresso/resgate de missões e conquistas.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { getSaldo, setSaldo, useSaldo } from "@/hooks/useSaldo";
 import {
   TODAS_MISSOES,
   MISSOES_DIARIAS,
@@ -18,14 +19,6 @@ import { BAUS, type DropItem } from "@/data/recompensas";
 
 const STORAGE_KEY = "kwendi_missoes_v1";
 
-interface Saldo {
-  xp: number;
-  kindeles: number;
-  baus: Record<Raridade, number>;
-  fragmentos: number;
-  cosmeticos: string[];
-}
-
 interface ProgressoMissao {
   progresso: number;
   resgatada: boolean;
@@ -38,19 +31,10 @@ interface ProgressoConquista {
 }
 
 interface State {
-  saldo: Saldo;
   missoes: Record<string, ProgressoMissao>;
   conquistas: Record<string, ProgressoConquista>;
   ultimoReset: { diaria: string; semanal: string };
 }
-
-const SALDO_INICIAL: Saldo = {
-  xp: 0,
-  kindeles: 0,
-  baus: { comum: 0, raro: 0, lendario: 0 },
-  fragmentos: 0,
-  cosmeticos: [],
-};
 
 function hojeISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -73,7 +57,6 @@ function estadoInicial(): State {
     conquistas[c.id] = { progresso: 0, resgatada: false };
   });
   return {
-    saldo: SALDO_INICIAL,
     missoes,
     conquistas,
     ultimoReset: { diaria: hojeISO(), semanal: inicioSemanaISO() },
@@ -85,11 +68,10 @@ function carregar(): State {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return estadoInicial();
-    const parsed = JSON.parse(raw) as State;
+    const parsed = JSON.parse(raw) as Partial<State>;
     const base = estadoInicial();
     // merge para suportar novas missões adicionadas depois
     return {
-      saldo: { ...base.saldo, ...parsed.saldo, baus: { ...base.saldo.baus, ...(parsed.saldo?.baus ?? {}) } },
       missoes: { ...base.missoes, ...parsed.missoes },
       conquistas: { ...base.conquistas, ...parsed.conquistas },
       ultimoReset: parsed.ultimoReset ?? base.ultimoReset,
@@ -135,6 +117,7 @@ export interface ConquistaView extends ConquistaDef {
 
 export function useMissoes() {
   const [state, setState] = useState<State>(() => aplicarResets(carregar()));
+  const { saldo } = useSaldo();
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -160,61 +143,95 @@ export function useMissoes() {
       });
       return { ...s, missoes };
     });
+    // propaga para conquistas relacionadas
+    setState((s) => {
+      const conquistas = { ...s.conquistas };
+      const incCon = (id: string, n: number) => {
+        const def = CONQUISTAS.find((c) => c.id === id);
+        const atual = conquistas[id];
+        if (!def || !atual) return;
+        const novoProg = Math.min(def.meta, atual.progresso + n);
+        const ja = !!atual.desbloqueadaEm;
+        conquistas[id] = {
+          ...atual,
+          progresso: novoProg,
+          desbloqueadaEm: !ja && novoProg >= def.meta ? new Date().toISOString() : atual.desbloqueadaEm,
+        };
+      };
+      switch (acao) {
+        case "licao_completa":
+          incCon("c2", qtd);
+          if (new Date().getHours() < 8) incCon("c18", qtd);
+          break;
+        case "audio_ouvido":
+          incCon("c3", qtd);
+          incCon("c8", qtd);
+          break;
+        case "palavra_traduzida":
+          incCon("c1", qtd);
+          incCon("c5", qtd);
+          incCon("c6", qtd);
+          incCon("c7", qtd);
+          incCon("c9", qtd);
+          break;
+        case "historia_concluida":
+          incCon("c11", qtd);
+          break;
+        case "curiosidade_lida":
+          incCon("c10", qtd);
+          break;
+      }
+      return { ...s, conquistas };
+    });
   }, []);
 
   const resgatarRecompensa = useCallback((id: string): Recompensa | null => {
+    const def = TODAS_MISSOES.find((m) => m.id === id);
+    if (!def) return null;
     let entregue: Recompensa | null = null;
     setState((s) => {
-      const def = TODAS_MISSOES.find((m) => m.id === id);
-      if (!def) return s;
       const mp = s.missoes[id];
       if (!mp || mp.progresso < def.meta || mp.resgatada) return s;
-      const baus = { ...s.saldo.baus };
-      if (def.recompensa.bau) baus[def.recompensa.bau] += 1;
       entregue = def.recompensa;
-      return {
-        ...s,
-        saldo: {
-          ...s.saldo,
-          xp: s.saldo.xp + def.recompensa.xp,
-          kindeles: s.saldo.kindeles + def.recompensa.kindeles,
-          baus,
-        },
-        missoes: { ...s.missoes, [id]: { ...mp, resgatada: true } },
-      };
+      return { ...s, missoes: { ...s.missoes, [id]: { ...mp, resgatada: true } } };
     });
+    if (entregue) {
+      const r = entregue;
+      setSaldo((sal) => ({
+        ...sal,
+        xp: sal.xp + r.xp,
+        diamantes: sal.diamantes + r.diamantes,
+        baus: r.bau ? { ...sal.baus, [r.bau]: sal.baus[r.bau] + 1 } : sal.baus,
+      }));
+    }
     return entregue;
   }, []);
 
   const abrirBau = useCallback((raridade: Raridade): DropItem[] | null => {
     const drops = BAUS[raridade].drops;
-    let entregue: DropItem[] | null = null;
-    setState((s) => {
-      if (s.saldo.baus[raridade] <= 0) return s;
-      let xp = s.saldo.xp;
-      let kindeles = s.saldo.kindeles;
-      let fragmentos = s.saldo.fragmentos;
-      const cosmeticos = [...s.saldo.cosmeticos];
+    const atual = getSaldo();
+    if (atual.baus[raridade] <= 0) return null;
+    setSaldo((sal) => {
+      let xp = sal.xp;
+      let diamantes = sal.diamantes;
+      let fragmentos = sal.fragmentos;
+      const cosmeticos = [...sal.cosmeticos];
       drops.forEach((d) => {
-        if (d.tipo === "kindeles") kindeles += d.qtd;
+        if (d.tipo === "diamantes") diamantes += d.qtd;
         else if (d.tipo === "xp") xp += d.qtd;
         else if (d.tipo === "fragmento") fragmentos += d.qtd;
-        else if (d.tipo === "cosmetico") cosmeticos.push(d.nome);
+        else if (d.tipo === "cosmetico" && !cosmeticos.includes(d.nome)) cosmeticos.push(d.nome);
       });
-      entregue = drops;
       return {
-        ...s,
-        saldo: {
-          ...s.saldo,
-          xp,
-          kindeles,
-          fragmentos,
-          cosmeticos,
-          baus: { ...s.saldo.baus, [raridade]: s.saldo.baus[raridade] - 1 },
-        },
+        ...sal,
+        xp,
+        diamantes,
+        fragmentos,
+        cosmeticos,
+        baus: { ...sal.baus, [raridade]: sal.baus[raridade] - 1 },
       };
     });
-    return entregue;
+    return drops;
   }, []);
 
   const desbloquearConquista = useCallback((id: string, progresso?: number) => {
@@ -239,24 +256,24 @@ export function useMissoes() {
   }, []);
 
   const resgatarConquista = useCallback((id: string) => {
+    const def = CONQUISTAS.find((c) => c.id === id);
+    if (!def) return;
+    let entregue = false;
     setState((s) => {
-      const def = CONQUISTAS.find((c) => c.id === id);
-      if (!def) return s;
       const cp = s.conquistas[id];
       if (!cp.desbloqueadaEm || cp.resgatada) return s;
-      const baus = { ...s.saldo.baus };
-      if (def.recompensa.bau) baus[def.recompensa.bau] += 1;
-      return {
-        ...s,
-        saldo: {
-          ...s.saldo,
-          xp: s.saldo.xp + def.recompensa.xp,
-          kindeles: s.saldo.kindeles + def.recompensa.kindeles,
-          baus,
-        },
-        conquistas: { ...s.conquistas, [id]: { ...cp, resgatada: true } },
-      };
+      entregue = true;
+      return { ...s, conquistas: { ...s.conquistas, [id]: { ...cp, resgatada: true } } };
     });
+    if (entregue) {
+      const r = def.recompensa;
+      setSaldo((sal) => ({
+        ...sal,
+        xp: sal.xp + r.xp,
+        diamantes: sal.diamantes + r.diamantes,
+        baus: r.bau ? { ...sal.baus, [r.bau]: sal.baus[r.bau] + 1 } : sal.baus,
+      }));
+    }
   }, []);
 
   const view = useMemo(() => {
@@ -282,7 +299,7 @@ export function useMissoes() {
   }, [state]);
 
   return {
-    saldo: state.saldo,
+    saldo,
     ...view,
     registrarAcao,
     resgatarRecompensa,

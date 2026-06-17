@@ -26,35 +26,36 @@ import {
 import avatar from "@/assets/avatar.jpg";
 import BottomNav from "@/components/BottomNav";
 import CommunityFeed from "@/components/CommunityFeed";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import { useSaldo } from "@/hooks/useSaldo";
+import { useMissoes } from "@/hooks/useMissoes";
 
 /* ----- Mocked profile data ----- */
-const profile = {
+const profileBase = {
   username: "Angola",
-  streak: 0,
-  xp: 0,
   level: 1,
-  diamonds: 1000,
   memberSince: "Junho 2026",
   following: 0,
   followers: 0,
   moduleProgress: { current: 1, total: 5, name: "Saúda a tua comunidade" },
   marcos: [false, false, false, false],
-  conquistas: 4,
 };
 
-/* Small faceted diamond identical to the one in HomeScreen */
-const Diamond = ({ className = "" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <path d="M6 3h12l4 6-10 12L2 9l4-6z" fill="#5E5C5C" stroke="#3d3b3b" strokeWidth="1.2" strokeLinejoin="round" />
-    <path d="M6 3l3 6h6l3-6M2 9h20M9 9l3 12M15 9l-3 12" stroke="#3d3b3b" strokeWidth="1" fill="none" />
-    <path d="M9 9l1.5-4h2L14 9z" fill="#7a7878" />
-  </svg>
-);
+const Diamond = DiamanteNegro;
 
 type Tab = "perfil" | "comunidade" | "definicoes";
 
 const ProfileScreen = () => {
   const [tab, setTab] = useState<Tab>("perfil");
+  const { saldo } = useSaldo();
+  const { conquistas } = useMissoes();
+  const profile = {
+    ...profileBase,
+    streak: saldo.ofensiva,
+    xp: saldo.xp,
+    diamonds: saldo.diamantes,
+    conquistas: conquistas.filter((c) => c.desbloqueada).length || 4,
+  };
 
   const progressPct = (profile.moduleProgress.current / profile.moduleProgress.total) * 100;
 

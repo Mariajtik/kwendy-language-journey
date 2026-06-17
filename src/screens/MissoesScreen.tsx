@@ -6,6 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Sparkles, Wand2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import sobaAsset from "@/assets/missoes/soba-mascote.png.asset.json";
+import bauComum from "@/assets/missoes/bau-comum.png.asset.json";
+import bauRaro from "@/assets/missoes/bau-raro.png.asset.json";
+import bauLendario from "@/assets/missoes/bau-lendario.png.asset.json";
 import HeaderRecursos from "@/components/missoes/HeaderRecursos";
 import MissaoCard from "@/components/missoes/MissaoCard";
 import RecompensaModal from "@/components/missoes/RecompensaModal";
@@ -131,9 +135,9 @@ const MissoesScreen = () => {
 
         <HeaderRecursos
           xp={m.saldo.xp}
-          kindeles={m.saldo.kindeles}
+          diamantes={m.saldo.diamantes}
           baus={totalBaus}
-          streak={3}
+          streak={m.saldo.ofensiva}
         />
 
         {/* Tabs */}
@@ -171,26 +175,22 @@ const MissoesScreen = () => {
               Você tem baús para abrir!
             </p>
             <div className="flex gap-1.5">
-              {(["comum", "raro", "lendario"] as Raridade[]).map((r) =>
+              {(
+                [
+                  ["comum", bauComum.url],
+                  ["raro", bauRaro.url],
+                  ["lendario", bauLendario.url],
+                ] as [Raridade, string][]
+              ).map(([r, url]) =>
                 m.saldo.baus[r] > 0 ? (
                   <button
                     key={r}
                     onClick={() => abrirBau(r)}
-                    className="relative w-10 h-10 rounded-xl grid place-items-center text-lg"
-                    style={{
-                      background:
-                        r === "comum"
-                          ? "hsl(var(--kwendi-brown) / 0.2)"
-                          : r === "raro"
-                          ? "hsl(var(--kwendi-gray) / 0.2)"
-                          : "hsl(var(--kwendi-yellow) / 0.25)",
-                    }}
+                    className="relative w-11 h-11 grid place-items-center"
                     aria-label={`Abrir baú ${r}`}
                   >
-                    📦
-                    <span
-                      className="absolute -top-1 -right-1 text-[10px] font-extrabold bg-foreground text-background rounded-full w-4 h-4 grid place-items-center"
-                    >
+                    <img src={url} alt="" className="w-full h-full object-contain" />
+                    <span className="absolute -top-1 -right-1 text-[10px] font-extrabold bg-foreground text-background rounded-full w-4 h-4 grid place-items-center">
                       {m.saldo.baus[r]}
                     </span>
                   </button>
@@ -250,6 +250,17 @@ const MissoesScreen = () => {
             </>
           ) : (
             <div className="space-y-6">
+              {/* Mascote Soba apresenta a aba */}
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border-2 border-border" style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}>
+                <img src={sobaAsset.url} alt="Soba" className="w-14 h-14 object-contain" />
+                <div className="flex-1">
+                  <p className="text-sm font-extrabold text-foreground leading-tight">Soba das Conquistas</p>
+                  <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+                    "Cada badge é uma história. Coleciona, Kwendi!"
+                  </p>
+                </div>
+              </div>
+
               {(Object.keys(CATEGORIA_INFO) as ConquistaCategoria[]).map((cat) => {
                 const itens = m.conquistas.filter((c) => c.categoria === cat);
                 const desb = itens.filter((c) => c.desbloqueada).length;
