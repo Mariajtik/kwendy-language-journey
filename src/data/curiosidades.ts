@@ -24,6 +24,16 @@ export type Curiosidade = {
   destaque?: string;
 };
 
+import imbondeiroImg from "@/assets/curiosidades/imbondeiro.jpg.asset.json";
+import nzingaImg from "@/assets/curiosidades/nzinga.jpg.asset.json";
+import palancaImg from "@/assets/curiosidades/palanca.jpg.asset.json";
+import welwitschiaImg from "@/assets/curiosidades/welwitschia.jpg.asset.json";
+import agostinhoImg from "@/assets/curiosidades/agostinho-neto.jpg.asset.json";
+import nontombiImg from "@/assets/curiosidades/nontombi.jpg.asset.json";
+import tundavalaImg from "@/assets/curiosidades/tundavala.jpg.asset.json";
+import kalandulaImg from "@/assets/curiosidades/kalandula.jpg.asset.json";
+import morroImg from "@/assets/curiosidades/morro.jpg.asset.json";
+
 export const CATEGORIAS: Record<
   Categoria,
   { label: string; token: string }
