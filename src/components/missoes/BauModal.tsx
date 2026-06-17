@@ -6,6 +6,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { BAUS, emojiDrop, rotuloDrop, type DropItem } from "@/data/recompensas";
 import type { Raridade } from "@/data/missoes";
+import { Zap, Puzzle } from "lucide-react";
+import DiamanteNegro from "@/components/icons/DiamanteNegro";
+
+const IconeDrop = ({ d }: { d: DropItem }) => {
+  switch (d.tipo) {
+    case "diamantes":
+      return <DiamanteNegro className="w-5 h-5" />;
+    case "xp":
+      return <Zap className="w-5 h-5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />;
+    case "fragmento":
+      return <Puzzle className="w-5 h-5" style={{ color: "hsl(var(--kwendi-purple))" }} />;
+    case "cosmetico":
+      return <span className="text-xl">👒</span>;
+  }
+};
 
 interface Props {
   raridade: Raridade | null;
@@ -97,7 +112,7 @@ const BauModal = ({ raridade, drops, onClose }: Props) => {
                   transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted"
                 >
-                  <span className="text-xl">{emojiDrop(d)}</span>
+                  <IconeDrop d={d} />
                   <span className="font-extrabold text-foreground text-sm">
                     {rotuloDrop(d)}
                   </span>
