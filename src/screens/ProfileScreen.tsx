@@ -34,6 +34,7 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
+import sobaMascote from "@/assets/missoes/soba-mascote.png.asset.json";
 
 /* ----- Mocked profile data ----- */
 const profileBase = {
@@ -65,10 +66,10 @@ const ProfileScreen = () => {
   const marcos = useMemo(() => {
     const completo = profileBase.moduleProgress.current >= profileBase.moduleProgress.total;
     return [
-      { label: "Nv 5",       unlocked: saldo.xp >= 2000 },
-      { label: "Nv 10",      unlocked: saldo.xp >= 5000 },
-      { label: "Módulo 1",   unlocked: completo },
-      { label: "30 dias",    unlocked: saldo.ofensiva >= 30 },
+      { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
+      { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
+      { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
+      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: sobaMascote.url },
     ];
   }, [saldo.xp, saldo.ofensiva]);
 
@@ -231,7 +232,21 @@ const ProfileScreen = () => {
                       }}
                     >
                       {mk.unlocked ? (
-                        <Trophy className="w-7 h-7" style={{ color: "hsl(var(--primary))" }} />
+                        mk.trophy ? (
+                          <img
+                            src={mk.trophy}
+                            alt={mk.label}
+                            className="w-12 h-12 object-contain"
+                          />
+                        ) : (
+                          <Trophy className="w-7 h-7" style={{ color: "hsl(var(--primary))" }} />
+                        )
+                      ) : mk.trophy ? (
+                        <img
+                          src={mk.trophy}
+                          alt={mk.label}
+                          className="w-12 h-12 object-contain opacity-30 grayscale"
+                        />
                       ) : (
                         <Plus className="w-6 h-6 text-muted-foreground" strokeWidth={2.5} />
                       )}
