@@ -50,6 +50,7 @@
     --kwendi-green: 101 55% 59%;       /* #86D05D */
     --kwendi-green-dark: 101 45% 45%;
     --kwendi-blue: 202 100% 74%;       /* #78D0FF */
+  --kwendi-blue-dark: 202 80% 55%;
     --kwendi-purple: 282 100% 74%;     /* #DA7FFF */
     --kwendi-pink: 326 100% 74%;       /* #FF7BBF */
     --kwendi-cream: 36 50% 96%;
@@ -144,6 +145,17 @@
 .btn-duo-green:active {
   transform: translateY(4px);
   box-shadow: 0 0 0 hsl(var(--kwendi-green-dark));
+}
+
+/* Azul — CTA secundário */
+.btn-duo-blue {
+  background: hsl(var(--kwendi-blue));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 4px 0 hsl(var(--kwendi-blue-dark));
+}
+.btn-duo-blue:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 hsl(var(--kwendi-blue-dark));
 }
 
 /* Input field styling */
