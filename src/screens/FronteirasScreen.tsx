@@ -45,7 +45,7 @@ const FronteirasScreen = () => {
   };
 
   return (
-    <div className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden bg-background">
+    <div className="relative mx-auto min-h-[100dvh] w-full max-w-[480px] overflow-y-auto bg-background pb-10">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4">
         <button
@@ -82,7 +82,7 @@ const FronteirasScreen = () => {
       <audio ref={audioRef} src={TRACK_URL} loop preload="auto" />
 
       {/* Mapa + avião orbital */}
-      <div className="relative mx-auto mt-10 h-64 w-64">
+      <div className="relative mx-auto mt-6 h-52 w-52">
         <img
           src={africa.url}
           alt="Mapa de África"
@@ -98,14 +98,14 @@ const FronteirasScreen = () => {
             src={plane.url}
             alt=""
             aria-hidden
-            className="absolute w-12 h-12 object-contain"
-            style={{ transform: "translate(110px, -28px) rotate(60deg)" }}
+            className="absolute w-11 h-11 object-contain"
+            style={{ transform: "translate(90px, -22px) rotate(60deg)" }}
           />
         </motion.div>
       </div>
 
       {/* Texto */}
-      <div className="px-6 mt-8 text-center">
+      <div className="px-6 mt-5 text-center">
         <h1 className="text-2xl font-black text-foreground">
           Para Além de Fronteiras
         </h1>
@@ -113,7 +113,7 @@ const FronteirasScreen = () => {
           Testa o que sabes sobre Angola, África e os PALOPs.
         </p>
 
-        <div className="mt-6 rounded-2xl bg-muted px-5 py-4 text-left">
+        <div className="mt-4 rounded-2xl bg-muted px-5 py-4 text-left">
           <p className="text-sm leading-relaxed text-foreground">
             10 perguntas embaralhadas por partida, com explicações,
             XP, Diamantes e conquistas para desbloquear.
@@ -122,7 +122,7 @@ const FronteirasScreen = () => {
 
         <button
           onClick={() => navigate("/para-alem-fronteiras/jogo")}
-          className="btn-duo btn-duo-blue mt-6 mx-auto"
+          className="btn-duo btn-duo-blue mt-4 mx-auto"
         >
           Começar jogo
         </button>
