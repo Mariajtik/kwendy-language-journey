@@ -66,23 +66,37 @@ const CuriosidadeCard = ({ item, onOpen }: Props) => {
           background: `linear-gradient(135deg, ${color} 0%, hsl(var(${cat.token}) / 0.6) 100%)`,
         }}
       >
-        {item.imagem ? (
-          <img src={item.imagem} alt={item.titulo} className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <Icon
-            className="absolute -right-4 -bottom-4 w-40 h-40"
-            style={{ color: "hsl(var(--card) / 0.35)" }}
-            strokeWidth={1.5}
-          />
-        )}
-        {/* Overlay */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.5) 100%)",
-          }}
+        {/* Camada base: gradiente + ícone (revelado em hover) */}
+        <Icon
+          className="absolute -right-4 -bottom-4 w-40 h-40 pointer-events-none"
+          style={{ color: "hsl(var(--card) / 0.35)" }}
+          strokeWidth={1.5}
         />
+        {/* Camada de foto — desvanece no hover para revelar o gradiente */}
+        {item.imagem && (
+          <div className="absolute inset-0 transition-opacity duration-500 ease-out group-hover:opacity-0">
+            <img
+              src={item.imagem}
+              alt={item.titulo}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Overlay tonal da categoria (mistura o gradiente com a foto) */}
+            <div
+              className="absolute inset-0 mix-blend-multiply opacity-50"
+              style={{
+                background: `linear-gradient(135deg, ${color} 0%, hsl(var(${cat.token}) / 0.6) 100%)`,
+              }}
+            />
+            {/* Gradiente escuro para legibilidade */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)",
+              }}
+            />
+          </div>
+        )}
         {/* Badge */}
         <span
           className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-widest uppercase"
