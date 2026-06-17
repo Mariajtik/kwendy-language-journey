@@ -2,9 +2,12 @@
  * Tabela de drops dos baús (mock). Cada baú devolve uma lista de itens.
  */
 import type { Raridade } from "./missoes";
-import bauComum from "@/assets/missoes/bau-comum.png.asset.json";
-import bauRaro from "@/assets/missoes/bau-raro.png.asset.json";
-import bauLendario from "@/assets/missoes/bau-lendario.png.asset.json";
+import bauComumFechado from "@/assets/missoes/bau-comum-fechado.png.asset.json";
+import bauComumAberto from "@/assets/missoes/bau-comum-aberto.png.asset.json";
+import bauRaroFechado from "@/assets/missoes/bau-raro-fechado.png.asset.json";
+import bauRaroAberto from "@/assets/missoes/bau-raro-aberto.png.asset.json";
+import bauLendarioFechado from "@/assets/missoes/bau-lendario-fechado.png.asset.json";
+import bauLendarioAberto from "@/assets/missoes/bau-lendario-aberto.png.asset.json";
 
 export type DropItem =
   | { tipo: "diamantes"; qtd: number }
@@ -15,7 +18,8 @@ export type DropItem =
 interface BauConfig {
   label: string;
   cor: string;
-  imagem: string;
+  imagemFechada: string;
+  imagemAberta: string;
   drops: DropItem[];
 }
 
@@ -23,7 +27,8 @@ export const BAUS: Record<Raridade, BauConfig> = {
   comum: {
     label: "Baú Comum",
     cor: "var(--kwendi-brown)",
-    imagem: bauComum.url,
+    imagemFechada: bauComumFechado.url,
+    imagemAberta: bauComumAberto.url,
     drops: [
       { tipo: "diamantes", qtd: 25 },
       { tipo: "xp", qtd: 30 },
@@ -32,7 +37,8 @@ export const BAUS: Record<Raridade, BauConfig> = {
   raro: {
     label: "Baú Raro",
     cor: "var(--kwendi-gray)",
-    imagem: bauRaro.url,
+    imagemFechada: bauRaroFechado.url,
+    imagemAberta: bauRaroAberto.url,
     drops: [
       { tipo: "diamantes", qtd: 80 },
       { tipo: "xp", qtd: 100 },
@@ -42,7 +48,8 @@ export const BAUS: Record<Raridade, BauConfig> = {
   lendario: {
     label: "Baú Lendário",
     cor: "var(--kwendi-yellow)",
-    imagem: bauLendario.url,
+    imagemFechada: bauLendarioFechado.url,
+    imagemAberta: bauLendarioAberto.url,
     drops: [
       { tipo: "diamantes", qtd: 250 },
       { tipo: "xp", qtd: 400 },
