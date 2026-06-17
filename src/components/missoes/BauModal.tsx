@@ -71,7 +71,7 @@ const BauModal = ({ raridade, drops, onClose }: Props) => {
               style={{ filter: `drop-shadow(0 6px 10px hsl(${config.cor} / 0.45))` }}
             >
               <img
-                src={config.imagem}
+                src={aberto ? config.imagemAberta : config.imagemFechada}
                 alt={config.label}
                 className="w-full h-full object-contain"
               />

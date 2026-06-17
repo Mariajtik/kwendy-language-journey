@@ -23,32 +23,10 @@ import {
   Sunrise,
 } from "lucide-react";
 import type { Recompensa } from "./missoes";
-import badgeVermelha from "@/assets/missoes/badge-vermelha.png.asset.json";
-import badgeLaranja from "@/assets/missoes/badge-laranja.png.asset.json";
-import badgeVerde from "@/assets/missoes/badge-verde.png.asset.json";
-import badgeRosa from "@/assets/missoes/badge-rosa.png.asset.json";
-import badgeRoxa from "@/assets/missoes/badge-roxa.png.asset.json";
-import badgeAzul from "@/assets/missoes/badge-azul.png.asset.json";
-import badgeLaranjaEscuro from "@/assets/missoes/badge-laranja-escuro.png.asset.json";
-import badgeBranca from "@/assets/missoes/badge-branca.png.asset.json";
-import badgeBloqueada from "@/assets/missoes/badge-bloqueada.png.asset.json";
 
 export type BadgeCor =
   | "vermelha" | "laranja" | "verde" | "rosa"
   | "roxa" | "azul" | "laranja-escuro" | "branca";
-
-export const BADGE_IMAGENS: Record<BadgeCor, string> = {
-  "vermelha": badgeVermelha.url,
-  "laranja": badgeLaranja.url,
-  "verde": badgeVerde.url,
-  "rosa": badgeRosa.url,
-  "roxa": badgeRoxa.url,
-  "azul": badgeAzul.url,
-  "laranja-escuro": badgeLaranjaEscuro.url,
-  "branca": badgeBranca.url,
-};
-
-export const BADGE_BLOQUEADA = badgeBloqueada.url;
 
 export type ConquistaCategoria =
   | "primeiros_passos"

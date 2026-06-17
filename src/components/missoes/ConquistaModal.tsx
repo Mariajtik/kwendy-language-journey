@@ -2,9 +2,10 @@
  * ConquistaModal — detalhe da conquista com progresso e resgate.
  */
 import { AnimatePresence, motion } from "framer-motion";
-import { Star, Package, X } from "lucide-react";
-import { CATEGORIA_INFO, BADGE_IMAGENS, BADGE_BLOQUEADA } from "@/data/conquistas";
+import { Zap, Package, X } from "lucide-react";
+import { CATEGORIA_INFO } from "@/data/conquistas";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import BadgeStar from "./BadgeStar";
 import type { ConquistaView } from "@/hooks/useMissoes";
 
 interface Props {
@@ -40,19 +41,20 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
           {(() => {
             const cor = CATEGORIA_INFO[conquista.categoria].cor;
             const pct = Math.min(100, (conquista.progresso / conquista.meta) * 100);
-            const badgeSrc = conquista.desbloqueada ? BADGE_IMAGENS[conquista.badge] : BADGE_BLOQUEADA;
             return (
               <>
-                <div className="mx-auto w-28 h-28 mb-3 grid place-items-center">
-                  <img
-                    src={badgeSrc}
-                    alt={conquista.titulo}
-                    className="w-full h-full object-contain"
-                    style={{
-                      filter: conquista.desbloqueada
-                        ? `drop-shadow(0 0 18px hsl(${cor} / 0.5))`
-                        : "grayscale(0.2)",
-                    }}
+                <div
+                  className="mx-auto w-28 h-28 mb-3 grid place-items-center"
+                  style={{
+                    filter: conquista.desbloqueada
+                      ? `drop-shadow(0 0 18px hsl(${cor} / 0.5))`
+                      : "none",
+                  }}
+                >
+                  <BadgeStar
+                    cor={conquista.badge}
+                    locked={!conquista.desbloqueada}
+                    className="w-full h-full"
                   />
                 </div>
 
@@ -89,7 +91,7 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
 
                 <div className="mt-4 flex justify-center gap-2 flex-wrap text-xs font-extrabold">
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted">
-                    <Star className="w-3.5 h-3.5" style={{ color: "hsl(var(--kwendi-yellow))" }} />
+                    <Zap className="w-3.5 h-3.5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />
                     {conquista.recompensa.xp}
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted">
