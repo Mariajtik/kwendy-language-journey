@@ -25,7 +25,6 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ProcessingResultsScreen from "./screens/ProcessingResultsScreen";
 import LessonScreen from "./screens/LessonScreen";
 import ProfileScreen from "./screens/ProfileScreen";
-import CommunityScreen from "./screens/CommunityScreen";
 import MissoesScreen from "./screens/MissoesScreen";
 import HistoriasScreen from "./screens/HistoriasScreen";
 import CuriosidadesScreen from "./screens/CuriosidadesScreen";
@@ -53,7 +52,6 @@ const AnimatedRoutes = () => {
         <Route path="/home" element={<HomeScreen />} />
         <Route path="/lesson/:id" element={<LessonScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
-        <Route path="/comunidade" element={<CommunityScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
         <Route path="/historias" element={<HistoriasScreen />} />
         <Route path="/curiosidades" element={<CuriosidadesScreen />} />
