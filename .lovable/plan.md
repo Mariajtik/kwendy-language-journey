@@ -1,92 +1,34 @@
 ## Objetivo
 
-Aplicar os assets enviados (baús + badges + trófeu da Kwendi - a mascote), trocar a moeda "Kindeles" por "Diamantes Negros" (sincronizada com a Home), e conectar de verdade as telas ao sistema de missões/conquistas.
+Remover o Chapéu de Palha como cosmético e transformá-lo numa **Conquista** desbloqueada ao ler as curiosidades **Pensador** + **Agostinho Neto**. Atualmente o aplicativo não terá cosméticos. Remover saldo.cosmeticos
 
----
+## Mudanças
 
-## 1. Assets da imagem enviada
+### 1. Nova conquista em `src/data/conquistas.ts`
 
-A imagem traz 3 grupos. Vou recortar e subir cada peça como asset CDN separado em `src/assets/missoes/`:
+Adicionar entrada:
 
-**Baús (3 raridades × 3 estados — fechado, semi-aberto, aberto):**
+- **id**: `sabio-das-letras`
+- **título**: "Sábio das Letras"
+- **descrição**: "Leu Pensador e Agostinho Neto — dois marcos da cultura angolana."
+- **categoria**: cultura (badge laranja ou roxa, a escolher pelo tom mais distintivo dentro das existentes)
+- **recompensa**: 30 diamantes + 50 XP (alinhado com conquistas de leitura existentes)
+- **condição**: ambas curiosidades lidas
 
-- `bau-comum-fechado.png`, `bau-comum-abrindo.png`, `bau-comum-aberto.png` (madeira marrom)
-- `bau-raro-fechado.png`, `bau-raro-abrindo.png`, `bau-raro-aberto.png` (prata)
-- `bau-lendario-fechado.png`, `bau-lendario-abrindo.png`, `bau-lendario-aberto.png` (dourado)
+### 2. Lógica de desbloqueio em `src/components/CuriosidadeModal.tsx`
 
-Usados no `BauModal.tsx`: o estado avança conforme a animação de abertura (atualmente é só shake → reveal; vou trocar por fechado → abrindo → aberto com crossfade).
+- Remover o bloco que adiciona `"chapeu-palha"` a `saldo.cosmeticos`.
+- Substituir por verificação: se `curiosidadesLidas` contém `"pensador"` e `"agostinho-neto"` e a conquista `sabio-das-letras` ainda não está desbloqueada, marcá-la como concluída (via hook de conquistas existente) e disparar o modal de celebração já usado pelas outras conquistas.
 
-**Badges (8 estrelas coloridas + 1 cinza para bloqueado):**
+### 3. Limpeza no Perfil `src/screens/ProfileScreen.tsx`
 
-- `badge-vermelha.png`, `badge-laranja.png`, `badge-verde.png`, `badge-rosa.png`, `badge-roxa.png`, `badge-azul.png`, `badge-laranja-escuro.png`, `badge-branca.png`, `badge-bloqueada.png` (cinza)
+- Remover a secção "Cosméticos" e o `ChapeuPalhaCard`.
+- A conquista passa a aparecer apenas no mural de Conquistas (tela de Missões), como todas as outras.
 
-Mapeamento por categoria de conquista (cor reaproveitada entre conquistas da mesma família):
+### 4. Limpeza opcional em `useSaldo`
 
-- `primeiros_passos` (4) → rosa, verde, azul claro, branca
-- `linguagem` (5) → vermelha (x2), laranja, roxa, vermelha escura
-- `cultural` (5) → laranja, verde, azul, roxa, laranja-escuro
-- `consistencia` (4) → vermelha, laranja, dourada (=laranja-escuro), azul
+- Se `cosmeticos` não tiver mais nenhum uso em outro lugar, remover o campo do estado para evitar código morto. (Verificar antes de remover.)
 
-O `ConquistaCard` passa a renderizar `<img src={badge.url}>` em vez do ícone Lucide quando desbloqueada, e a versão `badge-bloqueada` (cinza) quando bloqueada. O ícone Lucide vira fallback/overlay pequeno no canto.
+## Resultado
 
-**Chapéu do Soba**
-
-- O **chapéu de palha** (estilo tradicional angolano, mais coerente com "Soba"). Asset: `src/assets/missoes/soba.png`.
-- Desbloqueado depois de uma conquista cultural pesada.
-  &nbsp;
-
----
-
-## 2. Moeda: Kindeles → Diamantes Negros
-
-A Home já mostra um diamante facetado cinza (`HomeScreen.tsx` `<Diamond />`). Esse é o "Diamante Negro" oficial do app.
-
-Mudanças:
-
-- Extrair o componente `Diamond` para `src/components/icons/DiamanteNegro.tsx` (reuso entre Home, Profile, Missões).
-- Renomear em todo o código `kindeles` → `diamantes` (saldo, recompensas, drops, hook, modais, header). Tipo em `recompensas.ts`: `{ tipo: "diamantes"; qtd: number }`.
-- Labels visíveis: "Diamantes Negros" (singular: "Diamante Negro").
-- Manter `localStorage` chave `kwendi_missoes_v1` mas adicionar migração leve: se ler `kindeles`, mover para `diamantes` na primeira leitura.
-
----
-
-## 3. Saldo único de Diamantes Negros (Home ↔ Missões ↔ Perfil)
-
-Hoje a Home tem um número estático de diamantes, o Perfil tem `1000` hardcoded, e Missões tem saldo próprio. Vou unificar:
-
-- Criar `src/hooks/useSaldo.ts` (wrapper sobre `localStorage` `kwendi_saldo_v1`) com `{ diamantes, xp, baus, vidas, ofensiva }` e setters.
-- `useMissoes` passa a ler/escrever via `useSaldo` (mesma fonte).
-- `HomeScreen` e `ProfileScreen` consomem `useSaldo` para mostrar o mesmo valor que cresce ao resgatar missões.
-- Valor inicial: `diamantes: 1000` (mantém o número da Home/Perfil atual).
-
----
-
-## 4. Conectar telas ao sistema de missões
-
-Hoje só existe o botão "Simular progresso". Vou disparar `registrarAcao` de verdade nos pontos certos:
-
-
-| Tela / ação                                         | `registrarAcao(...)`                             |
-| --------------------------------------------------- | ------------------------------------------------ |
-| `LessonScreen` — concluir lição (tela de conclusão) | `licao_completa`, 1 + `palavra_aprendida`, N     |
-| `LessonScreen` — clicar no botão de ouvir áudio     | `audio_ouvido`, 1                                |
-| `LessonScreen` — resposta correta                   | `resposta_correta`, 1                            |
-| `CuriosidadeModal` — abrir uma curiosidade nova     | `curiosidade_lida`, 1 (dedupe por id)            |
-| `HistoriasScreen` — concluir história               | `historia_concluida`, 1                          |
-| Login do dia / abertura do app                      | `dia_ativo`, 1 (atualiza ofensiva no `useSaldo`) |
-
-
-A ofensiva (streak) passa a alimentar as conquistas de consistência (`c15`–`c17`) e o "Madrugador" (`c18`) checa `new Date().getHours() < 8` na conclusão da lição.
-
-Deixe o botão "Simular progresso (demo)"  para testes, enquanto não há backend.
-
----
-
-## 5. Resumo dos arquivos tocados
-
-- **Novos**: `src/assets/missoes/*.png.asset.json` (baús + badges + mascote), `src/components/icons/DiamanteNegro.tsx`, `src/hooks/useSaldo.ts`
-- **Editados**: `src/hooks/useMissoes.ts`, `src/data/recompensas.ts`, `src/data/missoes.ts`, `src/data/conquistas.ts`, `src/components/missoes/BauModal.tsx`, `ConquistaCard.tsx`, `ConquistaModal.tsx`, `RecompensaModal.tsx`, `HeaderRecursos.tsx`, `MissaoCard.tsx`, `src/screens/MissoesScreen.tsx`, `HomeScreen.tsx`, `ProfileScreen.tsx`, `LessonScreen.tsx`, `HistoriasScreen.tsx`, `CuriosidadesScreen.tsx` (ou `CuriosidadeModal.tsx`)
-- **Fora do escopo**: backend Supabase real, loja de cosméticos, push notifications.
-
----
-
+O feito cultural fica registado como conquista oficial, com badge, modal e recompensa — coerente com o resto do sistema. Nada de cosméticos órfãos sem avatar para equipar.

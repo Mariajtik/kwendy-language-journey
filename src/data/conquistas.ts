@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Crown,
   Sunrise,
+  Feather,
 } from "lucide-react";
 import type { Recompensa } from "./missoes";
 
@@ -91,6 +92,7 @@ export const CONQUISTAS: ConquistaDef[] = [
   { id: "c12", titulo: "Conhecedor de Angola",  descricao: "Explore 18 províncias.",                      icone: MapPin,     categoria: "cultural",  meta: 18,  recompensa: { xp: 300, diamantes: 150, bau: "lendario" },     badge: "azul" },
   { id: "c13", titulo: "Provador",              descricao: "Descubra 8 pratos típicos.",                  icone: Utensils,   categoria: "cultural",  meta: 8,   recompensa: { xp: 120, diamantes: 60 },                       badge: "roxa" },
   { id: "c14", titulo: "Naturalista",           descricao: "Conheça 12 elementos da fauna e flora.",      icone: Leaf,       categoria: "cultural",  meta: 12,  recompensa: { xp: 150, diamantes: 75 },                       badge: "laranja-escuro" },
+  { id: "c19", titulo: "Sábio das Letras",      descricao: "Leia Pensador e Agostinho Neto — dois marcos da cultura angolana.", icone: Feather, categoria: "cultural", meta: 2, recompensa: { xp: 50, diamantes: 30 },              badge: "roxa" },
 
   // Consistência (4)
   { id: "c15", titulo: "Fagulha",               descricao: "Mantenha 7 dias de ofensiva.",                icone: Flame,        categoria: "consistencia", meta: 7,   recompensa: { xp: 100,  diamantes: 50 },                   badge: "vermelha" },

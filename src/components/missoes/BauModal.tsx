@@ -17,8 +17,6 @@ const IconeDrop = ({ d }: { d: DropItem }) => {
       return <Zap className="w-5 h-5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />;
     case "fragmento":
       return <Puzzle className="w-5 h-5" style={{ color: "hsl(var(--kwendi-purple))" }} />;
-    case "cosmetico":
-      return <span className="text-xl">👒</span>;
   }
 };
 
