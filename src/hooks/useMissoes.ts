@@ -215,19 +215,16 @@ export function useMissoes() {
       let xp = sal.xp;
       let diamantes = sal.diamantes;
       let fragmentos = sal.fragmentos;
-      const cosmeticos = [...sal.cosmeticos];
       drops.forEach((d) => {
         if (d.tipo === "diamantes") diamantes += d.qtd;
         else if (d.tipo === "xp") xp += d.qtd;
         else if (d.tipo === "fragmento") fragmentos += d.qtd;
-        else if (d.tipo === "cosmetico" && !cosmeticos.includes(d.nome)) cosmeticos.push(d.nome);
       });
       return {
         ...sal,
         xp,
         diamantes,
         fragmentos,
-        cosmeticos,
         baus: { ...sal.baus, [raridade]: sal.baus[raridade] - 1 },
       };
     });

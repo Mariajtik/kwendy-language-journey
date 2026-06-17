@@ -12,8 +12,7 @@ import bauLendarioAberto from "@/assets/missoes/bau-lendario-aberto.png.asset.js
 export type DropItem =
   | { tipo: "diamantes"; qtd: number }
   | { tipo: "xp"; qtd: number }
-  | { tipo: "fragmento"; qtd: number }
-  | { tipo: "cosmetico"; nome: string };
+  | { tipo: "fragmento"; qtd: number };
 
 interface BauConfig {
   label: string;
@@ -54,7 +53,6 @@ export const BAUS: Record<Raridade, BauConfig> = {
       { tipo: "diamantes", qtd: 250 },
       { tipo: "xp", qtd: 400 },
       { tipo: "fragmento", qtd: 3 },
-      { tipo: "cosmetico", nome: "Chapéu de Palha do Soba" },
     ],
   },
 };
@@ -67,8 +65,6 @@ export function rotuloDrop(d: DropItem): string {
       return `${d.qtd} XP`;
     case "fragmento":
       return `${d.qtd} Fragmento${d.qtd > 1 ? "s" : ""} de Badge`;
-    case "cosmetico":
-      return d.nome;
   }
 }
 
@@ -80,7 +76,5 @@ export function emojiDrop(d: DropItem): string {
       return "⭐";
     case "fragmento":
       return "🧩";
-    case "cosmetico":
-      return "👒";
   }
 }

@@ -14,7 +14,6 @@ export interface Saldo {
   diamantes: number;
   baus: Record<Raridade, number>;
   fragmentos: number;
-  cosmeticos: string[];
   ofensiva: number;
   ultimoDiaAtivo: string;
   curiosidadesLidas: string[];
@@ -28,7 +27,6 @@ const DEFAULT: Saldo = {
   diamantes: 1000,
   baus: { comum: 0, raro: 0, lendario: 0 },
   fragmentos: 0,
-  cosmeticos: [],
   ofensiva: 3,
   ultimoDiaAtivo: "",
   curiosidadesLidas: [],
@@ -46,7 +44,6 @@ function load(): Saldo {
       // migração: kindeles → diamantes (somando ao saldo padrão)
       diamantes: p.diamantes ?? (p.kindeles != null ? DEFAULT.diamantes + p.kindeles : DEFAULT.diamantes),
       baus: { ...DEFAULT.baus, ...(p.baus ?? {}) },
-      cosmeticos: p.cosmeticos ?? [],
       curiosidadesLidas: p.curiosidadesLidas ?? [],
     };
   } catch {

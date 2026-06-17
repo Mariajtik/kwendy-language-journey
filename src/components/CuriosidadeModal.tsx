@@ -16,7 +16,7 @@ interface Props {
 const CuriosidadeModal = ({ item, onClose }: Props) => {
   const cat = CATEGORIAS[item.categoria];
   const color = `hsl(var(${cat.token}))`;
-  const { registrarAcao } = useMissoes();
+  const { registrarAcao, desbloquearConquista } = useMissoes();
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -35,15 +35,15 @@ const CuriosidadeModal = ({ item, onClose }: Props) => {
     if (sal.curiosidadesLidas.includes(item.id)) return;
     setSaldo((s) => {
       const lidas = [...s.curiosidadesLidas, item.id];
-      const cosmeticos = [...s.cosmeticos];
-      // Recompensa: Chapéu de palha por ler Pensador + Agostinho Neto
-      const temAmbos = lidas.includes("pensador") && lidas.includes("agostinho-neto");
-      if (temAmbos && !cosmeticos.includes("chapeu-palha")) {
-        cosmeticos.push("chapeu-palha");
-      }
-      return { ...s, curiosidadesLidas: lidas, cosmeticos };
+      return { ...s, curiosidadesLidas: lidas };
     });
     registrarAcao("curiosidade_lida", 1);
+    // Conquista cultural: Sábio das Letras (Pensador + Agostinho Neto)
+    const lidasAgora = [...getSaldo().curiosidadesLidas];
+    const progresso =
+      (lidasAgora.includes("pensador") ? 1 : 0) +
+      (lidasAgora.includes("agostinho-neto") ? 1 : 0);
+    if (progresso > 0) desbloquearConquista("c19", progresso);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.id]);
 
