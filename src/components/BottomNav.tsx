@@ -178,6 +178,12 @@ const BottomNav = ({ active }: BottomNavProps) => {
                     />
                   </motion.span>
                 )}
+                {isActive && item.key !== "user" && (
+                  <span
+                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                    style={{ background: item.color }}
+                  />
+                )}
               </button>
             );
           })}
