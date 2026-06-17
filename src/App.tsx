@@ -19,6 +19,7 @@ import ApresentationScreen from "./screens/ApresentationScreen";
 import FeaturesScreen from "./screens/FeaturesScreen";
 import FronteirasIntroScreen from "./screens/FronteirasIntroScreen";
 import FronteirasScreen from "./screens/FronteirasScreen";
+import FronteirasJogoScreen from "./screens/FronteirasJogoScreen";
 import SignupFlow from "./screens/SignupFlow";
 import LoginScreen from "./screens/LoginScreen";
 import StealthModeScreen from "./screens/StealthModeScreen";
@@ -60,6 +61,7 @@ const AnimatedRoutes = () => {
         <Route path="/secao/:tipo" element={<SecaoScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
+        <Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

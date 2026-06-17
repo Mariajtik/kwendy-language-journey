@@ -13,9 +13,8 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Play, Pause } from "lucide-react";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
-// TODO: substituir por src/assets/africa-minha.mp3.asset.json assim que o MP3
-// for enviado pelo utilizador e carregado via `lovable-assets create`.
-const TRACK_URL = "";
+import musicAsset from "@/assets/perola-omboio.mp3.asset.json";
+const TRACK_URL = musicAsset.url;
 
 const FronteirasScreen = () => {
   const navigate = useNavigate();
@@ -111,19 +110,26 @@ const FronteirasScreen = () => {
           Para Além de Fronteiras
         </h1>
         <p className="mt-2 text-sm font-semibold text-muted-foreground">
-          Em breve — aguarda as primeiras escalas.
+          Testa o que sabes sobre Angola, África e os PALOPs.
         </p>
 
         <div className="mt-6 rounded-2xl bg-muted px-5 py-4 text-left">
           <p className="text-sm leading-relaxed text-foreground">
-            As perguntas estão a ser preparadas pelo Soba. Volta em breve
-            para descobrir curiosidades de todo o continente.
+            10 perguntas embaralhadas por partida, com explicações,
+            XP, Diamantes e conquistas para desbloquear.
           </p>
         </div>
 
         <button
+          onClick={() => navigate("/para-alem-fronteiras/jogo")}
+          className="btn-duo btn-duo-blue mt-6 mx-auto"
+        >
+          Começar jogo
+        </button>
+
+        <button
           onClick={() => navigate("/home")}
-          className="btn-duo btn-duo-blue mt-8 mx-auto"
+          className="mt-3 mx-auto block text-sm font-bold text-muted-foreground hover:text-foreground"
         >
           Voltar à Home
         </button>
