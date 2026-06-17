@@ -55,7 +55,7 @@ const CuriosidadeCard = ({ item, onOpen }: Props) => {
       transition={{ duration: 0.3 }}
       whileTap={{ scale: 0.97 }}
       onClick={onOpen}
-      className="cursor-pointer rounded-3xl overflow-hidden border-2 border-border bg-card"
+      className="group cursor-pointer rounded-3xl overflow-hidden border-2 border-border bg-card"
       style={{ boxShadow: "0 4px 0 hsl(var(--border))" }}
     >
       {/* Hero */}
