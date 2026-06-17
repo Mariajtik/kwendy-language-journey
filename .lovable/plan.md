@@ -1,113 +1,38 @@
-# Para Além das Fronteiras — Jogo Interativo
+## Problemas atuais
 
-## Visão geral
+1. **Botão "Começar jogo" cortado** em `/para-alem-fronteiras`: o layout usa `overflow-hidden` num container de `100dvh` e empilha header + mapa de 256px + texto + caixa + 2 botões. Em telas baixas (ex.: 390×585), o botão dourado fica visível mas o CTA "Começar jogo" e o "Voltar à Home" caem fora da área visível.
+2. **Conquistas do jogo isoladas**: `FronteirasJogoScreen` define `CONQUISTAS_FRONTEIRAS` localmente e guarda em `localStorage` (`kwendi:fronteiras:stats`). Nada disso aparece em **Missões → Conquistas** nem em **Perfil → Conquistas**, ficando desligado do resto do app.
 
-Manter a tela atual `/para-alem-fronteiras` (intro com vídeo) e adicionar uma nova tela de **jogo de perguntas e respostas** (`/para-alem-fronteiras/jogo`) com música de fundo (`Perola-Omboio.mp3` enviado), feedback de certo/errado, explicações, recompensas (XP + Diamantes) e conquistas.
+## Plano
 
-A música tocará automaticamente em loop ao entrar no jogo, controlada pelo botão dourado no canto superior direito (já existente).
+### 1. Tornar o FronteirasScreen rolável e compacto
+`src/screens/FronteirasScreen.tsx`:
+- Trocar `h-[100dvh] overflow-hidden` por `min-h-[100dvh] overflow-y-auto pb-8`.
+- Reduzir o mapa de `h-64 w-64 mt-10` para `h-52 w-52 mt-6` (ajustar a órbita do avião proporcionalmente).
+- Reduzir margens (`mt-8` → `mt-5`, `mt-6` → `mt-4`) para garantir que os dois botões caibam acima da dobra em viewports curtos. Em ecrãs maiores, o `pb-8` evita corte.
 
----
+### 2. Mover as conquistas do jogo para o catálogo central
+`src/data/conquistas.ts`:
+- Adicionar nova categoria `"fronteiras"` em `ConquistaCategoria` e em `CATEGORIA_INFO` (label "Para Além de Fronteiras", cor `--kwendi-blue` ou dourada).
+- Acrescentar 7 conquistas com ids `fr1`…`fr7`, replicando as atuais (`Explorador de Fronteiras`, `Sabedoria Angolana`, `Mestre do Continente`, `Sequência de Ouro`, `Pontuação Perfeita`, `Viajante Constante`, `Maratonista Cultural`), com `meta`, ícone (`Sparkles`/`Award`/`Trophy`/`Flame`) e recompensas coerentes (XP/diamantes/baú).
+- Atualizar `CONQUISTAS_POR_CATEGORIA` para incluir a nova categoria.
 
-## 1. Upload da música
+### 3. Ligar o jogo ao `useMissoes`
+`src/screens/FronteirasJogoScreen.tsx`:
+- Importar `useMissoes` e usar `desbloquearConquista(id, progresso?)` para refletir o progresso real (`acertosTotais`, `partidas`, `diasJogados`, `tempoTotalMs`, `melhorStreak`) nas conquistas `fr1`…`fr7`.
+- Manter o `localStorage` `kwendi:fronteiras:stats` como fonte das métricas brutas, mas no `finalizar()` chamar `desbloquearConquista` para cada uma cujo critério passe a estar cumprido.
+- Remover `CONQUISTAS_FRONTEIRAS` local; o ecrã de "Partida concluída" passa a listar as conquistas recém-desbloqueadas filtrando do catálogo central (`CONQUISTAS_POR_CATEGORIA.fronteiras`) pelos ids desbloqueados nesta sessão.
+- Deixar de creditar XP/diamantes manualmente pelas conquistas — quem entrega passa a ser `resgatarConquista` na tela Missões (mantém-se o XP/diamantes da partida em si).
 
-- Subir `Perola-Omboio.mp3` via `lovable-assets` → `src/assets/perola-omboio.mp3.asset.json`.
-- Substituir o `TRACK_URL` vazio em `FronteirasScreen.tsx` pelo `url` do asset.
+### 4. Aparecer no Perfil e em Missões
+- `MissoesScreen` e `ProfileScreen` já consomem `useMissoes().conquistas` e iteram por `CONQUISTAS_POR_CATEGORIA`, pelo que a nova categoria aparece automaticamente nos dois lugares assim que o catálogo for atualizado. Não é preciso mexer nesses ecrãs além de confirmar que renderizam todas as categorias (validar leitura rápida).
 
-## 2. Banco de perguntas
+### Ficheiros alterados
+- `src/screens/FronteirasScreen.tsx` (layout)
+- `src/data/conquistas.ts` (nova categoria + 7 itens)
+- `src/screens/FronteirasJogoScreen.tsx` (usa `useMissoes`)
+- Verificação: `src/screens/MissoesScreen.tsx`, `src/screens/ProfileScreen.tsx` (sem alterações esperadas).
 
-Criar `src/data/fronteirasPerguntas.ts` com **~25–30 perguntas** sobre Angola, África, PALOPs e curiosidades do continente (extraídas do conteúdo enviado pelo utilizador). Estrutura:
-
-```ts
-export interface Pergunta {
-  id: string;
-  categoria: "Angola" | "PALOP" | "África Geral" | "Cultura" | "Curiosidades";
-  enunciado: string;
-  opcoes: string[];        // 4 opções
-  respostaCorreta: number; // índice 0–3
-  explicacao: string;      // texto curto exibido após responder
-}
-```
-
-Exemplos:
-
-- "Qual ritmo angolano deu origem ao samba brasileiro?" → Semba
-- "Como se chama o pedido de casamento tradicional angolano?" → Alambamento
-- "Qual é a planta rara que vive milhares de anos no deserto do Namibe?" → Welwitschia mirabilis
-- "Qual é o maior país africano em extensão?" → Argélia (ou Sudão pré-2011, usar Argélia atual)
-- "Em que país africano o espanhol é língua oficial?" → Guiné Equatorial
-- "Qual é a moeda oficial de Angola e a que rio homenageia?" → Kwanza / Rio Kwanza
-- etc.
-
-## 3. Lógica do jogo
-
-Criar `src/screens/FronteirasJogoScreen.tsx`:
-
-- **Embaralhamento**: ao montar, embaralhar a ordem das perguntas (Fisher–Yates) e também as opções dentro de cada pergunta (mantendo `respostaCorreta` atualizado).
-- **Sessão**: 10 perguntas por partida.
-- **Fluxo por pergunta**:
-  1. Mostra enunciado + 4 botões de opção (estilo 3D Duo).
-  2. Ao clicar: bloqueia opções, marca verde (correta) / vermelha (errada).
-  3. Mostra cartão de explicação + botão "Continuar".
-  4. Próxima pergunta com transição (framer-motion).
-- **Cabeçalho**: contador `3/10`, barra de progresso, acertos, streak atual.
-- **Tela final**: resumo (X/10 acertos, XP ganho, Diamantes ganhos, conquistas desbloqueadas, melhor streak) + botões "Jogar novamente" e "Voltar".
-- **Música de fundo**: mesmo padrão do `FronteirasScreen` (botão dourado + `<audio loop>`), persistente entre perguntas.
-
-## 4. Recompensas (XP + Diamantes)
-
-Usando `useSaldo`:
-
-
-| Evento                | XP        | Diamantes |
-| --------------------- | --------- | --------- |
-| Resposta correta      | +10       | +1        |
-| Streak de 3 seguidas  | +15 bónus | +2 bónus  |
-| Streak de 5 seguidas  | +30 bónus | +5 bónus  |
-| 10/10 acertos         | +50 bónus | +10 bónus |
-| Completar uma partida | +20       | —         |
-
-
-## 5. Conquistas
-
-Adicionar em `src/data/conquistas.ts` (e expor via `useMissoes.registrarAcao` / `desbloquearConquista`):
-
-- **Explorador de Fronteiras** — Jogar a primeira partida.
-- **Sabedoria Angolana** — 10 respostas corretas acumuladas.
-- **Mestre do Continente** — 50 respostas corretas acumuladas.
-- **Sequência de Ouro** — Streak de 5 acertos numa partida.
-- **Pontuação Perfeita** — Acertar 10/10 numa partida.
-- **Viajante Constante** — Jogar em 3 dias diferentes.
-- **Maratonista Cultural** — Acumular 10 minutos de tempo de jogo.
-
-Persistir em localStorage (chave dedicada `kwendi:fronteiras:stats`):
-
-```ts
-{ partidas, acertosTotais, melhorStreak, tempoTotalMs, diasJogados: string[] }
-```
-
-Tempo de jogo medido com `performance.now()` entre montagem e desmontagem.
-
-## 6. Navegação
-
-- `FronteirasScreen.tsx` (atual): adicionar botão grande "Começar jogo" que navega para `/para-alem-fronteiras/jogo`.
-- `App.tsx`: registar nova rota `<Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />`.
-- Manter botão "Voltar à Home" e o botão dourado de música em ambas as telas.
-
-## 7. Design
-
-Reaproveitar paleta atual (azul primário + dourado dos botões de música), tipografia Nunito, cartões com `rounded-3xl`, sombras 3D Duo. Animar entrada/saída de cada pergunta com `framer-motion`. Feedback visual:
-
-- Correto: opção verde + ícone `Check`, micro-confetti opcional.
-- Errado: opção vermelha + ícone `X`, opção correta destacada.
-
-## Fora do escopo
-
-- Sincronização com backend (tudo local).
-- Multiplayer / leaderboards.
-- Editor de perguntas.
-- Som de acerto/erro (pode ser adicionado depois).
-
-## Arquivos afetados
-
-- **Novos**: `src/assets/perola-omboio.mp3.asset.json`, `src/data/fronteirasPerguntas.ts`, `src/screens/FronteirasJogoScreen.tsx`.
-- **Editados**: `src/App.tsx`, `src/screens/FronteirasScreen.tsx` (TRACK_URL + botão "Começar jogo"), `src/data/conquistas.ts`, `src/hooks/useMissoes.ts` (novos tipos de ação, se necessário).
+### Fora do âmbito
+- Não alterar o sistema de baús, saldos ou design de cards.
+- Não mexer em outras telas/jogos.
