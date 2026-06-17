@@ -25,7 +25,7 @@ import avatar from "@/assets/avatar.jpg";
 const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
 
 const REACTIONS = [
-  { key: "malaik", label: "Tá malaik", emoji: "😕" },
+  { key: "malaik", label: "Okô", emoji: "😕" },
   { key: "mambo", label: "Granda mambo!", emoji: "❤️" },
   { key: "concordo", label: "Tamo juntos", emoji: "✅" },
   { key: "discordo", label: "Não me parece", emoji: "❌" },
