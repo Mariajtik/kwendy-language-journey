@@ -35,6 +35,10 @@ import {
   Crown,
   Sunrise,
   Feather,
+  Award,
+  Trophy,
+  Plane,
+  Globe,
 } from "lucide-react";
 import type { Recompensa } from "./missoes";
 
@@ -46,7 +50,8 @@ export type ConquistaCategoria =
   | "primeiros_passos"
   | "linguagem"
   | "cultural"
-  | "consistencia";
+  | "consistencia"
+  | "fronteiras";
 
 export interface ConquistaDef {
   id: string;
@@ -83,6 +88,11 @@ export const CATEGORIA_INFO: Record<
     cor: "var(--kwendi-blue)",
     corBg: "var(--kwendi-blue)",
   },
+  fronteiras: {
+    label: "Para Além de Fronteiras",
+    cor: "45 90% 50%",
+    corBg: "45 90% 50%",
+  },
 };
 
 export const CONQUISTAS: ConquistaDef[] = [
@@ -114,9 +124,21 @@ export const CONQUISTAS: ConquistaDef[] = [
   { id: "c18", titulo: "Madrugador",            descricao: "Faça uma lição antes das 8h.",                 icone: Sunrise,      categoria: "consistencia", meta: 1,   recompensa: { xp: 80,   diamantes: 40 },                    badge: "azul" },
 ];
 
+// Para Além de Fronteiras — quiz cultural sobre Angola, PALOPs e África
+CONQUISTAS.push(
+  { id: "fr1", titulo: "Explorador de Fronteiras", descricao: "Jogue a sua primeira partida do quiz.",          icone: Plane,    categoria: "fronteiras", meta: 1,   recompensa: { xp: 40,  diamantes: 20 },                       badge: "azul" },
+  { id: "fr2", titulo: "Sabedoria Angolana",       descricao: "Acumule 10 respostas corretas no quiz.",         icone: Award,    categoria: "fronteiras", meta: 10,  recompensa: { xp: 100, diamantes: 50 },                       badge: "verde" },
+  { id: "fr3", titulo: "Mestre do Continente",     descricao: "Acumule 50 respostas corretas no quiz.",         icone: Globe,    categoria: "fronteiras", meta: 50,  recompensa: { xp: 300, diamantes: 150, bau: "raro" },         badge: "laranja-escuro" },
+  { id: "fr4", titulo: "Sequência de Ouro",        descricao: "Faça uma streak de 5 acertos numa partida.",     icone: Flame,    categoria: "fronteiras", meta: 1,   recompensa: { xp: 80,  diamantes: 40 },                       badge: "laranja" },
+  { id: "fr5", titulo: "Pontuação Perfeita",       descricao: "Acerte 10 de 10 perguntas numa partida.",         icone: Trophy,   categoria: "fronteiras", meta: 1,   recompensa: { xp: 200, diamantes: 100, bau: "raro" },         badge: "vermelha" },
+  { id: "fr6", titulo: "Viajante Constante",       descricao: "Jogue o quiz em 3 dias diferentes.",             icone: CalendarDays, categoria: "fronteiras", meta: 3, recompensa: { xp: 120, diamantes: 60 },                       badge: "roxa" },
+  { id: "fr7", titulo: "Maratonista Cultural",     descricao: "Acumule 10 minutos de jogo no quiz.",            icone: Sparkles, categoria: "fronteiras", meta: 1,   recompensa: { xp: 150, diamantes: 75 },                       badge: "rosa" },
+);
+
 export const CONQUISTAS_POR_CATEGORIA: Record<ConquistaCategoria, ConquistaDef[]> = {
   primeiros_passos: CONQUISTAS.filter((c) => c.categoria === "primeiros_passos"),
   linguagem: CONQUISTAS.filter((c) => c.categoria === "linguagem"),
   cultural: CONQUISTAS.filter((c) => c.categoria === "cultural"),
   consistencia: CONQUISTAS.filter((c) => c.categoria === "consistencia"),
+  fronteiras: CONQUISTAS.filter((c) => c.categoria === "fronteiras"),
 };
