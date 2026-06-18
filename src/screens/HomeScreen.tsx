@@ -19,7 +19,7 @@ import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
-import { CURRICULO, getUnidade, type Modulo, type Unidade } from "@/data/curriculo";
+import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import TotemSeparador from "@/components/TotemSeparador";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import CenaPiscina from "@/components/CenaPiscina";
@@ -30,6 +30,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ChevronUp } from "lucide-react";
 
 /* ---- Custom inline SVG icons ---- */
 
@@ -165,8 +166,15 @@ const HomeScreen = () => {
   const [lockedOpen, setLockedOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
-  const [popoverUnidadeId, setPopoverUnidadeId] = useState<string | null>(null);
-  const popoverInfo = popoverUnidadeId ? getUnidade(popoverUnidadeId) : null;
+  const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
+
+  const toggleExpandida = (id: string) =>
+    setExpandedUnidades((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // Zig-zag horizontal offsets (in px) for the trail
   const offsets = [0, 60, -60, -40, 40, -30, 50];
@@ -282,8 +290,8 @@ const HomeScreen = () => {
     <div
       className="rounded-2xl px-5 py-4 mb-2 text-white"
       style={{
-        background: "hsl(var(--primary))",
-        boxShadow: "0 5px 0 hsl(var(--kwendi-red-dark))",
+        background: `hsl(${modulo.cor})`,
+        boxShadow: `0 5px 0 hsl(${modulo.corEscura})`,
       }}
     >
       <p className="text-xs font-bold tracking-widest opacity-90">
@@ -295,15 +303,54 @@ const HomeScreen = () => {
     </div>
   );
 
+  /** Banner de unidade expandida (modo visualização) com botão Fechar. */
+  const renderBannerExpandida = (modulo: Modulo, unidade: Unidade) => (
+    <div
+      className="rounded-2xl px-5 py-4 mb-2 text-white flex items-start justify-between gap-3"
+      style={{
+        background: `hsl(${modulo.cor})`,
+        boxShadow: `0 5px 0 hsl(${modulo.corEscura})`,
+      }}
+    >
+      <div className="min-w-0">
+        <p className="text-xs font-bold tracking-widest opacity-90">
+          MÓDULO {modulo.numero}, UNIDADE {unidade.numero}
+        </p>
+        <h2 className="text-lg font-extrabold leading-tight mt-1">
+          {unidade.titulo}
+        </h2>
+        <p className="text-[11px] text-white/80 mt-0.5">
+          Pré-visualização — conclua as anteriores para desbloquear.
+        </p>
+      </div>
+      <button
+        onClick={() => toggleExpandida(unidade.id)}
+        aria-label="Fechar unidade"
+        className="w-9 h-9 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:translate-y-0.5"
+      >
+        <ChevronUp className="w-5 h-5 text-white" strokeWidth={3} />
+      </button>
+    </div>
+  );
+
   /** Cabeçalho de módulo (chip castanho). */
   const renderModuloHeader = (modulo: Modulo) => (
     <div className="mt-2 mb-3 flex items-center gap-3 px-2">
       <div className="flex-1 h-px" style={{ background: "rgba(107,63,29,0.55)" }} />
-      <span
-        className="text-xs font-extrabold tracking-wider uppercase"
-        style={{ color: "#6B3F1D", textShadow: "0 1px 0 rgba(255,255,255,0.7)" }}
-      >
-        Módulo {modulo.numero} — {modulo.titulo}
+      <span className="flex items-center gap-1.5">
+        <span
+          className="inline-block w-2.5 h-2.5 rounded-full"
+          style={{
+            background: `hsl(${modulo.cor})`,
+            boxShadow: `0 0 0 2px rgba(255,255,255,0.7)`,
+          }}
+        />
+        <span
+          className="text-xs font-extrabold tracking-wider uppercase"
+          style={{ color: "#6B3F1D", textShadow: "0 1px 0 rgba(255,255,255,0.7)" }}
+        >
+          Módulo {modulo.numero} — {modulo.titulo}
+        </span>
       </span>
       <div className="flex-1 h-px" style={{ background: "rgba(107,63,29,0.55)" }} />
     </div>
@@ -403,23 +450,48 @@ const HomeScreen = () => {
               />
             )}
             {renderModuloHeader(mod)}
-            {mod.unidades.map((u) =>
-              u.id === atual.unidade.id ? (
-                <div key={u.id} className="mb-6">
-                  {renderBannerAtual(mod, u)}
-                  {renderZigZag(u)}
-                </div>
-              ) : (
+            {mod.unidades.map((u) => {
+              if (u.id === atual.unidade.id) {
+                return (
+                  <div key={u.id} className="mb-6">
+                    {renderBannerAtual(mod, u)}
+                    {renderZigZag(u)}
+                  </div>
+                );
+              }
+              if (expandedUnidades.has(u.id)) {
+                return (
+                  <div key={u.id} className="mb-6">
+                    {renderBannerExpandida(mod, u)}
+                    {renderZigZag(u, true)}
+                  </div>
+                );
+              }
+              return (
                 <UnidadeCardFechado
                   key={u.id}
                   modulo={mod}
                   unidade={u}
-                  onAbrir={setPopoverUnidadeId}
+                  expandida={false}
+                  onToggle={toggleExpandida}
                 />
-              ),
+              );
+            })}
+            {/* Cena decorativa lateral: piscina + Yellen + Otchali no M4 */}
+            {mod.id === "m4" && (
+              <CenaPiscina
+                className="!m-0"
+                style={{
+                  position: "absolute",
+                  right: -24,
+                  top: "55%",
+                  width: 130,
+                  transform: "translateY(-50%)",
+                  opacity: 0.95,
+                  zIndex: 1,
+                }}
+              />
             )}
-            {/* Cena decorativa: piscina + Yellen + Otchali no Módulo 4 */}
-            {mod.id === "m4" && <CenaPiscina />}
           </div>
         ))}
       </div>
@@ -502,42 +574,6 @@ const HomeScreen = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ---- Popover de visualização de unidade ---- */}
-      <Dialog
-        open={!!popoverUnidadeId}
-        onOpenChange={(o) => !o && setPopoverUnidadeId(null)}
-      >
-        <DialogContent className="max-w-sm rounded-3xl p-0 overflow-hidden">
-          {popoverInfo && (
-            <>
-              <div
-                className="px-5 py-4 text-white"
-                style={{ background: "hsl(var(--primary))" }}
-              >
-                <p className="text-[10px] font-bold tracking-widest opacity-90">
-                  MÓDULO {popoverInfo.modulo.numero}, UNIDADE {popoverInfo.unidade.numero}
-                </p>
-                <DialogTitle className="text-xl font-extrabold mt-0.5">
-                  {popoverInfo.unidade.titulo}
-                </DialogTitle>
-                <DialogDescription className="text-white/80 text-xs mt-1">
-                  Pré-visualização das lições — conclua as anteriores para desbloquear.
-                </DialogDescription>
-              </div>
-              <div
-                className="px-4 py-4 max-h-[60vh] overflow-y-auto"
-                style={{
-                  backgroundImage: `url(${grass.url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
-                {renderZigZag(popoverInfo.unidade, true)}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 };

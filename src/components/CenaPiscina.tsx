@@ -10,16 +10,17 @@ import cena from "@/assets/cenas/cena-piscina.png.asset.json";
 
 type Props = {
   className?: string;
+  style?: React.CSSProperties;
 };
 
 /** Cena decorativa coesa: piscina com Yellen e Otchali a brincar.
  *  Tudo numa só ilustração — sem colagem de avatares. */
-const CenaPiscina = ({ className = "" }: Props) => {
+const CenaPiscina = ({ className = "", style }: Props) => {
   return (
     <motion.figure
       aria-hidden
       className={`pointer-events-none select-none mx-auto my-4 ${className}`}
-      style={{ width: "min(260px, 75%)" }}
+      style={{ width: "min(260px, 75%)", ...style }}
       initial={{ opacity: 0, y: 8 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -33,21 +34,11 @@ const CenaPiscina = ({ className = "" }: Props) => {
         draggable={false}
         style={{
           filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.25))",
-          transform: "rotate(-2deg)",
+          transform: "rotate(-4deg)",
         }}
         animate={{ y: [0, -3, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <figcaption
-        className="text-center mt-1 text-[11px] font-extrabold uppercase tracking-wider"
-        style={{
-          color: "#6B3F1D",
-          textShadow: "0 1px 0 rgba(255,255,255,0.7)",
-          fontFamily: "Nunito, system-ui, sans-serif",
-        }}
-      >
-        Yellen e Otchali brincam
-      </figcaption>
     </motion.figure>
   );
 };

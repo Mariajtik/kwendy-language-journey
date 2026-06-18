@@ -22,6 +22,10 @@ export type Modulo = {
   id: string;
   numero: number;
   titulo: string;
+  /** HSL para banner/tema do módulo (ex: "5 84% 42%") */
+  cor: string;
+  /** HSL para sombra 3D escura (ex: "5 84% 32%") */
+  corEscura: string;
   unidades: Unidade[];
 };
 
@@ -43,6 +47,8 @@ export const CURRICULO: Modulo[] = [
     id: "m1",
     numero: 1,
     titulo: "Saúda a tua comunidade",
+    cor: "5 84% 42%",
+    corEscura: "5 84% 32%",
     unidades: [
       {
         id: "m1u1",
@@ -78,6 +84,8 @@ export const CURRICULO: Modulo[] = [
     id: "m2",
     numero: 2,
     titulo: "Eu e tu",
+    cor: "25 90% 50%",
+    corEscura: "25 90% 38%",
     unidades: [
       {
         id: "m2u1",
@@ -113,6 +121,8 @@ export const CURRICULO: Modulo[] = [
     id: "m3",
     numero: 3,
     titulo: "Introduza a tua família",
+    cor: "330 75% 50%",
+    corEscura: "330 75% 38%",
     unidades: [
       {
         id: "m3u1",
@@ -148,6 +158,8 @@ export const CURRICULO: Modulo[] = [
     id: "m4",
     numero: 4,
     titulo: "Ações",
+    cor: "265 60% 50%",
+    corEscura: "265 60% 38%",
     unidades: [
       {
         id: "m4u1",
@@ -183,6 +195,8 @@ export const CURRICULO: Modulo[] = [
     id: "m5",
     numero: 5,
     titulo: "Explora a natureza",
+    cor: "150 55% 38%",
+    corEscura: "150 55% 28%",
     unidades: [
       {
         id: "m5u1",
