@@ -449,8 +449,12 @@ const HomeScreen = () => {
         {/* Sequência única: todos os módulos/unidades, em ordem.
             Só a unidade atual renderiza o zig-zag aberto. As demais
             aparecem como cards fechados (ícone de livro -> popover). */}
-        {CURRICULO.map((mod) => (
-          <div key={mod.id} className="relative">
+        {CURRICULO.map((mod, mi) => (
+          <div
+            key={mod.id}
+            className="relative"
+            style={{ marginTop: mi === 0 ? 0 : 96 }}
+          >
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
               const animacao = ANIMACOES_UNIDADE[u.id];
