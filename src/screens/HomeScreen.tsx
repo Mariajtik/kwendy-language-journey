@@ -22,7 +22,7 @@ import { useProgresso } from "@/hooks/useProgresso";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import TotemSeparador from "@/components/TotemSeparador";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
-import CenaPiscina from "@/components/CenaPiscina";
+import BannerVines from "@/components/BannerVines";
 import {
   Dialog,
   DialogContent,
@@ -451,10 +451,14 @@ const HomeScreen = () => {
             )}
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
+              const withVines = u.id === "m5u1";
               if (u.id === atual.unidade.id) {
                 return (
                   <div key={u.id} className="mb-6">
-                    {renderBannerAtual(mod, u)}
+                    <div className="relative">
+                      {renderBannerAtual(mod, u)}
+                      {withVines && <BannerVines />}
+                    </div>
                     {renderZigZag(u)}
                   </div>
                 );
@@ -462,7 +466,10 @@ const HomeScreen = () => {
               if (expandedUnidades.has(u.id)) {
                 return (
                   <div key={u.id} className="mb-6">
-                    {renderBannerExpandida(mod, u)}
+                    <div className="relative">
+                      {renderBannerExpandida(mod, u)}
+                      {withVines && <BannerVines />}
+                    </div>
                     {renderZigZag(u, true)}
                   </div>
                 );
@@ -477,21 +484,6 @@ const HomeScreen = () => {
                 />
               );
             })}
-            {/* Cena decorativa lateral: piscina + Yellen + Otchali no M4 */}
-            {mod.id === "m4" && (
-              <CenaPiscina
-                className="!m-0"
-                style={{
-                  position: "absolute",
-                  right: -24,
-                  top: "55%",
-                  width: 130,
-                  transform: "translateY(-50%)",
-                  opacity: 0.95,
-                  zIndex: 1,
-                }}
-              />
-            )}
           </div>
         ))}
       </div>
