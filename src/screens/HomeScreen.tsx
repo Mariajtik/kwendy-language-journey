@@ -455,6 +455,7 @@ const HomeScreen = () => {
             className="relative"
             style={{ marginTop: mi === 0 ? 0 : 96 }}
           >
+            {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
               const animacao = ANIMACOES_UNIDADE[u.id];
               if (u.id === atual.unidade.id) {
