@@ -1,41 +1,41 @@
-## O que muda
+## Diagnóstico
 
-### 1. Separadores entre módulos (alternados)
+O resultado actual está pobre porque:
+1. **Imagens stock com marca-d'água** (Vecteezy / Dreamstime) renderizadas com `mix-blend-mode: multiply` sobre relva — cinza fica sujo, marcas visíveis, fundos brancos esbatidos a destoar do estilo Duolingo.
+2. **Estilos misturados** — foto realista de pedra + avatares JPG redondos + ilustração flat. Sem coerência visual.
+3. **Cena da piscina** parece colagem amadora (dois círculos colados em cima da piscina).
+4. **Separador** sem peso narrativo — não comunica "novo módulo".
 
-Substituir o `TotemSeparador` SVG actual por **imagens reais** das pedras enviadas. Alternar conforme a posição:
+## Nova direcção (game-art Kwendi)
 
-- Entre M1↔M2: **arco de pedra** (portal)
-- Entre M2↔M3: **pilha de pedras** (cairn)
-- Entre M3↔M4: arco
-- Entre M4↔M5: pilha
+Substituir tudo por **ilustrações geradas à medida**, no mesmo estilo flat-cartoon vibrante do Duolingo/Kwendi: contorno suave, sombras chapadas, paleta quente (terracota, ocre, verde sálvia, crimson), zero realismo fotográfico, zero marca-d'água.
 
-### 2. Piscina decorativa no Módulo 4
+### Assets a gerar (imagegen, qualidade `standard`, PNG transparente)
 
-Aparece como **cena lateral** dentro do zig-zag do Módulo 4: piscina + Yellen + Otchali flutuando ao lado das lições (não interativa, decorativa).
+1. `portal-pedra.png` — Arco de pedra estilizado tipo portal de aldeia, pedras cinza-quentes com contorno escuro, grama na base, 2 totens/lanças com bandeirolas vermelhas dos lados, espaço central limpo para inserir o número do módulo num medalhão dourado.
+2. `cairn-pedra.png` — Pilha de 5 pedras zen empilhadas, estilo cartoon, com folhinhas verdes e pequenas flores amarelas na base.
+3. `cena-piscina.png` — **Uma única ilustração coesa** com a piscina oval estilo aldeia africana (bordo de pedras coloridas, água turquesa), Yellen e Otchali já desenhados dentro da cena (sentados à beira, pés na água, rindo), sombrinha de palha, palmeira ao lado. Tudo numa só imagem — sem colar avatares.
 
----
+### Componentes
 
-## Passos técnicos
+- **`TotemSeparador`** — Simplifica: só `<img>` da ilustração + medalhão dourado com o número do módulo posicionado no centro do arco (variante `arco`) ou em cima da pilha (variante `cairn`). Remove `mix-blend-mode` (PNG transparente já trata). Adiciona micro-animação `framer-motion` (subtle bob 2s loop).
+- **`CenaPiscina`** — Substitui os 3 `<img>` colados por **uma só** imagem da cena completa. Largura ~200px, ligeira rotação (-3°), com `motion` opcional (água oscila via SVG overlay subtil — opcional, posso saltar).
+- Posição no Módulo 4: em vez de `absolute right:-30` (corta no mobile estreito), passar a aparecer **entre duas unidades fechadas** do módulo (como cartão decorativo full-width centrado), título "Yellen e Otchali brincam".
 
-1. **Upload dos 2 PNGs como assets CDN** (arco + piscina + pilha já vão como assets):
-  - `src/assets/separadores/arco-pedra.png.asset.json`
-  - `src/assets/separadores/pilha-pedras.png.asset.json`
-  - `src/assets/cenas/piscina.png.asset.json`
-   Usar `lovable-assets create --file /mnt/user-uploads/<file>`.
-2. **Reescrever `src/components/TotemSeparador.tsx**`: remover o SVG actual; aceitar nova prop `variante: "arco" | "pilha"`; renderizar `<img>` com a respectiva asset (largura ~140-180px, sombra ao chão, número do próximo módulo sobreposto em chip branco/castanho no topo do arco ou na pedra superior da pilha).
-3. `**HomeScreen.tsx**` — onde renderiza `<TotemSeparador numeroProximoModulo={mod.numero} />`, calcular variante:
-  ```ts
-   variante={mi % 2 === 1 ? "arco" : "pilha"}
-  ```
-4. **Nova `CenaPiscina.tsx**` (componente decorativo): `<div>` absoluto/relativo com a piscina ao fundo + Yellen (avatar sem background) + Otchali (o mesmo). `aria-hidden`. Posicionado à direita do zig-zag. Como se estivessem brincando à beira da piscina.
-5. `HomeScreen.tsx` **(renderZigZag ou wrapper do Módulo 4)** — quando `mod.id === "m4"`, envolver o bloco do módulo num container relativo e injectar `<CenaPiscina />` sobreposta numa posição lateral (ex.: `top: 40%`, `right: -20px`, `opacity: 0.95`, atrás dos botões com `pointer-events: none`).
+### Tipografia do número no separador
+
+Medalhão dourado redondo (#F2C84B → #C69118 gradient, borda #6B3F1D 3px), `Nunito 900`, texto crimson `hsl(var(--primary))`, sombra interior, sombra 3D de 4px.
+
+### Limpeza
+
+- Eliminar `.asset.json` antigos das fotos stock (`arco-pedra.jpg`, `pilha-pedras.jpg`, `piscina.jpg`) via `delete_asset`.
 
 ## Fora de escopo
-
-- Animação da água (estática por agora).
-- Mudanças no zig-zag, banner ou nav.
+- Animação da água (a confirmar se queres).
+- Tia Teresa (continua sem asset — uso Otchali como na versão actual).
+- Outras telas.
 
 ## Ficheiros tocados
-
-- Criar: 3 `.asset.json`, `src/components/CenaPiscina.tsx`
-- Editar: `src/components/TotemSeparador.tsx`, `src/screens/HomeScreen.tsx`
+- Gerar: 3 PNG via `imagegen--generate_image` + respectivos `.asset.json` (automático).
+- Apagar: 3 `.asset.json` antigos.
+- Editar: `src/components/TotemSeparador.tsx`, `src/components/CenaPiscina.tsx`, `src/screens/HomeScreen.tsx`.
