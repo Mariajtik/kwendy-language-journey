@@ -8,21 +8,17 @@
 import cercaUrl from "@/assets/separadores/cerca-portao.png";
 import { motion } from "framer-motion";
 
-type Variante = "arco" | "pilha";
-
 type Props = {
   numeroProximoModulo?: number;
-  variante?: Variante;
+  variante?: string;
 };
 
 const TotemSeparador = ({ numeroProximoModulo }: Props) => {
-  // Imagem da cerca: padlock approx. centrado horizontalmente em 46%,
-  // verticalmente em 55% (ver illustration). O número vai por cima.
   return (
-    <div className="my-8 flex justify-center" aria-hidden>
+    <div className="my-8 w-full flex justify-center px-2" aria-hidden>
       <motion.div
-        className="relative"
-        style={{ height: 160 }}
+        className="relative w-full"
+        style={{ maxWidth: 420 }}
         animate={{ y: [0, -4, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -30,27 +26,27 @@ const TotemSeparador = ({ numeroProximoModulo }: Props) => {
           src={cercaUrl}
           alt=""
           loading="lazy"
-          className="h-full w-auto object-contain select-none"
+          className="block w-full h-auto object-contain select-none"
           style={{ filter: "drop-shadow(0 8px 6px rgba(0,0,0,0.35))" }}
           draggable={false}
         />
-        {/* Número sobre o cadeado do portão */}
+        {/* Número centralizado no cadeado do portão */}
         {numeroProximoModulo !== undefined && (
           <div
             className="absolute flex items-center justify-center pointer-events-none"
             style={{
-              left: "46%",
-              top: "55%",
+              left: "50%",
+              top: "50%",
               transform: "translate(-50%, -50%)",
-              width: 44,
-              height: 44,
+              width: "14%",
+              aspectRatio: "1 / 1",
               color: "#6B3F1D",
               fontWeight: 900,
               fontFamily: "Nunito, system-ui, sans-serif",
-              fontSize: 28,
+              fontSize: "clamp(20px, 5.5vw, 34px)",
               lineHeight: 1,
               textShadow:
-                "0 2px 0 rgba(255,255,255,0.85), 0 0 6px rgba(255,255,255,0.6)",
+                "0 2px 0 rgba(255,255,255,0.9), 0 0 6px rgba(255,255,255,0.7)",
             }}
           >
             {numeroProximoModulo}
