@@ -419,12 +419,7 @@ const HomeScreen = () => {
               ),
             )}
             {/* Cena decorativa: piscina + Yellen + Otchali no Módulo 4 */}
-            {mod.id === "m4" && (
-              <CenaPiscina
-                className="absolute"
-                style={{ top: 200, right: -30, opacity: 0.95 }}
-              />
-            )}
+            {mod.id === "m4" && <CenaPiscina />}
           </div>
         ))}
       </div>

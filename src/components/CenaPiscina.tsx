@@ -5,61 +5,50 @@
  * de um módulo específico.
  */
 
-import piscina from "@/assets/cenas/piscina.jpg.asset.json";
-import yellen from "@/assets/characters/yellen.jpg.asset.json";
-import otchali from "@/assets/characters/otchali.jpg.asset.json";
+import { motion } from "framer-motion";
+import cena from "@/assets/cenas/cena-piscina.png.asset.json";
 
 type Props = {
   className?: string;
-  style?: React.CSSProperties;
 };
 
-const CenaPiscina = ({ className = "", style }: Props) => {
+/** Cena decorativa coesa: piscina com Yellen e Otchali a brincar.
+ *  Tudo numa só ilustração — sem colagem de avatares. */
+const CenaPiscina = ({ className = "" }: Props) => {
   return (
-    <div
+    <motion.figure
       aria-hidden
-      className={`pointer-events-none select-none ${className}`}
-      style={{ width: 180, ...style }}
+      className={`pointer-events-none select-none mx-auto my-4 ${className}`}
+      style={{ width: "min(260px, 75%)" }}
+      initial={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <div className="relative">
-        {/* Piscina (fundo branco misturado com a relva) */}
-        <img
-          src={piscina.url}
-          alt=""
-          className="w-full h-auto"
-          style={{
-            mixBlendMode: "multiply",
-            filter: "drop-shadow(0 6px 6px rgba(0,0,0,0.3))",
-          }}
-        />
-        {/* Yellen à esquerda */}
-        <img
-          src={yellen.url}
-          alt=""
-          className="absolute rounded-full border-2 border-white object-cover"
-          style={{
-            width: 44,
-            height: 44,
-            left: "8%",
-            top: "10%",
-            boxShadow: "0 3px 0 rgba(0,0,0,0.25)",
-          }}
-        />
-        {/* Otchali à direita */}
-        <img
-          src={otchali.url}
-          alt=""
-          className="absolute rounded-full border-2 border-white object-cover"
-          style={{
-            width: 44,
-            height: 44,
-            right: "16%",
-            top: "4%",
-            boxShadow: "0 3px 0 rgba(0,0,0,0.25)",
-          }}
-        />
-      </div>
-    </div>
+      <motion.img
+        src={cena.url}
+        alt=""
+        loading="lazy"
+        className="w-full h-auto"
+        draggable={false}
+        style={{
+          filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.25))",
+          transform: "rotate(-2deg)",
+        }}
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <figcaption
+        className="text-center mt-1 text-[11px] font-extrabold uppercase tracking-wider"
+        style={{
+          color: "#6B3F1D",
+          textShadow: "0 1px 0 rgba(255,255,255,0.7)",
+          fontFamily: "Nunito, system-ui, sans-serif",
+        }}
+      >
+        Yellen e Otchali brincam
+      </figcaption>
+    </motion.figure>
   );
 };
 
