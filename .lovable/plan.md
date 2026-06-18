@@ -1,34 +1,75 @@
-## Objetivo
+# Reverter e reestruturar a HomeScreen como sequência única
 
-Manter o visual original do `HomeScreen` (que estava mais bonito) e apenas refinar a integração da nova estrutura Módulos → Unidades → Secções. Nada de telas novas — tudo continua acontecendo dentro do `HomeScreen`.
+Tudo acontece dentro da `HomeScreen` (sem mais navegar para `/unidade/:id`). A tela vira uma trilha vertical contínua: módulos e unidades aparecem em sequência, somente Módulo 1 / Unidade 1 mostra o zig-zag aberto, todos os outros aparecem como cards fechados com ícone de livro que abre as lições num popover na mesma tela.
 
-## Mudanças
+## O que muda
 
-### 1. `src/screens/HomeScreen.tsx`
+### 1. Cor do banner (volta ao crimson original)
+- O banner do topo (unidade atual) e os botões da trilha hoje usam `hsl(${unidade.cor})` (cor variável por unidade — atualmente está cinza/azulado).
+- Voltar a usar **`hsl(var(--primary))`** (crimson da marca) com sombra `hsl(var(--kwendi-red-dark))`, como na captura de tela enviada.
+- O campo `unidade.cor` deixa de ser usado para colorir o banner principal; fica reservado para futura diferenciação se necessário.
 
-**a) Separador de unidade (rodapé do mapa) — cor castanha**
-Atualmente o texto usa `#5E5C5C` e as linhas usam `white/70`, ficando ilegível sobre o capim. Trocar por tons castanhos:
-- Texto: `#6B3F1D` (castanho escuro), font-extrabold
-- Linhas laterais: `rgba(107,63,29,0.55)`
-- Adicionar leve `text-shadow` branca para reforçar contraste sobre o fundo verde.
+### 2. Sequência única na mesma tela (zero navegação)
+Estrutura vertical renderizada dentro do `<div ref={scrollRef}>`:
 
-**b) Banner da próxima unidade — ícone de livro abre o zig-zag**
-Hoje o banner inteiro é um `<button>` que navega para `/unidade/:id`. Refatorar para:
-- O **card** vira `<div>` apenas visual (não é mais clicável inteiro).
-- O **ícone de livro** (à direita) passa a ser o `<button>` que abre a unidade — chama `navigate('/unidade/:id')` que já renderiza o zig-zag da próxima unidade dentro do mesmo `HomeScreen` (modo "preview de unidade", já existente).
-- Adicionar `aria-label="Ver lições da próxima unidade"` e um leve `hover:scale-105` no botão do livro para indicar interação.
-- Banner da unidade atual no topo continua igual (cor da unidade + sombra vermelha).
+```text
+[ Banner Módulo 1 · Unidade 1 ]    ← crimson, aberto
+[ zig-zag completo da Unidade 1 ]
+[ ─── separador “Saúda…” ────── ]
+[ Card Unidade 2 (fechado) 📖 ]    ← clica no livro = popover
+[ Card Unidade 3 (fechado) 📖 ]
+…fim do Módulo 1…
+[ 🗿 TOTEM separador de módulo 🗿 ]
+[ Card Módulo 2 (fechado) ]
+   [ Card Unidade 1 do M2 📖 ]
+   [ Card Unidade 2 do M2 📖 ]
+…
+[ 🗿 TOTEM ]
+[ Módulo 3… ]
+```
 
-**c) Sem novas telas, sem novos componentes**
-Não criar arquivos novos. A rota `/unidade/:unidadeId` (que já existe) continua usando o próprio `HomeScreen` em modo preview — exatamente como hoje.
+Regras:
+- A **única** unidade com zig-zag visível é a unidade atual (vinda de `useProgresso().unidadeAtualInfo()`).
+- Todas as demais unidades aparecem como **cards compactos**: faixa colorida com `MÓDULO X, UNIDADE Y` + título + botão livro à direita.
+- O botão livro do card abre um **Dialog/popover** que renderiza o mesmo componente de zig-zag da unidade (em modo somente leitura, com os botões de lição bloqueados/visualização). Nada navega para outra rota.
 
-### Fora do escopo
+### 3. Remover navegação para `/unidade/:id`
+- O `useParams()` e a lógica de “preview” saem da `HomeScreen`.
+- O botão livro do banner da próxima unidade deixa de chamar `navigate(...)` e passa a abrir o mesmo popover.
+- A rota `/unidade/:unidadeId` em `App.tsx` é removida (não há mais redirecionamento entre unidades).
 
-- Não mexer em `useProgresso`, `curriculo.ts`, `App.tsx`, `LessonScreen.tsx`.
-- Não alterar o restante do layout (header, zig-zag, halo "COMEÇAR", scroll-to-top, bottom nav).
-- Não tocar nas cores das unidades nem na cor primária do app.
+### 4. Totem separador entre módulos
+Entre o último item do Módulo N e o card do Módulo N+1, renderizar um separador visual estilo “marco de pedra / totem”:
 
-## Resultado esperado
+```text
+        ╱╲
+       ▕░░▏        ← bloco de pedra com sombra
+       ▕░░▏
+       ▕░░▏
+   ════╧══╧════    ← base/grama
+```
 
-- O mapa volta a ter a estética anterior, com o separador agora legível em castanho.
-- A próxima unidade aparece como um cartão informativo; o ícone de livro à direita é o gatilho explícito para "espiar" o zig-zag da próxima unidade — sem sair do `HomeScreen`.
+Implementação:
+- Componente `<TotemSeparador />` em `src/components/TotemSeparador.tsx`: SVG inline (~80×120) com forma de menir/pedra empilhada em tons de cinza-quente (`#6E6259`, `#8A7C70`), sombra inferior e pequenas marcas decorativas (pode incluir o número do próximo módulo gravado).
+- Renderizado uma vez entre módulos diferentes durante o mapeamento da sequência.
+
+### 5. Cabeçalho de módulo (antes do primeiro card de cada módulo)
+Pequeno chip centralizado “MÓDULO 2 — Eu e tu” em marrom/branco com sombra para legibilidade (mesmo estilo do separador atual da unidade).
+
+## Detalhes técnicos
+
+Arquivos tocados:
+- `src/screens/HomeScreen.tsx`:
+  - Remover `useParams`, `preview`, e o uso de `unidade.cor` no banner principal (trocar por `hsl(var(--primary))`).
+  - Construir lista linear iterando `CURRICULO`:
+    - Para a unidade atual → renderiza banner + zig-zag existentes.
+    - Para outras unidades do mesmo módulo da atual e dos módulos seguintes → renderiza `<UnidadeCardFechado>` (novo, inline ou em `src/components/UnidadeCardFechado.tsx`).
+    - Entre módulos diferentes → `<TotemSeparador />`.
+  - Estado novo: `popoverUnidadeId: string | null` → controla `<Dialog>` que mostra o zig-zag da unidade selecionada.
+- `src/components/UnidadeCardFechado.tsx` (novo): faixa colorida + título + botão livro (`onClick` abre popover).
+- `src/components/TotemSeparador.tsx` (novo): SVG do totem.
+- `src/components/ZigZagUnidade.tsx` (novo, extraído do JSX atual da trilha): recebe `unidade` + `modoVisualizacao?: boolean`. Usado tanto na unidade atual quanto dentro do Dialog do popover.
+- `src/App.tsx`: remover a rota `/unidade/:unidadeId`.
+- `src/hooks/useProgresso.ts`: sem mudanças funcionais; continua sendo a fonte da unidade atual.
+
+Fora de escopo: progresso/desbloqueio (continua igual), bottom nav, header, tela de lição.
