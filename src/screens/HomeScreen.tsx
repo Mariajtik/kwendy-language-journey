@@ -20,7 +20,6 @@ import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
-import TotemSeparador from "@/components/TotemSeparador";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
 import {
@@ -450,14 +449,8 @@ const HomeScreen = () => {
         {/* Sequência única: todos os módulos/unidades, em ordem.
             Só a unidade atual renderiza o zig-zag aberto. As demais
             aparecem como cards fechados (ícone de livro -> popover). */}
-        {CURRICULO.map((mod, mi) => (
+        {CURRICULO.map((mod) => (
           <div key={mod.id} className="relative">
-            {mi > 0 && (
-              <TotemSeparador
-                numeroProximoModulo={mod.numero}
-                variante={mi % 2 === 1 ? "arco" : "pilha"}
-              />
-            )}
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
               const animacao = ANIMACOES_UNIDADE[u.id];
