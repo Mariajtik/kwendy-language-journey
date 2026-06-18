@@ -1,76 +1,101 @@
-## Loja Kwendi — Plano (revisto)
+## Objetivo
 
-### 1. Acesso: o próprio contador de diamantes vira a porta da Loja
+Três ajustes na Loja Kwendi:
 
-- O **chip de diamantes no header** (todos os ecrãs que o exibem: Home, Missões, Histórias, Curiosidades, Perfil) passa a ser **clicável** e abre `/loja`.
-- Microinteração: ao tocar, o diamante faz um pequeno "bounce + brilho" (Framer Motion) e navega.
-- Affordance discreta: um `+` ou pequena seta ao lado do número, e cursor pointer, para sinalizar que é interativo sem poluir.
-- Tooltip/long-press: "Abrir loja".
-- **Zero alterações na BottomNav** — fluxo preservado.
-- Rota nova: `/loja`.
+1. **Conectividade**: o que se compra fica acessível em **qualquer tela** (não só na Loja).
+2. **Rebalancear preços** (estavam baratos demais para a economia do app).
+3. **Corrigir descrições truncadas** nos cards (Pack de Músicas, etc.) no mobile.
 
-### 2. Estrutura da Loja (`/loja`)
+---
 
-Header próprio com botão voltar + saldo de diamantes (não clicável aqui, já estamos dentro). 3 tabs em pílula:
+## 1. Inventário global ("Mochila")
 
-**a) Power-ups** (laranja)
+Hoje `useInventario` já persiste em `localStorage` e dispara eventos, mas só a Loja consome. Vamos expor o inventário em todas as telas com header.
 
-- Manter chama — 30 💎
-- Dobrador de XP (15 min) — 50 💎
-- Dica extra na lição — 10 💎
-- Vida/Coração extra — 20 💎
+### 1a. Chip "Mochila" no `HeaderRecursos`
 
-**b) Baús e Fragmentos** (roxo) — reutiliza assets `src/assets/missoes/bau-*`
+- Novo item clicável ao lado dos diamantes, com ícone 🎒 e badge numérico (total de power-ups ativos + vidas + dicas).
+- Aparece em: Home, Missões, Histórias, Curiosidades, Perfil (todas usam `HeaderRecursos` ou o header da Home).
+- Tap abre o **MochilaSheet** (Drawer/Sheet inferior).
 
-- Baú Comum — 40 💎
-- Baú Raro — 120 💎
-- Baú Lendário — 300 💎
-- Pacote 10 fragmentos — 60 💎
+### 1b. `MochilaSheet` (novo componente, `src/components/inventario/MochilaSheet.tsx`)
 
-**c) Cultura Premium** (crimson/dourado)
+- Lista os power-ups ativos com quantidade e tempo restante (para Dobrador de XP):
+  - 🔥 Manter Chama × N — "pronto a usar"
+  - ⚡ Dobrador de XP × N — "ativo: 12:34" ou "pronto a usar"
+  - 💡 Dica Extra × N
+  - ❤️ Coração Extra × N
+- Desbloqueios culturais listados abaixo (com check).
+- CTAs: "Usar agora" (quando aplicável no contexto — ex.: vida extra), "Abrir loja".
+- Empty state amigável com botão para a Loja.
 
-- Desbloquear "A Kianda do Mar" — 5000 💎
-- Desbloquear "Sumbi" — 1000 💎
-- Pack de músicas tradicionais (escolhe o que tocar quando estiver jogando para além de fronteiras +2 opções) — 10.000 💎
-- Desbloquear mais curiosidades - 1500 ( +3)
+### 1c. Uso contextual dos power-ups
 
-### 3. Componentes a criar
+- `**LessonScreen**`: botão 💡 "Dica" lê do inventário; ❤️ "Recuperar vida" aparece quando vidas = 0 e há `vida-extra`. Dobrador de XP, se ativo, multiplica XP ganho ao finalizar lição.
+- `**HomeScreen` / streak**: `manter-chama` é consumido automaticamente quando o streak corre risco (passo já preparado no `useProgresso` — apenas ler do inventário).
+- `**HistoriasScreen**`: cards com `bloqueado: true` ficam livres quando `inventario.desbloqueios` inclui o id correspondente (já existe).
 
-- `src/screens/LojaScreen.tsx` — tabs + grid de cards, animação stagger.
-- `src/components/loja/ItemLojaCard.tsx` — card 3D arredondado (mesmo idioma das missões): imagem/ícone, nome, descrição curta, preço 💎, botão "Comprar".
-- `src/components/loja/ConfirmarCompraModal.tsx` — bottom sheet com saldo antes/depois e CTA.
-- `src/components/loja/CompraSucessoModal.tsx` — item a saltar + confettis discretos.
-- `src/components/loja/SaldoInsuficienteModal.tsx` — "Faltam X 💎, vai às Missões" → CTA `/missoes`.
+### 1d. API do hook
 
-### 4. Tornar o diamante clicável
+Adicionar helpers em `useInventario.ts`:
 
-- Identificar o(s) componente(s) que renderizam o chip de diamantes (provavelmente `HeaderRecursos` em `src/components/missoes/HeaderRecursos.tsx` e equivalentes na Home). Envolver num `button`/`motion.button` com `onClick={() => navigate('/loja')}`.
-- Garantir `aria-label="Abrir loja"`, foco visível, e que o XP **não** vira clicável (só diamantes — fica claro que diamantes = moeda da loja).
+- `usarPowerUp(id)` — decrementa quantidade, dispara evento.
+- `temPowerUp(id): boolean`
+- `tempoRestante(id): number | null` (minutos) para dobrador.
 
-### 5. Dados e estado
+---
 
-- `src/data/loja.ts` — catálogo (id, categoria, nome, descrição, preço, ícone/asset, payload).
-- `src/hooks/useLoja.ts` — `comprar(item)`: valida saldo (`useSaldo`), debita, aplica efeito, dispara modal.
-- `src/hooks/useInventario.ts` — power-ups ativos (com `expiraEm`) e desbloqueios, persistidos em `localStorage` (`kwendi.inventario`, `kwendi.desbloqueios`).
+## 2. Rebalancear preços
 
-### 6. Integração com o resto da app
+Economia atual (referência): missão diária ≈ 20-50 💎. Loja deve sentir-se aspiracional.
 
-- `HistoriasScreen.tsx` — "A Kianda do Mar" e "Sumbi" passam de "Em breve" a cadeado com preço; clique → `/loja` tab Cultura.
-- `LessonScreen.tsx` (fase 2) — botão de dica consome power-up; indicador "Dobrador ativo".
 
-### 7. Moeda
+| Item                         | Antes  | Depois                                   |
+| ---------------------------- | ------ | ---------------------------------------- |
+| Dica Extra                   | 10     | **25**                                   |
+| Coração Extra                | 20     | **50**                                   |
+| Manter Chama                 | 30     | **80**                                   |
+| Dobrador de XP (15min)       | 50     | **120**                                  |
+| Baú Comum                    | 40     | **100**                                  |
+| Pacote 10 Fragmentos         | 60     | **180**                                  |
+| Baú Raro                     | 120    | **350**                                  |
+| Baú Lendário                 | 300    | **900**                                  |
+| Mais Curiosidades (×3)       | 1.500  | **950**                                  |
+| História: Sumbi              | 1.000  | **1.200**                                |
+| História: A Kianda do Mar    | 5.000  | **1.500** *(reduzir — bloqueava demais)* |
+| Pack de Músicas Tradicionais | 10.000 | **5.000** *(reduzir — era proibitivo)*   |
 
-- **Só diamantes por agora**. Arquitetura preparada para `precoReal?: number` futuro, mas sem Stripe/Paddle nesta iteração.
 
-### 8. Estilo visual
+(Valores podem ser ajustados depois; ficam num único arquivo.)
 
-- Paleta atual (crimson primário, dourado nos preços).
-- Fundo da Loja: gradiente creme → dourado suave com sutil padrão de losangos (tecido tradicional, baixo contraste).
-- Tabs em pílula, cards arredondados 3D com sombra suave, entrada stagger via Framer Motion.
+---
 
-### Detalhes técnicos
+## 3. Fix descrições truncadas no mobile
 
-- Rota `/loja` adicionada em `src/App.tsx`.
-- Persistência local agora; migração para Supabase quando auth estiver consolidada.
-- Power-ups com expiração calculada via timestamp ISO no hook.
-- Sem alterações no `curriculo.ts` nem na `BottomNav`.
+Em `ItemLojaCard.tsx`:
+
+- `line-clamp-3` corta no 390px porque o card divide a largura em 2 colunas e a descrição é longa.
+- **Mudanças**:
+  - Aumentar área da descrição: `min-h-[3.5rem]` e subir para `line-clamp-4` em telas pequenas (ou remover clamp e deixar fluir, já que o card é flex-col).
+  - Encurtar copys longas (ex.: Pack de Músicas → "Trilha sonora extra em 'Para Além de Fronteiras' (+2 opções).").
+  - Para garantir que o conteúdo nunca colide com o CTA, dar `flex-1` à descrição (já tem) e remover o clamp restritivo.
+  - Aumentar leve `text-[11px] sm:text-xs` para caber mais palavra por linha.
+
+---
+
+## Arquivos afetados
+
+**Novos**
+
+- `src/components/inventario/MochilaSheet.tsx`
+
+**Editados**
+
+- `src/data/loja.ts` — novos preços e copy mais curta do pack de músicas.
+- `src/hooks/useInventario.ts` — `usarPowerUp`, `temPowerUp`, `tempoRestante`.
+- `src/components/missoes/HeaderRecursos.tsx` — novo chip "Mochila" abrindo o sheet.
+- `src/screens/HomeScreen.tsx` — incluir chip Mochila no header.
+- `src/screens/LessonScreen.tsx` — consumir dica/vida/dobrador a partir do inventário.
+- `src/components/loja/ItemLojaCard.tsx` — fix do truncamento da descrição.
+
+**Não tocar**: `BottomNav`, `curriculo.ts`, rotas existentes, fluxo da Loja em si.

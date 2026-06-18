@@ -8,10 +8,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, Check, X as XIcon } from "lucide-react";
+import { X, Heart, Check, X as XIcon, Lightbulb, Zap } from "lucide-react";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 
 type Question = {
   prompt: string;
@@ -47,6 +48,7 @@ const LessonScreen = () => {
   const total = QUESTIONS.length;
   const { registrarAcao } = useMissoes();
   const { concluirSeccao } = useProgresso();
+  const { temPowerUp, usarPowerUp, tempoRestante } = useInventario();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -54,6 +56,9 @@ const LessonScreen = () => {
   const [hearts, setHearts] = useState(5);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
+  const [dicaAtiva, setDicaAtiva] = useState(false);
+  const dobradorMin = tempoRestante("dobrador-xp");
+  const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
   const q = QUESTIONS[index];
   const isCorrect = selected === q?.correct;
@@ -62,19 +67,28 @@ const LessonScreen = () => {
   const handleCheck = () => {
     if (selected === null) return;
     setChecked(true);
+    setDicaAtiva(false);
     if (selected === q.correct) {
       setCorrectCount((c) => c + 1);
       registrarAcao("resposta_correta_seguida", 1);
       registrarAcao("palavra_traduzida", 1);
     } else {
-      setHearts((h) => Math.max(0, h - 1));
+      setHearts((h) => {
+        const next = Math.max(0, h - 1);
+        if (next === 0 && temPowerUp("vida-extra")) {
+          usarPowerUp("vida-extra");
+          return 1;
+        }
+        return next;
+      });
     }
   };
 
   // Ao concluir lição: registra ações e credita XP + diamantes
   useEffect(() => {
     if (!done) return;
-    const xp = correctCount * 4;
+    const dobrador = dobradorXpAtivo();
+    const xp = correctCount * 4 * (dobrador ? 2 : 1);
     registrarAcao("licao_completa", 1);
     registrarAcao("minuto_pratica", 3);
     setSaldo((s) => ({
@@ -97,7 +111,8 @@ const LessonScreen = () => {
   };
 
   if (done) {
-    const xp = correctCount * 4;
+    const dobrador = dobradorXpAtivo();
+    const xp = correctCount * 4 * (dobrador ? 2 : 1);
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -127,7 +142,7 @@ const LessonScreen = () => {
             style={{ borderColor: "#FBBD12" }}
           >
             <p className="text-xs font-extrabold tracking-wider" style={{ color: "#FBBD12" }}>
-              XP GANHO
+              XP GANHO{dobrador ? " ×2" : ""}
             </p>
             <p className="text-2xl font-extrabold mt-1" style={{ color: "#5E5C5C" }}>
               {xp}
@@ -197,12 +212,44 @@ const LessonScreen = () => {
 
       {/* Question */}
       <div className="flex-1 flex flex-col mt-8">
-        <p
-          className="text-xs font-extrabold tracking-widest mb-2"
-          style={{ color: "#5E5C5C" }}
-        >
-          LIÇÃO {id ?? 1} · PERGUNTA {index + 1}/{total}
-        </p>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <p
+            className="text-xs font-extrabold tracking-widest"
+            style={{ color: "#5E5C5C" }}
+          >
+            LIÇÃO {id ?? 1} · PERGUNTA {index + 1}/{total}
+          </p>
+          <div className="flex items-center gap-1.5">
+            {dobradorOn && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white"
+                style={{ background: "hsl(45 95% 50%)" }}
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                XP×2 · {dobradorMin}min
+              </span>
+            )}
+            {temPowerUp("dica-extra") && !checked && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (dicaAtiva) return;
+                  usarPowerUp("dica-extra");
+                  setDicaAtiva(true);
+                }}
+                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+                style={{
+                  background: "hsl(50 95% 60% / 0.18)",
+                  color: "hsl(40 90% 35%)",
+                  border: "1px solid hsl(50 95% 60%)",
+                }}
+              >
+                <Lightbulb className="w-3 h-3 fill-current" />
+                Dica
+              </button>
+            )}
+          </div>
+        </div>
         <h2 className="text-2xl font-extrabold mb-6" style={{ color: "#5E5C5C" }}>
           {q.prompt}
         </h2>
@@ -212,6 +259,7 @@ const LessonScreen = () => {
             const isSel = selected === i;
             const showCorrect = checked && i === q.correct;
             const showWrong = checked && isSel && i !== q.correct;
+            const hint = dicaAtiva && !checked && i === q.correct;
             return (
               <button
                 key={i}
@@ -223,6 +271,8 @@ const LessonScreen = () => {
                     ? "#86D05D"
                     : showWrong
                     ? "hsl(var(--primary))"
+                    : hint
+                    ? "#FBBD12"
                     : isSel
                     ? "hsl(var(--primary))"
                     : "#e5e5e5",
@@ -230,6 +280,8 @@ const LessonScreen = () => {
                     ? "#eaf7e0"
                     : showWrong
                     ? "#fdecec"
+                    : hint
+                    ? "#fff8e0"
                     : isSel
                     ? "#fff5f5"
                     : "#fff",
@@ -239,6 +291,8 @@ const LessonScreen = () => {
                       ? "#5fae3a"
                       : showWrong
                       ? "hsl(var(--kwendi-red-dark))"
+                      : hint
+                      ? "#d99d00"
                       : isSel
                       ? "hsl(var(--kwendi-red-dark))"
                       : "#d4d4d4"
