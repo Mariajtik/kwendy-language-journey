@@ -1,67 +1,70 @@
 /**
  * TotemSeparador.tsx
- * Separador visual em forma de totem/pedra empilhada para
- * dividir módulos diferentes na trilha da HomeScreen.
+ * Separador visual entre módulos: alterna entre um arco de pedra
+ * (portal) e uma pilha de pedras (cairn). Usa imagens reais
+ * servidas via CDN, com mix-blend-mode para integrar o fundo
+ * branco na textura da relva.
  */
+
+import arcoAsset from "@/assets/separadores/arco-pedra.jpg.asset.json";
+import pilhaAsset from "@/assets/separadores/pilha-pedras.jpg.asset.json";
+
+type Variante = "arco" | "pilha";
 
 type Props = {
   numeroProximoModulo?: number;
+  variante?: Variante;
 };
 
-const TotemSeparador = ({ numeroProximoModulo }: Props) => {
+const TotemSeparador = ({ numeroProximoModulo, variante = "arco" }: Props) => {
+  const isArco = variante === "arco";
+  const src = isArco ? arcoAsset.url : pilhaAsset.url;
+  const altura = isArco ? 150 : 170;
+
   return (
-    <div className="my-8 flex justify-center" aria-hidden>
-      <svg width="120" height="150" viewBox="0 0 120 150">
-        {/* sombra base */}
-        <ellipse cx="60" cy="140" rx="42" ry="6" fill="rgba(0,0,0,0.25)" />
-
-        {/* pedra inferior */}
-        <path
-          d="M22 138 L18 108 Q18 102 24 100 L96 100 Q102 102 102 108 L98 138 Z"
-          fill="#6E6259"
-          stroke="#3F3832"
-          strokeWidth="2"
-          strokeLinejoin="round"
+    <div className="my-6 flex justify-center" aria-hidden>
+      <div className="relative" style={{ height: altura }}>
+        <img
+          src={src}
+          alt=""
+          className="h-full w-auto object-contain"
+          style={{
+            mixBlendMode: "multiply",
+            filter: "drop-shadow(0 6px 6px rgba(0,0,0,0.35))",
+          }}
         />
-        <path d="M30 100 L34 108 M70 100 L66 110 M88 100 L92 112" stroke="#3F3832" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-
-        {/* pedra do meio */}
-        <path
-          d="M30 100 L28 70 Q28 64 34 62 L86 62 Q92 64 92 70 L90 100 Z"
-          fill="#8A7C70"
-          stroke="#3F3832"
-          strokeWidth="2"
-          strokeLinejoin="round"
+        {/* sombra ao chão */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -bottom-1 rounded-full"
+          style={{
+            width: "70%",
+            height: 10,
+            background:
+              "radial-gradient(ellipse at center, rgba(0,0,0,0.35), rgba(0,0,0,0) 70%)",
+          }}
         />
-        {/* gravação do número do próximo módulo */}
+        {/* chip com número do próximo módulo */}
         {numeroProximoModulo !== undefined && (
-          <text
-            x="60"
-            y="86"
-            textAnchor="middle"
-            fontSize="20"
-            fontWeight="900"
-            fill="#3F3832"
-            style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
+            style={{
+              top: isArco ? "38%" : "18%",
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              background: "#FFF8EC",
+              border: "3px solid #6B3F1D",
+              color: "#6B3F1D",
+              fontWeight: 900,
+              fontFamily: "Nunito, system-ui, sans-serif",
+              fontSize: 20,
+              boxShadow: "0 3px 0 rgba(0,0,0,0.25)",
+            }}
           >
             {numeroProximoModulo}
-          </text>
+          </div>
         )}
-
-        {/* pedra topo */}
-        <path
-          d="M40 62 L38 38 Q38 30 46 28 L74 28 Q82 30 82 38 L80 62 Z"
-          fill="#A1907F"
-          stroke="#3F3832"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        {/* brilho */}
-        <path d="M46 34 L52 34" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.6" />
-
-        {/* grama na base */}
-        <path d="M12 138 q4 -6 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0" fill="none" stroke="#3F8E3F" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
+      </div>
     </div>
   );
 };
