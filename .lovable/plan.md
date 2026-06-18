@@ -1,38 +1,77 @@
-## Mudanças
+## Objetivo
 
-### 1. Cores por módulo
+Estender `src/data/curriculo.ts` com novos módulos, seguindo a ordem dos capítulos do livro fotografado. Cada módulo mantém o mesmo formato dos atuais (cor HSL, cor escura, unidades com secções `licao` + báu final via `mk`). Faça o máximo de módulos tendo em conta o índice e o que já temos, sem ser repetitiva. 
 
-Adicionar `cor` (HSL) e `corEscura` (sombra 3D) ao tipo `Modulo` em `src/data/curriculo.ts`. Paleta:
+## Novos módulos a adicionar
 
-- **M1 Saudações** — Sem alteração
-- **M2 Eu e tu** — laranja `25 90% 50%` / `25 90% 38%`
-- **M3 Família** — rosa-magenta `330 75% 50%` / `330 75% 38%`
-- **M4 Ações** — violeta `265 60% 50%` / `265 60% 38%`
-- **M5 Natureza** — verde `150 55% 38%` / `150 55% 28%`
+**M6 — Sabedoria Ovimbundu** (Cap. II — Provérbios) — castanho terroso
 
-`renderBannerAtual`, `renderModuloHeader` e `UnidadeCardFechado` passam a usar `modulo.cor` em vez de `hsl(var(--primary))` fixo. O cabeçalho de módulo ganha um pequeno chip colorido (bolinha) ao lado do título.
+- U1 Provérbios do dia-a-dia
+- U2 Provérbios sobre família e comunidade
+- U3 Provérbios sobre trabalho e natureza
+- U4 Interpretar e usar provérbios
 
-### 2. Expandir unidade inline (sem popover)
+**M7 — Pronomes** (Cap. III) — azul
 
-Remover o `<Dialog>` de pré-visualização e o estado `popoverUnidadeId`. Substituir por:
+- U1 Pronomes pessoais e suas formas
+- U2 Pronomes possessivos
+- U3 Pronomes demonstrativos
+- U4 Pronomes interrogativos e indefinidos
 
-- `expandedUnidades: Set<string>` no `HomeScreen`.
-- Clicar no livro do `UnidadeCardFechado` → `toggle(u.id)`. Ao expandir, o cartão desaparece e renderiza-se em seu lugar `renderBannerAtual(mod, u) + renderZigZag(u, true)` (modo visualização: todas as lições bloqueadas, igual ao popover actual, mas inline na coluna). Botão "Fechar" pequeno aparece sobre o banner para colapsar.
-- A unidade activa (a do progresso real) continua sempre aberta e não pode ser colapsada.
+**M8 — Advérbios** (Cap. IV) — amarelo-mostarda
 
-### 3. Cena da piscina ao lado do trilho do Módulo 4
+- U1 Advérbios de modo
+- U2 Advérbios de lugar (Pi, Kupi)
+- U3 Advérbios de quantidade e tempo
+- U4 Advérbios de dúvida e negação
 
-Quando o utilizador estiver com **alguma unidade do M4 expandida ou activa**, envolver o bloco do M4 num `div relative` e colocar `<CenaPiscina />` em `position:absolute`, `right: -40px`, alinhada verticalmente ao meio do zig-zag, largura ~130px, `pointer-events:none`, `opacity:0.95`, ligeira rotação `-4deg`. No mobile estreito (viewport <420px) reduz para `width:100px, right:-20px` via responsive style. A `figcaption` "Yellen e Otchali brincam" sai (poluía).
+**M9 — Conjunções e frases compostas** (Cap. V) — turquesa
 
-### Ficheiros tocados
+- U1 Copulativas e disjuntivas
+- U2 Adversativas e conclusivas
+- U3 Condicionais e causais
+- U4 Temporais, concessivas e comparativas
 
-- `src/data/curriculo.ts` — adiciona `cor` + `corEscura` a `Modulo`.
-- `src/components/UnidadeCardFechado.tsx` — usa cor do módulo + recebe estado expandido (faixa colorida e botão livro mudam de cor).
-- `src/components/CenaPiscina.tsx` — remove `figcaption`, aceita `className` para posicionamento absoluto.
-- `src/screens/HomeScreen.tsx` — substitui `popoverUnidadeId` por `expandedUnidades`, remove `<Dialog>` de preview, banner/header usam cor do módulo, cena piscina sai do popover e fica `absolute` lateral ao M4.
+**M10 — Vida quotidiana** (vocabulário temático, parte 1) — laranja-quente
+
+- U1 Compartimentos da casa
+- U2 Loiça e utensílios
+- U3 Vestuário
+- U4 Alimentação
+
+**M11 — Trabalho e campo** (vocabulário temático, parte 2) — verde-oliva
+
+- U1 Vocabulário agrícola
+- U2 Profissões
+- U3 Animais (revisão e expansão)
+- U4 Aves (revisão e expansão)
+
+**M12 — Verbos e tempos** (Cap. VI) — vinho/bordô
+
+- U1 Formação dos tempos verbais + Presente do indicativo
+- U2 Pretérito perfeito e imperfeito do indicativo
+- U3 Futuro do indicativo e Modo condicional
+- U4 Modo conjuntivo (presente, pretérito, futuro)
+
+Cada unidade reusa o helper `mk(unidadeId, [titulos])` (3–4 lições + báu).
+
+## Notas técnicas
+
+- Apenas edita `src/data/curriculo.ts` adicionando os módulos ao array `CURRICULO`. Nada mais muda — `HomeScreen`, animações, totem, progresso e cores funcionam automaticamente porque já leem `modulo.cor`/`corEscura` e iteram dinamicamente.
+- Cores escolhidas para serem distintas das atuais (M1 vermelho, M2 laranja, M3 magenta, M4 roxo, M5 verde):
+  - M6 `28 45% 38%` / `28 45% 28%` (castanho)
+  - M7 `210 80% 48%` / `210 80% 36%` (azul)
+  - M8 `42 90% 48%` / `42 90% 36%` (mostarda)
+  - M9 `178 65% 40%` / `178 65% 30%` (turquesa)
+  - M10 `15 85% 55%` / `15 85% 42%` (laranja-quente)
+  - M11 `90 45% 38%` / `90 45% 28%` (verde-oliva)
+  - M12 `345 65% 42%` / `345 65% 30%` (vinho)
+- Animações temáticas em `HomeScreen` (mapa `ANIMACOES_UNIDADE`) só cobrem M1–M5; mantém-se. Posso opcionalmente adicionar mais variantes depois.
+- Sem alterações de layout, rotas ou hooks. `getUnidade`, `getSeccao`, `getProximaUnidade`, `PRIMEIRA_UNIDADE` continuam corretos.
 
 ## Fora de escopo
 
-- Mudar paleta global / tokens semânticos do tema.
-- Animação da água.
-- Cores nos botões redondos do zig-zag (continuam crimson activa / verde concluída — convém manter consistência Duolingo; posso mudar se quiseres).
+- Conteúdo real das lições (perguntas/respostas). O builder apenas cria a estrutura do currículo; o conteúdo de cada lição é gerado/editado separadamente.
+- Novas animações de banner para os módulos novos.
+- Curiosidades culturais associadas aos novos módulos.
+- Quantos módulos o duolingo tem?
