@@ -407,13 +407,26 @@ const HomeScreen = () => {
             </span>
           </div>
 
-          {/* Diamond + gems */}
-          <div className="flex items-center gap-1">
+          {/* Diamond + gems — abre a Loja */}
+          <motion.button
+            type="button"
+            onClick={() => navigate("/loja")}
+            aria-label="Abrir loja"
+            whileTap={{ scale: 0.92 }}
+            className="flex items-center gap-1 rounded-full pl-1 pr-2 py-0.5 hover:bg-black/5 active:bg-black/10 transition-colors"
+          >
             <Diamond className="w-6 h-6" />
             <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
               {saldo.diamantes.toLocaleString()}
             </span>
-          </div>
+            <span
+              className="ml-0.5 w-4 h-4 grid place-items-center rounded-full text-[10px] font-extrabold text-white"
+              style={{ background: "hsl(var(--primary))" }}
+              aria-hidden
+            >
+              +
+            </span>
+          </motion.button>
 
           {/* Hearts */}
           <div className="flex items-center gap-1">
