@@ -4,13 +4,14 @@
  */
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Backpack } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import ItemLojaCard from "@/components/loja/ItemLojaCard";
 import ConfirmarCompraModal from "@/components/loja/ConfirmarCompraModal";
 import CompraSucessoModal from "@/components/loja/CompraSucessoModal";
 import SaldoInsuficienteModal from "@/components/loja/SaldoInsuficienteModal";
+import MochilaSheet from "@/components/inventario/MochilaSheet";
 import { CATEGORIAS, ITENS_LOJA, type CategoriaLoja, type ItemLoja } from "@/data/loja";
 import { useLoja } from "@/hooks/useLoja";
 
@@ -21,6 +22,10 @@ const LojaScreen = () => {
   const [confirmar, setConfirmar] = useState<ItemLoja | null>(null);
   const [sucesso, setSucesso] = useState<ItemLoja | null>(null);
   const [faltam, setFaltam] = useState<number | null>(null);
+  const [mochilaAberta, setMochilaAberta] = useState(false);
+  const totalMochila =
+    inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
+    inventario.desbloqueios.length;
 
   const itens = useMemo(() => ITENS_LOJA.filter((i) => i.categoria === tab), [tab]);
 
@@ -66,6 +71,23 @@ const LojaScreen = () => {
               Power-ups, baús e cultura
             </p>
           </div>
+          <motion.button
+            type="button"
+            onClick={() => setMochilaAberta(true)}
+            whileTap={{ scale: 0.92 }}
+            aria-label="Abrir mochila"
+            className="relative w-10 h-10 rounded-xl border-2 border-border bg-card grid place-items-center"
+          >
+            <Backpack className="w-5 h-5" style={{ color: "hsl(160 60% 35%)" }} />
+            {totalMochila > 0 && (
+              <span
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full text-[10px] font-extrabold text-white"
+                style={{ background: "hsl(160 60% 40%)" }}
+              >
+                {totalMochila}
+              </span>
+            )}
+          </motion.button>
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border-2 border-border">
             <DiamanteNegro className="w-4 h-4" />
             <span className="font-extrabold tabular-nums text-sm">
@@ -134,6 +156,7 @@ const LojaScreen = () => {
         faltam={faltam ?? 0}
         onFechar={() => setFaltam(null)}
       />
+      <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
     </motion.div>
   );
 };
