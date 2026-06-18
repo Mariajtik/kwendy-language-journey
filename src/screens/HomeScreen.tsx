@@ -10,7 +10,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Play, Lock, BookOpen, Check } from "lucide-react";
+import { Flame, Heart, Play, Lock, BookOpen, Check, Backpack } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
@@ -19,6 +19,8 @@ import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useInventario } from "@/hooks/useInventario";
+import MochilaSheet from "@/components/inventario/MochilaSheet";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
@@ -149,6 +151,11 @@ const HomeScreen = () => {
   const { saldo } = useSaldo();
   const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
   const atual = unidadeAtualInfo();
+  const { inventario } = useInventario();
+  const totalMochila =
+    inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
+    inventario.desbloqueios.length;
+  const [mochilaAberta, setMochilaAberta] = useState(false);
 
   type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
@@ -439,8 +446,28 @@ const HomeScreen = () => {
               5
             </span>
           </div>
+
+          {/* Mochila */}
+          <motion.button
+            type="button"
+            onClick={() => setMochilaAberta(true)}
+            aria-label="Abrir mochila"
+            whileTap={{ scale: 0.92 }}
+            className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors"
+          >
+            <Backpack className="w-5 h-5" style={{ color: "hsl(160 60% 35%)" }} />
+            {totalMochila > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 grid place-items-center rounded-full text-[10px] font-extrabold text-white"
+                style={{ background: "hsl(160 60% 40%)" }}
+              >
+                {totalMochila}
+              </span>
+            )}
+          </motion.button>
         </div>
       </div>
+      <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
 
       {/* ---- SCROLLABLE CONTENT ---- */}
       <div

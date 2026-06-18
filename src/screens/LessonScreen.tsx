@@ -8,10 +8,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, Check, X as XIcon } from "lucide-react";
+import { X, Heart, Check, X as XIcon, Lightbulb, Zap } from "lucide-react";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 
 type Question = {
   prompt: string;
@@ -47,6 +48,7 @@ const LessonScreen = () => {
   const total = QUESTIONS.length;
   const { registrarAcao } = useMissoes();
   const { concluirSeccao } = useProgresso();
+  const { temPowerUp, usarPowerUp, tempoRestante } = useInventario();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -54,6 +56,9 @@ const LessonScreen = () => {
   const [hearts, setHearts] = useState(5);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
+  const [dicaAtiva, setDicaAtiva] = useState(false);
+  const dobradorMin = tempoRestante("dobrador-xp");
+  const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
   const q = QUESTIONS[index];
   const isCorrect = selected === q?.correct;
@@ -62,19 +67,28 @@ const LessonScreen = () => {
   const handleCheck = () => {
     if (selected === null) return;
     setChecked(true);
+    setDicaAtiva(false);
     if (selected === q.correct) {
       setCorrectCount((c) => c + 1);
       registrarAcao("resposta_correta_seguida", 1);
       registrarAcao("palavra_traduzida", 1);
     } else {
-      setHearts((h) => Math.max(0, h - 1));
+      setHearts((h) => {
+        const next = Math.max(0, h - 1);
+        if (next === 0 && temPowerUp("vida-extra")) {
+          usarPowerUp("vida-extra");
+          return 1;
+        }
+        return next;
+      });
     }
   };
 
   // Ao concluir lição: registra ações e credita XP + diamantes
   useEffect(() => {
     if (!done) return;
-    const xp = correctCount * 4;
+    const dobrador = dobradorXpAtivo();
+    const xp = correctCount * 4 * (dobrador ? 2 : 1);
     registrarAcao("licao_completa", 1);
     registrarAcao("minuto_pratica", 3);
     setSaldo((s) => ({
@@ -97,7 +111,8 @@ const LessonScreen = () => {
   };
 
   if (done) {
-    const xp = correctCount * 4;
+    const dobrador = dobradorXpAtivo();
+    const xp = correctCount * 4 * (dobrador ? 2 : 1);
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -127,7 +142,7 @@ const LessonScreen = () => {
             style={{ borderColor: "#FBBD12" }}
           >
             <p className="text-xs font-extrabold tracking-wider" style={{ color: "#FBBD12" }}>
-              XP GANHO
+              XP GANHO{dobrador ? " ×2" : ""}
             </p>
             <p className="text-2xl font-extrabold mt-1" style={{ color: "#5E5C5C" }}>
               {xp}
