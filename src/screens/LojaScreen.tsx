@@ -31,7 +31,9 @@ const LojaScreen = () => {
     setConfirmar(null);
     if (r.ok) {
       setSucesso(item);
-    } else if (!r.ok && r.motivo === "saldo-insuficiente") {
+      return;
+    }
+    if (r.motivo === "saldo-insuficiente") {
       setFaltam(item.preco - saldo.diamantes);
     }
   };
