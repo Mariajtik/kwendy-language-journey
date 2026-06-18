@@ -1,77 +1,72 @@
-## Objetivo
+# Primeira história: O Jacaré Bangão
 
-Estender `src/data/curriculo.ts` com novos módulos, seguindo a ordem dos capítulos do livro fotografado. Cada módulo mantém o mesmo formato dos atuais (cor HSL, cor escura, unidades com secções `licao` + báu final via `mk`). Faça o máximo de módulos tendo em conta o índice e o que já temos, sem ser repetitiva. 
+Transformar a aba **Histórias** (hoje só com um placeholder "Em breve") numa biblioteca de contos angolanos, com **O Jacaré Bangão** como primeira história totalmente jogável, partindo do artigo da Revista Ecos (Sérgio de Carvalho Rodrigues, 2017).
 
-## Novos módulos a adicionar
+## 1. Estrutura de dados
 
-**M6 — Sabedoria Ovimbundu** (Cap. II — Provérbios) — castanho terroso
+Novo ficheiro `src/data/historias.ts`:
 
-- U1 Provérbios do dia-a-dia
-- U2 Provérbios sobre família e comunidade
-- U3 Provérbios sobre trabalho e natureza
-- U4 Interpretar e usar provérbios
+```ts
+type Capitulo = { id: string; titulo: string; paragrafos: string[]; vocabulario?: { umbundu: string; pt: string }[] };
+type Historia = {
+  id: string; titulo: string; subtitulo: string; regiao: string; epoca: string;
+  duracaoMin: number; nivel: "Iniciante" | "Intermédio" | "Avançado";
+  imagem: string; cor: string; sinopse: string;
+  capitulos: Capitulo[];
+  curiosidade: { titulo: string; texto: string };
+  quiz: { pergunta: string; opcoes: string[]; correta: number }[];
+  recompensa: { xp: number; diamantes: number };
+};
+```
 
-**M7 — Pronomes** (Cap. III) — azul
+Primeira entrada `jacare-bangao` com 5 capítulos curtos adaptados do artigo (linguagem de leitor, não académica):
 
-- U1 Pronomes pessoais e suas formas
-- U2 Pronomes possessivos
-- U3 Pronomes demonstrativos
-- U4 Pronomes interrogativos e indefinidos
+1. **As margens do Dande** — apresentação de Caxito, do rio e do Sr. Ngandu.
+2. **O Imposto Geral Mínimo** — o chefe de posto cruel e o peso colonial.
+3. **A vingança do jacaré** — Ngandu vai à Administração pagar o imposto.
+4. **A fuga do Sipaio** — o povo de Caxito assiste, o chefe foge.
+5. **Lenda que virou estátua** — significado: oratura de combate, premissa da independência.
 
-**M8 — Advérbios** (Cap. IV) — amarelo-mostarda
+Mais: **vocabulário Umbundu** por capítulo (5–8 palavras: rio, jacaré, povo, chefe, fugir, etc.), **curiosidade cultural** (a estátua real em Caxito, foto fornecida pelo utilizador), e **quiz final** de 4 perguntas.
 
-- U1 Advérbios de modo
-- U2 Advérbios de lugar (Pi, Kupi)
-- U3 Advérbios de quantidade e tempo
-- U4 Advérbios de dúvida e negação
+## 2. Imagem
 
-**M9 — Conjunções e frases compostas** (Cap. V) — turquesa
+Usar a foto da estátua enviada (`user-uploads://bangao.jpg`) via `lovable-assets create` → `src/assets/bangao.jpg.asset.json`, importada como capa da história e na tela de curiosidade. Sem usar a 2ª imagem (referência decorativa apenas).
 
-- U1 Copulativas e disjuntivas
-- U2 Adversativas e conclusivas
-- U3 Condicionais e causais
-- U4 Temporais, concessivas e comparativas
+## 3. Ecrãs / componentes
 
-**M10 — Vida quotidiana** (vocabulário temático, parte 1) — laranja-quente
+- `**src/screens/HistoriasScreen.tsx**` (reescrito): lista de cards de histórias (1 desbloqueada + cards "Em breve" para futuros contos), com capa, título, região, duração, nível, XP. Botão demo antigo removido.
+- `**src/screens/HistoriaDetalheScreen.tsx**` (novo): tela de abertura — capa grande, sinopse, metadados, botão "Começar a ouvir".
+- `**src/screens/HistoriaLeituraScreen.tsx**` (novo): leitura paginada capítulo a capítulo (1 capítulo por ecrã), barra de progresso topo, painel lateral de vocabulário Umbundu/PT por capítulo, botões anterior/próximo.
+- `**src/screens/HistoriaFimScreen.tsx**` (novo): quiz de 4 perguntas → cartão de curiosidade (estátua de Caxito) → recompensa (XP + diamantes) via `setSaldo` e `registrarAcao("historia_concluida", 1)`.
 
-- U1 Compartimentos da casa
-- U2 Loiça e utensílios
-- U3 Vestuário
-- U4 Alimentação
+## 4. Rotas
 
-**M11 — Trabalho e campo** (vocabulário temático, parte 2) — verde-oliva
+Adicionar em `src/App.tsx`:
 
-- U1 Vocabulário agrícola
-- U2 Profissões
-- U3 Animais (revisão e expansão)
-- U4 Aves (revisão e expansão)
+- `/historias/:id` → detalhe
+- `/historias/:id/ler` → leitura
+- `/historias/:id/fim` → quiz/recompensa
 
-**M12 — Verbos e tempos** (Cap. VI) — vinho/bordô
+Bottom nav continua a apontar `/historias` para a lista.
 
-- U1 Formação dos tempos verbais + Presente do indicativo
-- U2 Pretérito perfeito e imperfeito do indicativo
-- U3 Futuro do indicativo e Modo condicional
-- U4 Modo conjuntivo (presente, pretérito, futuro)
+## 5. Estilo
 
-Cada unidade reusa o helper `mk(unidadeId, [titulos])` (3–4 lições + báu).
+- Paleta já existente (peach/crimson). Card da história destaca-se com gradiente terra/verde discreto a evocar o cenário do rio Dande.
+- Tipografia Nunito (já no projeto). Sem mudanças globais de design.
+- Animações Framer Motion suaves de entrada (fade/slide) — sem mascotes novos.
+
+## 6. Fora de âmbito
+
+- Áudio narrado (fica como gancho "Em breve" no detalhe).
+- Outros contos completos — apenas placeholders bloqueados.
+- Tradução integral do texto para Umbundu (só vocabulário-chave).
+- Alterações em módulos, missões ou progresso de unidades.
 
 ## Notas técnicas
 
-- Apenas edita `src/data/curriculo.ts` adicionando os módulos ao array `CURRICULO`. Nada mais muda — `HomeScreen`, animações, totem, progresso e cores funcionam automaticamente porque já leem `modulo.cor`/`corEscura` e iteram dinamicamente.
-- Cores escolhidas para serem distintas das atuais (M1 vermelho, M2 laranja, M3 magenta, M4 roxo, M5 verde):
-  - M6 `28 45% 38%` / `28 45% 28%` (castanho)
-  - M7 `210 80% 48%` / `210 80% 36%` (azul)
-  - M8 `42 90% 48%` / `42 90% 36%` (mostarda)
-  - M9 `178 65% 40%` / `178 65% 30%` (turquesa)
-  - M10 `15 85% 55%` / `15 85% 42%` (laranja-quente)
-  - M11 `90 45% 38%` / `90 45% 28%` (verde-oliva)
-  - M12 `345 65% 42%` / `345 65% 30%` (vinho)
-- Animações temáticas em `HomeScreen` (mapa `ANIMACOES_UNIDADE`) só cobrem M1–M5; mantém-se. Posso opcionalmente adicionar mais variantes depois.
-- Sem alterações de layout, rotas ou hooks. `getUnidade`, `getSeccao`, `getProximaUnidade`, `PRIMEIRA_UNIDADE` continuam corretos.
-
-## Fora de escopo
-
-- Conteúdo real das lições (perguntas/respostas). O builder apenas cria a estrutura do currículo; o conteúdo de cada lição é gerado/editado separadamente.
-- Novas animações de banner para os módulos novos.
-- Curiosidades culturais associadas aos novos módulos.
-- Quantos módulos o duolingo tem?
+- Conteúdo dos capítulos é reescrita livre baseada no artigo (não cópia literal), tom narrativo acessível, ~80–120 palavras por capítulo.
+- Vocabulário Umbundu: usar termos comuns + verificar com web search se necessário para palavras-chave (rio = `olui`/`olonjila`, jacaré = `ongandu`, etc.).
+- Recompensa: 80 XP + 20 diamantes (mantém valor atual do botão demo).
+- Sem mudanças em hooks (`useMissoes`, `useSaldo`, `useProgresso`).
+- Colocar referência.
