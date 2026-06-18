@@ -1,54 +1,87 @@
 /**
- * HistoriasScreen.tsx — placeholder "Histórias" tab.
+ * HistoriasScreen.tsx — Biblioteca de histórias / contos angolanos.
+ * Lista cards de cada história. Clique abre o detalhe.
  */
 import { motion } from "framer-motion";
-import { BookOpen, Check } from "lucide-react";
+import { Lock, Clock, MapPin, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
-import { useMissoes } from "@/hooks/useMissoes";
-import { setSaldo } from "@/hooks/useSaldo";
+import { HISTORIAS } from "@/data/historias";
 
 const HistoriasScreen = () => {
-  const { registrarAcao } = useMissoes();
-  const concluirHistoria = () => {
-    registrarAcao("historia_concluida", 1);
-    setSaldo((s) => ({ ...s, xp: s.xp + 80, diamantes: s.diamantes + 20 }));
-  };
+  const nav = useNavigate();
   return (
-  <motion.div
-    className="app-shell relative bg-background"
-    style={{ minHeight: "100dvh" }}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <div className="px-6 pt-8 pb-32">
-      <h1 className="text-2xl font-extrabold text-foreground mb-1">Histórias</h1>
-      <p className="text-sm text-muted-foreground">
-        Contos tradicionais angolanos para praticar Umbundu.
-      </p>
-
-      <div className="mt-12 flex flex-col items-center text-center">
-        <div
-          className="w-24 h-24 rounded-full flex items-center justify-center mb-4"
-          style={{ background: "hsl(var(--kwendi-peach) / 0.2)" }}
-        >
-          <BookOpen className="w-12 h-12" style={{ color: "hsl(var(--kwendi-peach))" }} />
-        </div>
-        <p className="font-bold text-foreground">Em breve</p>
-        <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-          Os primeiros contos estão a ser narrados por anciãos das províncias.
+    <motion.div
+      className="app-shell relative bg-background"
+      style={{ minHeight: "100dvh" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="px-6 pt-8 pb-32">
+        <h1 className="text-2xl font-extrabold text-foreground mb-1">Histórias</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Contos e lendas tradicionais para praticar Umbundu.
         </p>
-        <button
-          onClick={concluirHistoria}
-          className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-extrabold text-white"
-          style={{ background: "hsl(var(--kwendi-peach))", boxShadow: "0 3px 0 hsl(var(--kwendi-peach) / 0.6)" }}
-        >
-          <Check className="w-4 h-4" /> Marcar conto como concluído (demo)
-        </button>
+
+        <div className="flex flex-col gap-5">
+          {HISTORIAS.map((h, i) => (
+            <motion.button
+              key={h.id}
+              onClick={() => h.desbloqueada && nav(`/historias/${h.id}`)}
+              disabled={!h.desbloqueada}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              whileTap={h.desbloqueada ? { scale: 0.98 } : undefined}
+              className="relative text-left rounded-3xl overflow-hidden shadow-lg disabled:opacity-70"
+              style={{
+                background: `linear-gradient(135deg, hsl(${h.cor}) 0%, hsl(${h.corEscura}) 100%)`,
+                boxShadow: `0 6px 0 hsl(${h.corEscura})`,
+              }}
+            >
+              {h.imagem ? (
+                <div className="h-40 w-full overflow-hidden">
+                  <img
+                    src={h.imagem}
+                    alt={h.titulo}
+                    className="w-full h-full object-cover"
+                    style={{ filter: h.desbloqueada ? "none" : "grayscale(0.8)" }}
+                  />
+                </div>
+              ) : (
+                <div className="h-40 w-full flex items-center justify-center bg-black/20">
+                  <Lock className="w-10 h-10 text-white/60" />
+                </div>
+              )}
+
+              <div className="p-4 text-white">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-extrabold leading-tight">{h.titulo}</h2>
+                    <p className="text-xs text-white/80 mt-0.5">{h.subtitulo}</p>
+                  </div>
+                  {!h.desbloqueada && <Lock className="w-5 h-5 text-white/70 shrink-0" />}
+                </div>
+
+                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-3 text-xs text-white/90">
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" /> {h.regiao}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> {h.duracaoMin} min
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> {h.nivel}
+                  </span>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
       </div>
-    </div>
-    <BottomNav active="book" />
-  </motion.div>
+      <BottomNav active="book" />
+    </motion.div>
   );
 };
 
