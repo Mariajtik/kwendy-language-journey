@@ -22,6 +22,7 @@ import { useProgresso } from "@/hooks/useProgresso";
 import { CURRICULO, getUnidade, type Modulo, type Unidade } from "@/data/curriculo";
 import TotemSeparador from "@/components/TotemSeparador";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
+import CenaPiscina from "@/components/CenaPiscina";
 import {
   Dialog,
   DialogContent,
@@ -394,8 +395,13 @@ const HomeScreen = () => {
             Só a unidade atual renderiza o zig-zag aberto. As demais
             aparecem como cards fechados (ícone de livro -> popover). */}
         {CURRICULO.map((mod, mi) => (
-          <div key={mod.id}>
-            {mi > 0 && <TotemSeparador numeroProximoModulo={mod.numero} />}
+          <div key={mod.id} className="relative">
+            {mi > 0 && (
+              <TotemSeparador
+                numeroProximoModulo={mod.numero}
+                variante={mi % 2 === 1 ? "arco" : "pilha"}
+              />
+            )}
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) =>
               u.id === atual.unidade.id ? (
@@ -411,6 +417,13 @@ const HomeScreen = () => {
                   onAbrir={setPopoverUnidadeId}
                 />
               ),
+            )}
+            {/* Cena decorativa: piscina + Yellen + Otchali no Módulo 4 */}
+            {mod.id === "m4" && (
+              <CenaPiscina
+                className="absolute"
+                style={{ top: 200, right: -30, opacity: 0.95 }}
+              />
             )}
           </div>
         ))}
