@@ -390,178 +390,30 @@ const HomeScreen = () => {
         className="relative z-10 overflow-y-auto px-4 pt-4 pb-32"
         style={{ height: "calc(100dvh - 80px)" }}
       >
-        {/* Module banner */}
-        <div
-          className="rounded-2xl px-5 py-4 mb-8 text-white"
-          style={{
-            background: `hsl(${unidade.cor})`,
-            boxShadow: "0 5px 0 hsl(var(--kwendi-red-dark))",
-          }}
-        >
-          <p className="text-xs font-bold tracking-widest opacity-90">
-            MÓDULO {modulo.numero}, UNIDADE {unidade.numero}
-          </p>
-          <h1 className="text-xl font-extrabold leading-tight mt-1">
-            {unidade.titulo}
-          </h1>
-        </div>
-
-        {/* Lesson path (zig-zag) */}
-        <div className="relative mt-4 mx-auto" style={{ width: 220 }}>
-          {/* Dashed connecting line behind buttons */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            aria-hidden
-          >
-            <line
-              x1="50%"
-              y1="0"
-              x2="50%"
-              y2="100%"
-              stroke="rgba(255,255,255,0.7)"
-              strokeWidth="3"
-              strokeDasharray="6 8"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          <div className="relative flex flex-col items-center gap-14 py-4">
-            {unidade.seccoes.map((sec, idx) => {
-              const status = statusSeccaoNa(unidade, sec.id);
-              const isActive = status === "ativa";
-              const isDone = status === "concluida";
-              const isChest = sec.tipo === "bau";
-              const offset = offsets[idx % offsets.length];
-              const numero = idx + 1;
-              return (
-                <div
-                  key={sec.id}
-                  className="relative"
-                  style={{ transform: `translateX(${offset}px)` }}
-                >
-                  {/* COMEÇAR speech bubble for active lesson */}
-                  {isActive && (
-                    <motion.div
-                      initial={{ y: -4, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute left-1/2 -translate-x-1/2 -top-12 bg-white rounded-xl px-3 py-1.5 shadow-md"
-                      style={{ boxShadow: "0 3px 0 #cfcfcf" }}
-                    >
-                      <span
-                        className="text-xs font-extrabold tracking-wider"
-                        style={{ color: "hsl(var(--primary))" }}
-                      >
-                        COMEÇAR
-                      </span>
-                      {/* Arrow */}
-                      <div
-                        className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
-                        style={{ boxShadow: "2px 2px 0 #cfcfcf" }}
-                      />
-                    </motion.div>
-                  )}
-
-                  {/* Pulsing white halo for active */}
-                  {isActive && (
-                    <motion.div
-                      aria-hidden
-                      className="absolute inset-0 rounded-full -m-2 border-4 border-white"
-                      style={{ background: "rgba(255,255,255,0.35)" }}
-                      animate={{ scale: [1, 1.08, 1] }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  )}
-
-                  <button
-                    onClick={() => {
-                      const item: ActiveSec = {
-                        id: sec.id,
-                        titulo: sec.titulo,
-                        numero,
-                        isBau: isChest,
-                      };
-                      setActiveLesson(item);
-                      if (status === "bloqueada") setLockedOpen(true);
-                      else setStartOpen(true);
-                    }}
-                    className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
-                    style={
-                      isActive || isDone
-                        ? {
-                            background: isDone ? "#86D05D" : `hsl(${unidade.cor})`,
-                            boxShadow: "0 6px 0 hsl(var(--kwendi-red-dark))",
-                          }
-                        : {
-                            background: "#cfcfcf",
-                            boxShadow: "0 6px 0 #a8a8a8",
-                          }
-                    }
-                    aria-label={`Lição ${numero}: ${sec.titulo}`}
-                  >
-                    {isChest ? (
-                      <Chest className="w-10 h-10" color="#fff" />
-                    ) : isDone ? (
-                      <Check className="w-8 h-8" strokeWidth={4} />
-                    ) : isActive ? (
-                      numero
-                    ) : (
-                      <Lock className="w-7 h-7" strokeWidth={3} />
-                    )}
-                  </button>
+        {/* Sequência única: todos os módulos/unidades, em ordem.
+            Só a unidade atual renderiza o zig-zag aberto. As demais
+            aparecem como cards fechados (ícone de livro -> popover). */}
+        {CURRICULO.map((mod, mi) => (
+          <div key={mod.id}>
+            {mi > 0 && <TotemSeparador numeroProximoModulo={mod.numero} />}
+            {renderModuloHeader(mod)}
+            {mod.unidades.map((u) =>
+              u.id === atual.unidade.id ? (
+                <div key={u.id} className="mb-6">
+                  {renderBannerAtual(mod, u)}
+                  {renderZigZag(u)}
                 </div>
-              );
-            })}
+              ) : (
+                <UnidadeCardFechado
+                  key={u.id}
+                  modulo={mod}
+                  unidade={u}
+                  onAbrir={setPopoverUnidadeId}
+                />
+              ),
+            )}
           </div>
-        </div>
-
-        {/* Rodapé do mapa: unidade atual */}
-        <div className="mt-10 flex items-center gap-3 px-2">
-          <div
-            className="flex-1 h-px"
-            style={{ background: "rgba(107,63,29,0.55)" }}
-          />
-          <span
-            className="text-xs font-extrabold tracking-wider uppercase"
-            style={{
-              color: "#6B3F1D",
-              textShadow: "0 1px 0 rgba(255,255,255,0.7)",
-            }}
-          >
-            {unidade.titulo}
-          </span>
-          <div
-            className="flex-1 h-px"
-            style={{ background: "rgba(107,63,29,0.55)" }}
-          />
-        </div>
-
-        {/* Banner da próxima unidade */}
-        {proxima && (
-          <div
-            className="mt-3 w-full rounded-2xl px-4 py-3 flex items-center justify-between text-white"
-            style={{
-              background: `hsl(${proxima.unidade.cor})`,
-              boxShadow: "0 4px 0 rgba(0,0,0,0.18)",
-            }}
-          >
-            <div className="text-left">
-              <p className="text-[10px] font-bold tracking-widest opacity-90">
-                MÓDULO {proxima.modulo.numero}, UNIDADE {proxima.unidade.numero}
-              </p>
-              <p className="text-base font-extrabold leading-tight mt-0.5">
-                {proxima.unidade.titulo}
-              </p>
-            </div>
-            <button
-              onClick={() => navigate(`/unidade/${proxima.unidade.id}`)}
-              aria-label="Ver lições da próxima unidade"
-              className="w-10 h-10 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:translate-y-0.5"
-            >
-              <BookOpen className="w-5 h-5 text-white" strokeWidth={3} />
-            </button>
-          </div>
-        )}
+        ))}
       </div>
 
       {/* ---- FLOATING SCROLL-TO-TOP ---- */}
