@@ -157,24 +157,156 @@ const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
-  const { unidadeId: unidadeIdParam } = useParams();
-  const { unidadeAtualInfo, proximaUnidadeInfo, statusSeccaoNa } = useProgresso();
-
-  // Modo "preview de unidade" se rota é /unidade/:id, senão usa unidade atual do progresso.
-  const preview = unidadeIdParam ? getUnidade(unidadeIdParam) : null;
-  const { modulo, unidade } = preview ?? unidadeAtualInfo();
-  const proxima = getProximaUnidade(unidade.id) ?? proximaUnidadeInfo();
+  const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
+  const atual = unidadeAtualInfo();
 
   type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
+  const [popoverUnidadeId, setPopoverUnidadeId] = useState<string | null>(null);
+  const popoverInfo = popoverUnidadeId ? getUnidade(popoverUnidadeId) : null;
 
   // Zig-zag horizontal offsets (in px) for the trail
   const offsets = [0, 60, -60, -40, 40, -30, 50];
 
   const scrollToTop = () =>
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+
+  /** Renderiza o zig-zag de uma unidade. Se `visualizacao`, todas as
+   *  lições aparecem bloqueadas (apenas para pré-visualizar). */
+  const renderZigZag = (unidade: Unidade, visualizacao = false) => (
+    <div className="relative mt-4 mx-auto" style={{ width: 220 }}>
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
+        <line
+          x1="50%"
+          y1="0"
+          x2="50%"
+          y2="100%"
+          stroke="rgba(255,255,255,0.7)"
+          strokeWidth="3"
+          strokeDasharray="6 8"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="relative flex flex-col items-center gap-14 py-4">
+        {unidade.seccoes.map((sec, idx) => {
+          const status = visualizacao ? "bloqueada" : statusSeccaoNa(unidade, sec.id);
+          const isActive = status === "ativa";
+          const isDone = status === "concluida";
+          const isChest = sec.tipo === "bau";
+          const offset = offsets[idx % offsets.length];
+          const numero = idx + 1;
+          return (
+            <div
+              key={sec.id}
+              className="relative"
+              style={{ transform: `translateX(${offset}px)` }}
+            >
+              {isActive && (
+                <motion.div
+                  initial={{ y: -4, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute left-1/2 -translate-x-1/2 -top-12 bg-white rounded-xl px-3 py-1.5 shadow-md"
+                  style={{ boxShadow: "0 3px 0 #cfcfcf" }}
+                >
+                  <span
+                    className="text-xs font-extrabold tracking-wider"
+                    style={{ color: "hsl(var(--primary))" }}
+                  >
+                    COMEÇAR
+                  </span>
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
+                    style={{ boxShadow: "2px 2px 0 #cfcfcf" }}
+                  />
+                </motion.div>
+              )}
+              {isActive && (
+                <motion.div
+                  aria-hidden
+                  className="absolute inset-0 rounded-full -m-2 border-4 border-white"
+                  style={{ background: "rgba(255,255,255,0.35)" }}
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
+              <button
+                onClick={() => {
+                  if (visualizacao) return;
+                  const item: ActiveSec = {
+                    id: sec.id,
+                    titulo: sec.titulo,
+                    numero,
+                    isBau: isChest,
+                  };
+                  setActiveLesson(item);
+                  if (status === "bloqueada") setLockedOpen(true);
+                  else setStartOpen(true);
+                }}
+                className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
+                style={
+                  isActive || isDone
+                    ? {
+                        background: isDone ? "#86D05D" : "hsl(var(--primary))",
+                        boxShadow: "0 6px 0 hsl(var(--kwendi-red-dark))",
+                      }
+                    : {
+                        background: "#cfcfcf",
+                        boxShadow: "0 6px 0 #a8a8a8",
+                      }
+                }
+                aria-label={`Lição ${numero}: ${sec.titulo}`}
+              >
+                {isChest ? (
+                  <Chest className="w-10 h-10" color="#fff" />
+                ) : isDone ? (
+                  <Check className="w-8 h-8" strokeWidth={4} />
+                ) : isActive ? (
+                  numero
+                ) : (
+                  <Lock className="w-7 h-7" strokeWidth={3} />
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  /** Banner cheio (crimson) da unidade activa. */
+  const renderBannerAtual = (modulo: Modulo, unidade: Unidade) => (
+    <div
+      className="rounded-2xl px-5 py-4 mb-2 text-white"
+      style={{
+        background: "hsl(var(--primary))",
+        boxShadow: "0 5px 0 hsl(var(--kwendi-red-dark))",
+      }}
+    >
+      <p className="text-xs font-bold tracking-widest opacity-90">
+        MÓDULO {modulo.numero}, UNIDADE {unidade.numero}
+      </p>
+      <h1 className="text-xl font-extrabold leading-tight mt-1">
+        {unidade.titulo}
+      </h1>
+    </div>
+  );
+
+  /** Cabeçalho de módulo (chip castanho). */
+  const renderModuloHeader = (modulo: Modulo) => (
+    <div className="mt-2 mb-3 flex items-center gap-3 px-2">
+      <div className="flex-1 h-px" style={{ background: "rgba(107,63,29,0.55)" }} />
+      <span
+        className="text-xs font-extrabold tracking-wider uppercase"
+        style={{ color: "#6B3F1D", textShadow: "0 1px 0 rgba(255,255,255,0.7)" }}
+      >
+        Módulo {modulo.numero} — {modulo.titulo}
+      </span>
+      <div className="flex-1 h-px" style={{ background: "rgba(107,63,29,0.55)" }} />
+    </div>
+  );
 
   return (
     <motion.div
