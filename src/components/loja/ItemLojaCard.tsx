@@ -32,7 +32,9 @@ const ItemLojaCard = ({ item, desbloqueado, onComprar }: Props) => (
     </div>
 
     <h3 className="font-extrabold text-foreground text-sm leading-tight">{item.nome}</h3>
-    <p className="text-xs text-muted-foreground mt-1 flex-1 line-clamp-3">{item.descricao}</p>
+    <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 flex-1 leading-snug">
+      {item.descricao}
+    </p>
 
     <button
       onClick={onComprar}

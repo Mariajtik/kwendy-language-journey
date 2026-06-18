@@ -78,5 +78,59 @@ export function useInventario() {
     [inv.desbloqueios]
   );
 
-  return { inventario: inv, update, temDesbloqueio };
+  const temPowerUp = useCallback(
+    (id: ItemId) => {
+      const p = inv.powerUps.find((x) => x.itemId === id);
+      if (!p || p.quantidade <= 0) return false;
+      if (p.expiraEm && new Date(p.expiraEm).getTime() < Date.now()) return false;
+      return true;
+    },
+    [inv.powerUps]
+  );
+
+  const tempoRestante = useCallback(
+    (id: ItemId): number | null => {
+      const p = inv.powerUps.find((x) => x.itemId === id);
+      if (!p?.expiraEm) return null;
+      const ms = new Date(p.expiraEm).getTime() - Date.now();
+      return ms > 0 ? Math.ceil(ms / 60_000) : 0;
+    },
+    [inv.powerUps]
+  );
+
+  const usarPowerUp = useCallback(
+    (id: ItemId) => {
+      update((prev) => ({
+        ...prev,
+        powerUps: prev.powerUps
+          .map((p) =>
+            p.itemId === id ? { ...p, quantidade: Math.max(0, p.quantidade - 1) } : p
+          )
+          .filter((p) => p.quantidade > 0 || p.expiraEm),
+      }));
+    },
+    [update]
+  );
+
+  return { inventario: inv, update, temDesbloqueio, temPowerUp, tempoRestante, usarPowerUp };
+}
+
+/** Helper estático (fora de React) para consumir power-ups. */
+export function usarPowerUpStatic(id: ItemId) {
+  setInventario((prev) => ({
+    ...prev,
+    powerUps: prev.powerUps
+      .map((p) =>
+        p.itemId === id ? { ...p, quantidade: Math.max(0, p.quantidade - 1) } : p
+      )
+      .filter((p) => p.quantidade > 0 || p.expiraEm),
+  }));
+}
+
+/** Verifica se um dobrador de XP está ativo agora. */
+export function dobradorXpAtivo(): boolean {
+  const inv = getInventario();
+  const p = inv.powerUps.find((x) => x.itemId === "dobrador-xp");
+  if (!p?.expiraEm) return false;
+  return new Date(p.expiraEm).getTime() > Date.now();
 }
