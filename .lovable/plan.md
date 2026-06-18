@@ -1,41 +1,38 @@
-## Diagnóstico
+## Mudanças
 
-O resultado actual está pobre porque:
-1. **Imagens stock com marca-d'água** (Vecteezy / Dreamstime) renderizadas com `mix-blend-mode: multiply` sobre relva — cinza fica sujo, marcas visíveis, fundos brancos esbatidos a destoar do estilo Duolingo.
-2. **Estilos misturados** — foto realista de pedra + avatares JPG redondos + ilustração flat. Sem coerência visual.
-3. **Cena da piscina** parece colagem amadora (dois círculos colados em cima da piscina).
-4. **Separador** sem peso narrativo — não comunica "novo módulo".
+### 1. Cores por módulo
 
-## Nova direcção (game-art Kwendi)
+Adicionar `cor` (HSL) e `corEscura` (sombra 3D) ao tipo `Modulo` em `src/data/curriculo.ts`. Paleta:
 
-Substituir tudo por **ilustrações geradas à medida**, no mesmo estilo flat-cartoon vibrante do Duolingo/Kwendi: contorno suave, sombras chapadas, paleta quente (terracota, ocre, verde sálvia, crimson), zero realismo fotográfico, zero marca-d'água.
+- **M1 Saudações** — Sem alteração
+- **M2 Eu e tu** — laranja `25 90% 50%` / `25 90% 38%`
+- **M3 Família** — rosa-magenta `330 75% 50%` / `330 75% 38%`
+- **M4 Ações** — violeta `265 60% 50%` / `265 60% 38%`
+- **M5 Natureza** — verde `150 55% 38%` / `150 55% 28%`
 
-### Assets a gerar (imagegen, qualidade `standard`, PNG transparente)
+`renderBannerAtual`, `renderModuloHeader` e `UnidadeCardFechado` passam a usar `modulo.cor` em vez de `hsl(var(--primary))` fixo. O cabeçalho de módulo ganha um pequeno chip colorido (bolinha) ao lado do título.
 
-1. `portal-pedra.png` — Arco de pedra estilizado tipo portal de aldeia, pedras cinza-quentes com contorno escuro, grama na base, 2 totens/lanças com bandeirolas vermelhas dos lados, espaço central limpo para inserir o número do módulo num medalhão dourado.
-2. `cairn-pedra.png` — Pilha de 5 pedras zen empilhadas, estilo cartoon, com folhinhas verdes e pequenas flores amarelas na base.
-3. `cena-piscina.png` — **Uma única ilustração coesa** com a piscina oval estilo aldeia africana (bordo de pedras coloridas, água turquesa), Yellen e Otchali já desenhados dentro da cena (sentados à beira, pés na água, rindo), sombrinha de palha, palmeira ao lado. Tudo numa só imagem — sem colar avatares.
+### 2. Expandir unidade inline (sem popover)
 
-### Componentes
+Remover o `<Dialog>` de pré-visualização e o estado `popoverUnidadeId`. Substituir por:
 
-- **`TotemSeparador`** — Simplifica: só `<img>` da ilustração + medalhão dourado com o número do módulo posicionado no centro do arco (variante `arco`) ou em cima da pilha (variante `cairn`). Remove `mix-blend-mode` (PNG transparente já trata). Adiciona micro-animação `framer-motion` (subtle bob 2s loop).
-- **`CenaPiscina`** — Substitui os 3 `<img>` colados por **uma só** imagem da cena completa. Largura ~200px, ligeira rotação (-3°), com `motion` opcional (água oscila via SVG overlay subtil — opcional, posso saltar).
-- Posição no Módulo 4: em vez de `absolute right:-30` (corta no mobile estreito), passar a aparecer **entre duas unidades fechadas** do módulo (como cartão decorativo full-width centrado), título "Yellen e Otchali brincam".
+- `expandedUnidades: Set<string>` no `HomeScreen`.
+- Clicar no livro do `UnidadeCardFechado` → `toggle(u.id)`. Ao expandir, o cartão desaparece e renderiza-se em seu lugar `renderBannerAtual(mod, u) + renderZigZag(u, true)` (modo visualização: todas as lições bloqueadas, igual ao popover actual, mas inline na coluna). Botão "Fechar" pequeno aparece sobre o banner para colapsar.
+- A unidade activa (a do progresso real) continua sempre aberta e não pode ser colapsada.
 
-### Tipografia do número no separador
+### 3. Cena da piscina ao lado do trilho do Módulo 4
 
-Medalhão dourado redondo (#F2C84B → #C69118 gradient, borda #6B3F1D 3px), `Nunito 900`, texto crimson `hsl(var(--primary))`, sombra interior, sombra 3D de 4px.
+Quando o utilizador estiver com **alguma unidade do M4 expandida ou activa**, envolver o bloco do M4 num `div relative` e colocar `<CenaPiscina />` em `position:absolute`, `right: -40px`, alinhada verticalmente ao meio do zig-zag, largura ~130px, `pointer-events:none`, `opacity:0.95`, ligeira rotação `-4deg`. No mobile estreito (viewport <420px) reduz para `width:100px, right:-20px` via responsive style. A `figcaption` "Yellen e Otchali brincam" sai (poluía).
 
-### Limpeza
+### Ficheiros tocados
 
-- Eliminar `.asset.json` antigos das fotos stock (`arco-pedra.jpg`, `pilha-pedras.jpg`, `piscina.jpg`) via `delete_asset`.
+- `src/data/curriculo.ts` — adiciona `cor` + `corEscura` a `Modulo`.
+- `src/components/UnidadeCardFechado.tsx` — usa cor do módulo + recebe estado expandido (faixa colorida e botão livro mudam de cor).
+- `src/components/CenaPiscina.tsx` — remove `figcaption`, aceita `className` para posicionamento absoluto.
+- `src/screens/HomeScreen.tsx` — substitui `popoverUnidadeId` por `expandedUnidades`, remove `<Dialog>` de preview, banner/header usam cor do módulo, cena piscina sai do popover e fica `absolute` lateral ao M4.
 
 ## Fora de escopo
-- Animação da água (a confirmar se queres).
-- Tia Teresa (continua sem asset — uso Otchali como na versão actual).
-- Outras telas.
 
-## Ficheiros tocados
-- Gerar: 3 PNG via `imagegen--generate_image` + respectivos `.asset.json` (automático).
-- Apagar: 3 `.asset.json` antigos.
-- Editar: `src/components/TotemSeparador.tsx`, `src/components/CenaPiscina.tsx`, `src/screens/HomeScreen.tsx`.
+- Mudar paleta global / tokens semânticos do tema.
+- Animação da água.
+- Cores nos botões redondos do zig-zag (continuam crimson activa / verde concluída — convém manter consistência Duolingo; posso mudar se quiseres).
