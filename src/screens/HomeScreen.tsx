@@ -8,7 +8,7 @@
  */
 
 import { useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Flame, Heart, Play, Lock, BookOpen, Check } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
@@ -19,7 +19,9 @@ import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
-import { getUnidade, getProximaUnidade } from "@/data/curriculo";
+import { CURRICULO, getUnidade, type Modulo, type Unidade } from "@/data/curriculo";
+import TotemSeparador from "@/components/TotemSeparador";
+import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import {
   Dialog,
   DialogContent,
