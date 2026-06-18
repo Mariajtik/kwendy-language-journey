@@ -33,21 +33,11 @@ const CenaPiscina = ({ className = "" }: Props) => {
         draggable={false}
         style={{
           filter: "drop-shadow(0 10px 10px rgba(0,0,0,0.25))",
-          transform: "rotate(-2deg)",
+          transform: "rotate(-4deg)",
         }}
         animate={{ y: [0, -3, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <figcaption
-        className="text-center mt-1 text-[11px] font-extrabold uppercase tracking-wider"
-        style={{
-          color: "#6B3F1D",
-          textShadow: "0 1px 0 rgba(255,255,255,0.7)",
-          fontFamily: "Nunito, system-ui, sans-serif",
-        }}
-      >
-        Yellen e Otchali brincam
-      </figcaption>
     </motion.figure>
   );
 };
