@@ -8,9 +8,9 @@
  */
 
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Play, Lock } from "lucide-react";
+import { Flame, Heart, Play, Lock, BookOpen, Check } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
@@ -18,6 +18,8 @@ import plane from "@/assets/plane.png.asset.json";
 import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
+import { useProgresso } from "@/hooks/useProgresso";
+import { getUnidade, getProximaUnidade } from "@/data/curriculo";
 import {
   Dialog,
   DialogContent,
@@ -153,33 +155,21 @@ const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
+  const { unidadeId: unidadeIdParam } = useParams();
+  const { unidadeAtualInfo, proximaUnidadeInfo, statusSeccaoNa } = useProgresso();
 
-  type Lesson = {
-    id: number;
-    title: string;
-    status: "active" | "locked";
-    kind?: "chest";
-  };
-  const lessons: Lesson[] = [
-    { id: 1, title: "Olá, mundo", status: "active" },
-    { id: 2, title: "Saudações", status: "locked" },
-    { id: 3, title: "Apresentar-se", status: "locked" },
-    { id: 4, title: "Família", status: "locked" },
-    { id: 5, title: "Báu de tesouro", status: "locked", kind: "chest" },
-  ];
+  // Modo "preview de unidade" se rota é /unidade/:id, senão usa unidade atual do progresso.
+  const preview = unidadeIdParam ? getUnidade(unidadeIdParam) : null;
+  const { modulo, unidade } = preview ?? unidadeAtualInfo();
+  const proxima = getProximaUnidade(unidade.id) ?? proximaUnidadeInfo();
 
+  type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
-  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-
-  const handleLessonClick = (lesson: Lesson) => {
-    setActiveLesson(lesson);
-    if (lesson.status === "locked") setLockedOpen(true);
-    else setStartOpen(true);
-  };
+  const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
 
   // Zig-zag horizontal offsets (in px) for the trail
-  const offsets = [0, 60, -60, -40, 40];
+  const offsets = [0, 60, -60, -40, 40, -30, 50];
 
   const scrollToTop = () =>
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -270,15 +260,15 @@ const HomeScreen = () => {
         <div
           className="rounded-2xl px-5 py-4 mb-8 text-white"
           style={{
-            background: "hsl(var(--primary))",
+            background: `hsl(${unidade.cor})`,
             boxShadow: "0 5px 0 hsl(var(--kwendi-red-dark))",
           }}
         >
           <p className="text-xs font-bold tracking-widest opacity-90">
-            MÓDULO 1, UNIDADE 1
+            MÓDULO {modulo.numero}, UNIDADE {unidade.numero}
           </p>
           <h1 className="text-xl font-extrabold leading-tight mt-1">
-            Saúda a tua comunidade
+            {unidade.titulo}
           </h1>
         </div>
 
@@ -302,13 +292,16 @@ const HomeScreen = () => {
           </svg>
 
           <div className="relative flex flex-col items-center gap-14 py-4">
-            {lessons.map((lesson, idx) => {
-              const isActive = lesson.status === "active";
-              const isChest = lesson.kind === "chest";
+            {unidade.seccoes.map((sec, idx) => {
+              const status = statusSeccaoNa(unidade, sec.id);
+              const isActive = status === "ativa";
+              const isDone = status === "concluida";
+              const isChest = sec.tipo === "bau";
               const offset = offsets[idx % offsets.length];
+              const numero = idx + 1;
               return (
                 <div
-                  key={lesson.id}
+                  key={sec.id}
                   className="relative"
                   style={{ transform: `translateX(${offset}px)` }}
                 >
@@ -347,12 +340,22 @@ const HomeScreen = () => {
                   )}
 
                   <button
-                    onClick={() => handleLessonClick(lesson)}
+                    onClick={() => {
+                      const item: ActiveSec = {
+                        id: sec.id,
+                        titulo: sec.titulo,
+                        numero,
+                        isBau: isChest,
+                      };
+                      setActiveLesson(item);
+                      if (status === "bloqueada") setLockedOpen(true);
+                      else setStartOpen(true);
+                    }}
                     className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
                     style={
-                      isActive
+                      isActive || isDone
                         ? {
-                            background: "hsl(var(--primary))",
+                            background: isDone ? "#86D05D" : `hsl(${unidade.cor})`,
                             boxShadow: "0 6px 0 hsl(var(--kwendi-red-dark))",
                           }
                         : {
@@ -360,12 +363,14 @@ const HomeScreen = () => {
                             boxShadow: "0 6px 0 #a8a8a8",
                           }
                     }
-                    aria-label={`Lição ${lesson.id}: ${lesson.title}`}
+                    aria-label={`Lição ${numero}: ${sec.titulo}`}
                   >
                     {isChest ? (
                       <Chest className="w-10 h-10" color="#fff" />
+                    ) : isDone ? (
+                      <Check className="w-8 h-8" strokeWidth={4} />
                     ) : isActive ? (
-                      lesson.id
+                      numero
                     ) : (
                       <Lock className="w-7 h-7" strokeWidth={3} />
                     )}
@@ -375,6 +380,42 @@ const HomeScreen = () => {
             })}
           </div>
         </div>
+
+        {/* Rodapé do mapa: unidade atual */}
+        <div className="mt-10 flex items-center gap-3 px-2">
+          <div className="flex-1 h-px bg-white/70" />
+          <span
+            className="text-xs font-extrabold tracking-wider uppercase"
+            style={{ color: "#5E5C5C" }}
+          >
+            {unidade.titulo}
+          </span>
+          <div className="flex-1 h-px bg-white/70" />
+        </div>
+
+        {/* Banner da próxima unidade */}
+        {proxima && (
+          <button
+            onClick={() => navigate(`/unidade/${proxima.unidade.id}`)}
+            className="mt-3 w-full rounded-2xl px-4 py-3 flex items-center justify-between text-white transition-transform active:translate-y-0.5"
+            style={{
+              background: `hsl(${proxima.unidade.cor})`,
+              boxShadow: "0 4px 0 rgba(0,0,0,0.18)",
+            }}
+          >
+            <div className="text-left">
+              <p className="text-[10px] font-bold tracking-widest opacity-90">
+                MÓDULO {proxima.modulo.numero}, UNIDADE {proxima.unidade.numero}
+              </p>
+              <p className="text-base font-extrabold leading-tight mt-0.5">
+                {proxima.unidade.titulo}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-white" strokeWidth={3} />
+            </div>
+          </button>
+        )}
       </div>
 
       {/* ---- FLOATING SCROLL-TO-TOP ---- */}
@@ -425,11 +466,11 @@ const HomeScreen = () => {
             className="px-5 py-3 text-white text-xs font-extrabold tracking-widest"
             style={{ background: "hsl(var(--primary))" }}
           >
-            LIÇÃO {activeLesson?.id}
+            LIÇÃO {activeLesson?.numero}
           </div>
           <div className="p-5 text-center">
             <h2 className="text-xl font-extrabold" style={{ color: "#5E5C5C" }}>
-              {activeLesson?.title}
+              {activeLesson?.titulo}
             </h2>
             <p className="mt-2 text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>
               +10 XP
