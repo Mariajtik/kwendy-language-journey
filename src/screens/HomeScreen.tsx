@@ -493,6 +493,43 @@ const HomeScreen = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ---- Popover de visualização de unidade ---- */}
+      <Dialog
+        open={!!popoverUnidadeId}
+        onOpenChange={(o) => !o && setPopoverUnidadeId(null)}
+      >
+        <DialogContent className="max-w-sm rounded-3xl p-0 overflow-hidden">
+          {popoverInfo && (
+            <>
+              <div
+                className="px-5 py-4 text-white"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                <p className="text-[10px] font-bold tracking-widest opacity-90">
+                  MÓDULO {popoverInfo.modulo.numero}, UNIDADE {popoverInfo.unidade.numero}
+                </p>
+                <DialogTitle className="text-xl font-extrabold mt-0.5">
+                  {popoverInfo.unidade.titulo}
+                </DialogTitle>
+                <DialogDescription className="text-white/80 text-xs mt-1">
+                  Pré-visualização das lições — conclua as anteriores para desbloquear.
+                </DialogDescription>
+              </div>
+              <div
+                className="px-4 py-4 max-h-[60vh] overflow-y-auto"
+                style={{
+                  backgroundImage: `url(${grass.url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {renderZigZag(popoverInfo.unidade, true)}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
