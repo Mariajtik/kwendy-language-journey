@@ -1,13 +1,10 @@
 /**
  * HeaderRecursos — pílula com XP, Kindeles, baús e streak.
  */
-import { Flame, Zap, Package, Backpack } from "lucide-react";
+import { Flame, Zap, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
-import MochilaSheet from "@/components/inventario/MochilaSheet";
-import { useInventario } from "@/hooks/useInventario";
 
 interface Props {
   xp: number;
@@ -60,13 +57,7 @@ const Item = ({
 
 const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => {
   const navigate = useNavigate();
-  const [mochilaAberta, setMochilaAberta] = useState(false);
-  const { inventario } = useInventario();
-  const totalMochila =
-    inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
-    inventario.desbloqueios.length;
   return (
-  <>
   <motion.div
     initial={{ y: -8, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
@@ -83,16 +74,7 @@ const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => {
     />
     <Item icon={<Package className="w-4 h-4" />} value={baus} color="var(--kwendi-brown)" />
     <Item icon={<Flame className="w-4 h-4" />} value={streak} color="var(--kwendi-red)" />
-    <Item
-      icon={<Backpack className="w-4 h-4" />}
-      value={totalMochila}
-      color="160 60% 40%"
-      onClick={() => setMochilaAberta(true)}
-      ariaLabel="Abrir mochila"
-    />
   </motion.div>
-    <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
-  </>
   );
 };
 
