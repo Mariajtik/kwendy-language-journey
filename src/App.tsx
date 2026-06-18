@@ -53,7 +53,6 @@ const AnimatedRoutes = () => {
         <Route path="/processing" element={<ProcessingResultsScreen />} />
         <Route path="/stealth" element={<StealthModeScreen />} />
         <Route path="/home" element={<HomeScreen />} />
-        <Route path="/unidade/:unidadeId" element={<HomeScreen />} />
         <Route path="/lesson/:id" element={<LessonScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
