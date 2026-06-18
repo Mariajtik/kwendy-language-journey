@@ -212,12 +212,44 @@ const LessonScreen = () => {
 
       {/* Question */}
       <div className="flex-1 flex flex-col mt-8">
-        <p
-          className="text-xs font-extrabold tracking-widest mb-2"
-          style={{ color: "#5E5C5C" }}
-        >
-          LIÇÃO {id ?? 1} · PERGUNTA {index + 1}/{total}
-        </p>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <p
+            className="text-xs font-extrabold tracking-widest"
+            style={{ color: "#5E5C5C" }}
+          >
+            LIÇÃO {id ?? 1} · PERGUNTA {index + 1}/{total}
+          </p>
+          <div className="flex items-center gap-1.5">
+            {dobradorOn && (
+              <span
+                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white"
+                style={{ background: "hsl(45 95% 50%)" }}
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                XP×2 · {dobradorMin}min
+              </span>
+            )}
+            {temPowerUp("dica-extra") && !checked && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (dicaAtiva) return;
+                  usarPowerUp("dica-extra");
+                  setDicaAtiva(true);
+                }}
+                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+                style={{
+                  background: "hsl(50 95% 60% / 0.18)",
+                  color: "hsl(40 90% 35%)",
+                  border: "1px solid hsl(50 95% 60%)",
+                }}
+              >
+                <Lightbulb className="w-3 h-3 fill-current" />
+                Dica
+              </button>
+            )}
+          </div>
+        </div>
         <h2 className="text-2xl font-extrabold mb-6" style={{ color: "#5E5C5C" }}>
           {q.prompt}
         </h2>
@@ -227,6 +259,7 @@ const LessonScreen = () => {
             const isSel = selected === i;
             const showCorrect = checked && i === q.correct;
             const showWrong = checked && isSel && i !== q.correct;
+            const hint = dicaAtiva && !checked && i === q.correct;
             return (
               <button
                 key={i}
@@ -238,6 +271,8 @@ const LessonScreen = () => {
                     ? "#86D05D"
                     : showWrong
                     ? "hsl(var(--primary))"
+                    : hint
+                    ? "#FBBD12"
                     : isSel
                     ? "hsl(var(--primary))"
                     : "#e5e5e5",
@@ -245,6 +280,8 @@ const LessonScreen = () => {
                     ? "#eaf7e0"
                     : showWrong
                     ? "#fdecec"
+                    : hint
+                    ? "#fff8e0"
                     : isSel
                     ? "#fff5f5"
                     : "#fff",
@@ -254,6 +291,8 @@ const LessonScreen = () => {
                       ? "#5fae3a"
                       : showWrong
                       ? "hsl(var(--kwendi-red-dark))"
+                      : hint
+                      ? "#d99d00"
                       : isSel
                       ? "hsl(var(--kwendi-red-dark))"
                       : "#d4d4d4"
