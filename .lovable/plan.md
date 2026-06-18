@@ -1,87 +1,34 @@
 ## Objetivo
 
-Criar a espinha dorsal de conteúdo do Kwendi (Módulos → Unidades → Secções) e a navegação correspondente, mantendo o `LessonScreen` atual como placeholder. Sem reescrever exercícios ainda.
+Manter o visual original do `HomeScreen` (que estava mais bonito) e apenas refinar a integração da nova estrutura Módulos → Unidades → Secções. Nada de telas novas — tudo continua acontecendo dentro do `HomeScreen`.
 
-## 1. Catálogo de conteúdo
+## Mudanças
 
-Novo ficheiro `src/data/curriculo.ts` com tipos e dados:
+### 1. `src/screens/HomeScreen.tsx`
 
-```ts
-export type Seccao = {
-  id: string;           // ex: "m1u1s1"
-  titulo: string;       // ex: "Olá, mundo"
-  tipo: "licao" | "bau";
-};
-export type Unidade = {
-  id: string;           // ex: "m1u1"
-  numero: number;       // 1..n
-  titulo: string;       // ex: "Saúda a tua comunidade"
-  cor: string;          // HSL para banner
-  seccoes: Seccao[];    // quantidade variável + 1 báu no fim
-};
-export type Modulo = {
-  id: string;           // ex: "m1"
-  numero: number;
-  titulo: string;       // ex: "Comunicação básica"
-  unidades: Unidade[];
-};
-export const CURRICULO: Modulo[] = [/* M1..M5 */];
-```
+**a) Separador de unidade (rodapé do mapa) — cor castanha**
+Atualmente o texto usa `#5E5C5C` e as linhas usam `white/70`, ficando ilegível sobre o capim. Trocar por tons castanhos:
+- Texto: `#6B3F1D` (castanho escuro), font-extrabold
+- Linhas laterais: `rgba(107,63,29,0.55)`
+- Adicionar leve `text-shadow` branca para reforçar contraste sobre o fundo verde.
 
-Os 5 módulos iniciais (cada um com 2–4 unidades, derivadas do índice enviado):
+**b) Banner da próxima unidade — ícone de livro abre o zig-zag**
+Hoje o banner inteiro é um `<button>` que navega para `/unidade/:id`. Refatorar para:
+- O **card** vira `<div>` apenas visual (não é mais clicável inteiro).
+- O **ícone de livro** (à direita) passa a ser o `<button>` que abre a unidade — chama `navigate('/unidade/:id')` que já renderiza o zig-zag da próxima unidade dentro do mesmo `HomeScreen` (modo "preview de unidade", já existente).
+- Adicionar `aria-label="Ver lições da próxima unidade"` e um leve `hover:scale-105` no botão do livro para indicar interação.
+- Banner da unidade atual no topo continua igual (cor da unidade + sombra vermelha).
 
-- **M1 — Saúda a tua comunidade**: U1 Saudações · U2 De manhã / Na rua · U3 No mercado · U4 Conversação básica
-- **M2 — Eu e tu**: U1 Identificação pessoal · U2 Pronomes pessoais · U3 Nacionalidade · U4 Frases completas
-- **M3 — Introduza a tua família**: U1 Família básica · U2 Família extensa · U3 Amizades · U4 Possessivos e descrições
-- **M4 — Ações**: U1 Verbos essenciais · U2 Rotina · U3 Perguntar com verbos · U4 Advérbios de tempo/modo
-- **M5 — Explora a natureza**: U1 Animais · U2 Aves · U3 Plantas e vocabulário agrícola · U4 Estações e meses
+**c) Sem novas telas, sem novos componentes**
+Não criar arquivos novos. A rota `/unidade/:unidadeId` (que já existe) continua usando o próprio `HomeScreen` em modo preview — exatamente como hoje.
 
-Cada unidade terá um número variável de secções (3–5) + 1 báu no fim. IDs estáveis para servir de chave de progresso.
+### Fora do escopo
 
-## 2. Progresso do utilizador
+- Não mexer em `useProgresso`, `curriculo.ts`, `App.tsx`, `LessonScreen.tsx`.
+- Não alterar o restante do layout (header, zig-zag, halo "COMEÇAR", scroll-to-top, bottom nav).
+- Não tocar nas cores das unidades nem na cor primária do app.
 
-Novo hook `src/hooks/useProgresso.ts`:
+## Resultado esperado
 
-- Persistência em `localStorage` (`kwendi:progresso`).
-- Estado: `{ seccoesCompletas: string[], unidadeAtual: string, moduloAtual: string }`.
-- Helpers: `concluirSeccao(id)`, `isCompleta(id)`, `proximaSeccao()`, `proximaUnidade()`, `unidadeAtualInfo()`, `moduloAtualInfo()`.
-- Por defeito começa em `m1u1s1`.
-
-## 3. Tela do mapa (refactor de `HomeScreen.tsx`)
-
-Reaproveita o visual atual (grass, header, trilho zig-zag, báu, halo, balão "COMEÇAR") mas passa a ser orientado a **unidade**:
-
-- Lê `unidadeAtual` do `useProgresso`.
-- Banner do topo: `MÓDULO {n}, UNIDADE {n}` + título da unidade atual (já existe).
-- Trilho zig-zag iterando `unidade.seccoes` (quantidade variável). Última secção = ícone báu.
-- Estado de cada secção: `concluida | ativa | bloqueada` (ativa = primeira não concluída).
-- **Rodapé do mapa (novo)** — barra fixa logo acima do `BottomNav`, com duas linhas decorativas e o nome da unidade atual centralizado (idêntico ao Figma circulado "Eu e tu"). Não navega.
-- **Banner laranja da próxima unidade (novo)** — card clicável abaixo do rodapé mostrando `MÓDULO X, UNIDADE Y` + título da próxima unidade, com ícone de livro. Ao clicar, navega para `/unidade/:id` da próxima unidade (mapa preview, secções todas bloqueadas até concluir a atual).
-- Clicar numa secção ativa abre o diálogo "Começar" existente e leva a `/lesson/:seccaoId` (placeholder atual).
-
-## 4. Rota de unidade arbitrária
-
-Nova rota `/unidade/:unidadeId` em `App.tsx` que renderiza a mesma `HomeScreen` em modo "preview de unidade" (recebe a unidade via prop/param em vez de usar `unidadeAtual`). Permite o banner da próxima unidade abrir o mapa correspondente.
-
-## 5. Integração com o que já existe
-
-- `LessonScreen.tsx` continua a usar as suas 3 perguntas demo. Ao concluir, chama `concluirSeccao(id)` para destravar a próxima.
-- `BottomNav` inalterado.
-- `FronteirasScreen`, missões, perfil, etc. inalterados.
-
-## 6. Estrutura de ficheiros
-
-```text
-src/
-  data/curriculo.ts         (novo)
-  hooks/useProgresso.ts     (novo)
-  screens/HomeScreen.tsx    (refactor para usar currículo + rodapé + banner próxima unidade)
-  screens/LessonScreen.tsx  (pequena alteração: chama concluirSeccao ao terminar)
-  App.tsx                   (adiciona rota /unidade/:unidadeId)
-```
-
-## Fora de escopo (próximas entregas)
-
-- Perguntas reais por secção (módulo a módulo).
-- Tela dedicada de "Árvore de módulos" para saltar livremente.
-- Backend / sincronização de progresso.
+- O mapa volta a ter a estética anterior, com o separador agora legível em castanho.
+- A próxima unidade aparece como um cartão informativo; o ícone de livro à direita é o gatilho explícito para "espiar" o zig-zag da próxima unidade — sem sair do `HomeScreen`.
