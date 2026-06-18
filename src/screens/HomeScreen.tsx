@@ -133,24 +133,13 @@ const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; c
 
 /** Campfire = lucide Flame + two crossed logs underneath */
 const Campfire = () => (
-  <div className="relative w-7 h-7 flex items-end justify-center">
+  <div className="relative w-7 h-7 flex items-center justify-center">
     <Flame
-      className="w-5 h-5 absolute top-0 left-1/2 -translate-x-1/2"
+      className="w-5 h-5"
       fill="#FF7A2E"
       color="#FF4D4D"
       strokeWidth={1.5}
     />
-    {/* Logs */}
-    <div className="absolute bottom-0 w-7 h-1.5">
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{ background: "#B87656", transform: "rotate(20deg)" }}
-      />
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{ background: "#8B5A40", transform: "rotate(-20deg)" }}
-      />
-    </div>
   </div>
 );
 
