@@ -10,16 +10,17 @@ import cena from "@/assets/cenas/cena-piscina.png.asset.json";
 
 type Props = {
   className?: string;
+  style?: React.CSSProperties;
 };
 
 /** Cena decorativa coesa: piscina com Yellen e Otchali a brincar.
  *  Tudo numa só ilustração — sem colagem de avatares. */
-const CenaPiscina = ({ className = "" }: Props) => {
+const CenaPiscina = ({ className = "", style }: Props) => {
   return (
     <motion.figure
       aria-hidden
       className={`pointer-events-none select-none mx-auto my-4 ${className}`}
-      style={{ width: "min(260px, 75%)" }}
+      style={{ width: "min(260px, 75%)", ...style }}
       initial={{ opacity: 0, y: 8 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
