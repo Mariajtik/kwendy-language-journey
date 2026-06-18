@@ -1,38 +1,87 @@
-## Problemas atuais
+## Objetivo
 
-1. **Botão "Começar jogo" cortado** em `/para-alem-fronteiras`: o layout usa `overflow-hidden` num container de `100dvh` e empilha header + mapa de 256px + texto + caixa + 2 botões. Em telas baixas (ex.: 390×585), o botão dourado fica visível mas o CTA "Começar jogo" e o "Voltar à Home" caem fora da área visível.
-2. **Conquistas do jogo isoladas**: `FronteirasJogoScreen` define `CONQUISTAS_FRONTEIRAS` localmente e guarda em `localStorage` (`kwendi:fronteiras:stats`). Nada disso aparece em **Missões → Conquistas** nem em **Perfil → Conquistas**, ficando desligado do resto do app.
+Criar a espinha dorsal de conteúdo do Kwendi (Módulos → Unidades → Secções) e a navegação correspondente, mantendo o `LessonScreen` atual como placeholder. Sem reescrever exercícios ainda.
 
-## Plano
+## 1. Catálogo de conteúdo
 
-### 1. Tornar o FronteirasScreen rolável e compacto
-`src/screens/FronteirasScreen.tsx`:
-- Trocar `h-[100dvh] overflow-hidden` por `min-h-[100dvh] overflow-y-auto pb-8`.
-- Reduzir o mapa de `h-64 w-64 mt-10` para `h-52 w-52 mt-6` (ajustar a órbita do avião proporcionalmente).
-- Reduzir margens (`mt-8` → `mt-5`, `mt-6` → `mt-4`) para garantir que os dois botões caibam acima da dobra em viewports curtos. Em ecrãs maiores, o `pb-8` evita corte.
+Novo ficheiro `src/data/curriculo.ts` com tipos e dados:
 
-### 2. Mover as conquistas do jogo para o catálogo central
-`src/data/conquistas.ts`:
-- Adicionar nova categoria `"fronteiras"` em `ConquistaCategoria` e em `CATEGORIA_INFO` (label "Para Além de Fronteiras", cor `--kwendi-blue` ou dourada).
-- Acrescentar 7 conquistas com ids `fr1`…`fr7`, replicando as atuais (`Explorador de Fronteiras`, `Sabedoria Angolana`, `Mestre do Continente`, `Sequência de Ouro`, `Pontuação Perfeita`, `Viajante Constante`, `Maratonista Cultural`), com `meta`, ícone (`Sparkles`/`Award`/`Trophy`/`Flame`) e recompensas coerentes (XP/diamantes/baú).
-- Atualizar `CONQUISTAS_POR_CATEGORIA` para incluir a nova categoria.
+```ts
+export type Seccao = {
+  id: string;           // ex: "m1u1s1"
+  titulo: string;       // ex: "Olá, mundo"
+  tipo: "licao" | "bau";
+};
+export type Unidade = {
+  id: string;           // ex: "m1u1"
+  numero: number;       // 1..n
+  titulo: string;       // ex: "Saúda a tua comunidade"
+  cor: string;          // HSL para banner
+  seccoes: Seccao[];    // quantidade variável + 1 báu no fim
+};
+export type Modulo = {
+  id: string;           // ex: "m1"
+  numero: number;
+  titulo: string;       // ex: "Comunicação básica"
+  unidades: Unidade[];
+};
+export const CURRICULO: Modulo[] = [/* M1..M5 */];
+```
 
-### 3. Ligar o jogo ao `useMissoes`
-`src/screens/FronteirasJogoScreen.tsx`:
-- Importar `useMissoes` e usar `desbloquearConquista(id, progresso?)` para refletir o progresso real (`acertosTotais`, `partidas`, `diasJogados`, `tempoTotalMs`, `melhorStreak`) nas conquistas `fr1`…`fr7`.
-- Manter o `localStorage` `kwendi:fronteiras:stats` como fonte das métricas brutas, mas no `finalizar()` chamar `desbloquearConquista` para cada uma cujo critério passe a estar cumprido.
-- Remover `CONQUISTAS_FRONTEIRAS` local; o ecrã de "Partida concluída" passa a listar as conquistas recém-desbloqueadas filtrando do catálogo central (`CONQUISTAS_POR_CATEGORIA.fronteiras`) pelos ids desbloqueados nesta sessão.
-- Deixar de creditar XP/diamantes manualmente pelas conquistas — quem entrega passa a ser `resgatarConquista` na tela Missões (mantém-se o XP/diamantes da partida em si).
+Os 5 módulos iniciais (cada um com 2–4 unidades, derivadas do índice enviado):
 
-### 4. Aparecer no Perfil e em Missões
-- `MissoesScreen` e `ProfileScreen` já consomem `useMissoes().conquistas` e iteram por `CONQUISTAS_POR_CATEGORIA`, pelo que a nova categoria aparece automaticamente nos dois lugares assim que o catálogo for atualizado. Não é preciso mexer nesses ecrãs além de confirmar que renderizam todas as categorias (validar leitura rápida).
+- **M1 — Saúda a tua comunidade**: U1 Saudações · U2 De manhã / Na rua · U3 No mercado · U4 Conversação básica
+- **M2 — Eu e tu**: U1 Identificação pessoal · U2 Pronomes pessoais · U3 Nacionalidade · U4 Frases completas
+- **M3 — Introduza a tua família**: U1 Família básica · U2 Família extensa · U3 Amizades · U4 Possessivos e descrições
+- **M4 — Ações**: U1 Verbos essenciais · U2 Rotina · U3 Perguntar com verbos · U4 Advérbios de tempo/modo
+- **M5 — Explora a natureza**: U1 Animais · U2 Aves · U3 Plantas e vocabulário agrícola · U4 Estações e meses
 
-### Ficheiros alterados
-- `src/screens/FronteirasScreen.tsx` (layout)
-- `src/data/conquistas.ts` (nova categoria + 7 itens)
-- `src/screens/FronteirasJogoScreen.tsx` (usa `useMissoes`)
-- Verificação: `src/screens/MissoesScreen.tsx`, `src/screens/ProfileScreen.tsx` (sem alterações esperadas).
+Cada unidade terá um número variável de secções (3–5) + 1 báu no fim. IDs estáveis para servir de chave de progresso.
 
-### Fora do âmbito
-- Não alterar o sistema de baús, saldos ou design de cards.
-- Não mexer em outras telas/jogos.
+## 2. Progresso do utilizador
+
+Novo hook `src/hooks/useProgresso.ts`:
+
+- Persistência em `localStorage` (`kwendi:progresso`).
+- Estado: `{ seccoesCompletas: string[], unidadeAtual: string, moduloAtual: string }`.
+- Helpers: `concluirSeccao(id)`, `isCompleta(id)`, `proximaSeccao()`, `proximaUnidade()`, `unidadeAtualInfo()`, `moduloAtualInfo()`.
+- Por defeito começa em `m1u1s1`.
+
+## 3. Tela do mapa (refactor de `HomeScreen.tsx`)
+
+Reaproveita o visual atual (grass, header, trilho zig-zag, báu, halo, balão "COMEÇAR") mas passa a ser orientado a **unidade**:
+
+- Lê `unidadeAtual` do `useProgresso`.
+- Banner do topo: `MÓDULO {n}, UNIDADE {n}` + título da unidade atual (já existe).
+- Trilho zig-zag iterando `unidade.seccoes` (quantidade variável). Última secção = ícone báu.
+- Estado de cada secção: `concluida | ativa | bloqueada` (ativa = primeira não concluída).
+- **Rodapé do mapa (novo)** — barra fixa logo acima do `BottomNav`, com duas linhas decorativas e o nome da unidade atual centralizado (idêntico ao Figma circulado "Eu e tu"). Não navega.
+- **Banner laranja da próxima unidade (novo)** — card clicável abaixo do rodapé mostrando `MÓDULO X, UNIDADE Y` + título da próxima unidade, com ícone de livro. Ao clicar, navega para `/unidade/:id` da próxima unidade (mapa preview, secções todas bloqueadas até concluir a atual).
+- Clicar numa secção ativa abre o diálogo "Começar" existente e leva a `/lesson/:seccaoId` (placeholder atual).
+
+## 4. Rota de unidade arbitrária
+
+Nova rota `/unidade/:unidadeId` em `App.tsx` que renderiza a mesma `HomeScreen` em modo "preview de unidade" (recebe a unidade via prop/param em vez de usar `unidadeAtual`). Permite o banner da próxima unidade abrir o mapa correspondente.
+
+## 5. Integração com o que já existe
+
+- `LessonScreen.tsx` continua a usar as suas 3 perguntas demo. Ao concluir, chama `concluirSeccao(id)` para destravar a próxima.
+- `BottomNav` inalterado.
+- `FronteirasScreen`, missões, perfil, etc. inalterados.
+
+## 6. Estrutura de ficheiros
+
+```text
+src/
+  data/curriculo.ts         (novo)
+  hooks/useProgresso.ts     (novo)
+  screens/HomeScreen.tsx    (refactor para usar currículo + rodapé + banner próxima unidade)
+  screens/LessonScreen.tsx  (pequena alteração: chama concluirSeccao ao terminar)
+  App.tsx                   (adiciona rota /unidade/:unidadeId)
+```
+
+## Fora de escopo (próximas entregas)
+
+- Perguntas reais por secção (módulo a módulo).
+- Tela dedicada de "Árvore de módulos" para saltar livremente.
+- Backend / sincronização de progresso.

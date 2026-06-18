@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, Check, X as XIcon } from "lucide-react";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo } from "@/hooks/useSaldo";
+import { useProgresso } from "@/hooks/useProgresso";
 
 type Question = {
   prompt: string;
@@ -45,6 +46,7 @@ const LessonScreen = () => {
   const { id } = useParams();
   const total = QUESTIONS.length;
   const { registrarAcao } = useMissoes();
+  const { concluirSeccao } = useProgresso();
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -80,6 +82,7 @@ const LessonScreen = () => {
       xp: s.xp + xp,
       diamantes: s.diamantes + correctCount * 2,
     }));
+    if (id) concluirSeccao(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
