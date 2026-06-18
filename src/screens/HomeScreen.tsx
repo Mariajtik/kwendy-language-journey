@@ -383,21 +383,29 @@ const HomeScreen = () => {
 
         {/* Rodapé do mapa: unidade atual */}
         <div className="mt-10 flex items-center gap-3 px-2">
-          <div className="flex-1 h-px bg-white/70" />
+          <div
+            className="flex-1 h-px"
+            style={{ background: "rgba(107,63,29,0.55)" }}
+          />
           <span
             className="text-xs font-extrabold tracking-wider uppercase"
-            style={{ color: "#5E5C5C" }}
+            style={{
+              color: "#6B3F1D",
+              textShadow: "0 1px 0 rgba(255,255,255,0.7)",
+            }}
           >
             {unidade.titulo}
           </span>
-          <div className="flex-1 h-px bg-white/70" />
+          <div
+            className="flex-1 h-px"
+            style={{ background: "rgba(107,63,29,0.55)" }}
+          />
         </div>
 
         {/* Banner da próxima unidade */}
         {proxima && (
-          <button
-            onClick={() => navigate(`/unidade/${proxima.unidade.id}`)}
-            className="mt-3 w-full rounded-2xl px-4 py-3 flex items-center justify-between text-white transition-transform active:translate-y-0.5"
+          <div
+            className="mt-3 w-full rounded-2xl px-4 py-3 flex items-center justify-between text-white"
             style={{
               background: `hsl(${proxima.unidade.cor})`,
               boxShadow: "0 4px 0 rgba(0,0,0,0.18)",
@@ -411,10 +419,14 @@ const HomeScreen = () => {
                 {proxima.unidade.titulo}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0">
+            <button
+              onClick={() => navigate(`/unidade/${proxima.unidade.id}`)}
+              aria-label="Ver lições da próxima unidade"
+              className="w-10 h-10 rounded-xl bg-white/25 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:translate-y-0.5"
+            >
               <BookOpen className="w-5 h-5 text-white" strokeWidth={3} />
-            </div>
-          </button>
+            </button>
+          </div>
         )}
       </div>
 
