@@ -3,9 +3,9 @@
  * aplica efeito no inventário ou no saldo conforme o tipo do item.
  */
 import { useCallback } from "react";
-import { useSaldo } from "./useSaldo";
+import { useSaldo, type Raridade } from "./useSaldo";
 import { setInventario, useInventario } from "./useInventario";
-import type { ItemLoja, Raridade } from "@/data/loja";
+import type { ItemLoja } from "@/data/loja";
 
 export type ResultadoCompra =
   | { ok: true }
