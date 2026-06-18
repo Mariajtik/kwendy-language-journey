@@ -31,10 +31,11 @@ const LojaScreen = () => {
     setConfirmar(null);
     if (r.ok) {
       setSucesso(item);
-      return;
-    }
-    if (r.motivo === "saldo-insuficiente") {
-      setFaltam(item.preco - saldo.diamantes);
+    } else {
+      const motivo = (r as { motivo: string }).motivo;
+      if (motivo === "saldo-insuficiente") {
+        setFaltam(item.preco - saldo.diamantes);
+      }
     }
   };
 
