@@ -1,72 +1,76 @@
-# Primeira história: O Jacaré Bangão
+## Loja Kwendi — Plano (revisto)
 
-Transformar a aba **Histórias** (hoje só com um placeholder "Em breve") numa biblioteca de contos angolanos, com **O Jacaré Bangão** como primeira história totalmente jogável, partindo do artigo da Revista Ecos (Sérgio de Carvalho Rodrigues, 2017).
+### 1. Acesso: o próprio contador de diamantes vira a porta da Loja
 
-## 1. Estrutura de dados
+- O **chip de diamantes no header** (todos os ecrãs que o exibem: Home, Missões, Histórias, Curiosidades, Perfil) passa a ser **clicável** e abre `/loja`.
+- Microinteração: ao tocar, o diamante faz um pequeno "bounce + brilho" (Framer Motion) e navega.
+- Affordance discreta: um `+` ou pequena seta ao lado do número, e cursor pointer, para sinalizar que é interativo sem poluir.
+- Tooltip/long-press: "Abrir loja".
+- **Zero alterações na BottomNav** — fluxo preservado.
+- Rota nova: `/loja`.
 
-Novo ficheiro `src/data/historias.ts`:
+### 2. Estrutura da Loja (`/loja`)
 
-```ts
-type Capitulo = { id: string; titulo: string; paragrafos: string[]; vocabulario?: { umbundu: string; pt: string }[] };
-type Historia = {
-  id: string; titulo: string; subtitulo: string; regiao: string; epoca: string;
-  duracaoMin: number; nivel: "Iniciante" | "Intermédio" | "Avançado";
-  imagem: string; cor: string; sinopse: string;
-  capitulos: Capitulo[];
-  curiosidade: { titulo: string; texto: string };
-  quiz: { pergunta: string; opcoes: string[]; correta: number }[];
-  recompensa: { xp: number; diamantes: number };
-};
-```
+Header próprio com botão voltar + saldo de diamantes (não clicável aqui, já estamos dentro). 3 tabs em pílula:
 
-Primeira entrada `jacare-bangao` com 5 capítulos curtos adaptados do artigo (linguagem de leitor, não académica):
+**a) Power-ups** (laranja)
 
-1. **As margens do Dande** — apresentação de Caxito, do rio e do Sr. Ngandu.
-2. **O Imposto Geral Mínimo** — o chefe de posto cruel e o peso colonial.
-3. **A vingança do jacaré** — Ngandu vai à Administração pagar o imposto.
-4. **A fuga do Sipaio** — o povo de Caxito assiste, o chefe foge.
-5. **Lenda que virou estátua** — significado: oratura de combate, premissa da independência.
+- Manter chama — 30 💎
+- Dobrador de XP (15 min) — 50 💎
+- Dica extra na lição — 10 💎
+- Vida/Coração extra — 20 💎
 
-Mais: **vocabulário Umbundu** por capítulo (5–8 palavras: rio, jacaré, povo, chefe, fugir, etc.), **curiosidade cultural** (a estátua real em Caxito, foto fornecida pelo utilizador), e **quiz final** de 4 perguntas.
+**b) Baús e Fragmentos** (roxo) — reutiliza assets `src/assets/missoes/bau-*`
 
-## 2. Imagem
+- Baú Comum — 40 💎
+- Baú Raro — 120 💎
+- Baú Lendário — 300 💎
+- Pacote 10 fragmentos — 60 💎
 
-Usar a foto da estátua enviada (`user-uploads://bangao.jpg`) via `lovable-assets create` → `src/assets/bangao.jpg.asset.json`, importada como capa da história e na tela de curiosidade. Sem usar a 2ª imagem (referência decorativa apenas).
+**c) Cultura Premium** (crimson/dourado)
 
-## 3. Ecrãs / componentes
+- Desbloquear "A Kianda do Mar" — 5000 💎
+- Desbloquear "Sumbi" — 1000 💎
+- Pack de músicas tradicionais (escolhe o que tocar quando estiver jogando para além de fronteiras +2 opções) — 10.000 💎
+- Desbloquear mais curiosidades - 1500 ( +3)
 
-- `**src/screens/HistoriasScreen.tsx**` (reescrito): lista de cards de histórias (1 desbloqueada + cards "Em breve" para futuros contos), com capa, título, região, duração, nível, XP. Botão demo antigo removido.
-- `**src/screens/HistoriaDetalheScreen.tsx**` (novo): tela de abertura — capa grande, sinopse, metadados, botão "Começar a ouvir".
-- `**src/screens/HistoriaLeituraScreen.tsx**` (novo): leitura paginada capítulo a capítulo (1 capítulo por ecrã), barra de progresso topo, painel lateral de vocabulário Umbundu/PT por capítulo, botões anterior/próximo.
-- `**src/screens/HistoriaFimScreen.tsx**` (novo): quiz de 4 perguntas → cartão de curiosidade (estátua de Caxito) → recompensa (XP + diamantes) via `setSaldo` e `registrarAcao("historia_concluida", 1)`.
+### 3. Componentes a criar
 
-## 4. Rotas
+- `src/screens/LojaScreen.tsx` — tabs + grid de cards, animação stagger.
+- `src/components/loja/ItemLojaCard.tsx` — card 3D arredondado (mesmo idioma das missões): imagem/ícone, nome, descrição curta, preço 💎, botão "Comprar".
+- `src/components/loja/ConfirmarCompraModal.tsx` — bottom sheet com saldo antes/depois e CTA.
+- `src/components/loja/CompraSucessoModal.tsx` — item a saltar + confettis discretos.
+- `src/components/loja/SaldoInsuficienteModal.tsx` — "Faltam X 💎, vai às Missões" → CTA `/missoes`.
 
-Adicionar em `src/App.tsx`:
+### 4. Tornar o diamante clicável
 
-- `/historias/:id` → detalhe
-- `/historias/:id/ler` → leitura
-- `/historias/:id/fim` → quiz/recompensa
+- Identificar o(s) componente(s) que renderizam o chip de diamantes (provavelmente `HeaderRecursos` em `src/components/missoes/HeaderRecursos.tsx` e equivalentes na Home). Envolver num `button`/`motion.button` com `onClick={() => navigate('/loja')}`.
+- Garantir `aria-label="Abrir loja"`, foco visível, e que o XP **não** vira clicável (só diamantes — fica claro que diamantes = moeda da loja).
 
-Bottom nav continua a apontar `/historias` para a lista.
+### 5. Dados e estado
 
-## 5. Estilo
+- `src/data/loja.ts` — catálogo (id, categoria, nome, descrição, preço, ícone/asset, payload).
+- `src/hooks/useLoja.ts` — `comprar(item)`: valida saldo (`useSaldo`), debita, aplica efeito, dispara modal.
+- `src/hooks/useInventario.ts` — power-ups ativos (com `expiraEm`) e desbloqueios, persistidos em `localStorage` (`kwendi.inventario`, `kwendi.desbloqueios`).
 
-- Paleta já existente (peach/crimson). Card da história destaca-se com gradiente terra/verde discreto a evocar o cenário do rio Dande.
-- Tipografia Nunito (já no projeto). Sem mudanças globais de design.
-- Animações Framer Motion suaves de entrada (fade/slide) — sem mascotes novos.
+### 6. Integração com o resto da app
 
-## 6. Fora de âmbito
+- `HistoriasScreen.tsx` — "A Kianda do Mar" e "Sumbi" passam de "Em breve" a cadeado com preço; clique → `/loja` tab Cultura.
+- `LessonScreen.tsx` (fase 2) — botão de dica consome power-up; indicador "Dobrador ativo".
 
-- Áudio narrado (fica como gancho "Em breve" no detalhe).
-- Outros contos completos — apenas placeholders bloqueados.
-- Tradução integral do texto para Umbundu (só vocabulário-chave).
-- Alterações em módulos, missões ou progresso de unidades.
+### 7. Moeda
 
-## Notas técnicas
+- **Só diamantes por agora**. Arquitetura preparada para `precoReal?: number` futuro, mas sem Stripe/Paddle nesta iteração.
 
-- Conteúdo dos capítulos é reescrita livre baseada no artigo (não cópia literal), tom narrativo acessível, ~80–120 palavras por capítulo.
-- Vocabulário Umbundu: usar termos comuns + verificar com web search se necessário para palavras-chave (rio = `olui`/`olonjila`, jacaré = `ongandu`, etc.).
-- Recompensa: 80 XP + 20 diamantes (mantém valor atual do botão demo).
-- Sem mudanças em hooks (`useMissoes`, `useSaldo`, `useProgresso`).
-- Colocar referência.
+### 8. Estilo visual
+
+- Paleta atual (crimson primário, dourado nos preços).
+- Fundo da Loja: gradiente creme → dourado suave com sutil padrão de losangos (tecido tradicional, baixo contraste).
+- Tabs em pílula, cards arredondados 3D com sombra suave, entrada stagger via Framer Motion.
+
+### Detalhes técnicos
+
+- Rota `/loja` adicionada em `src/App.tsx`.
+- Persistência local agora; migração para Supabase quando auth estiver consolidada.
+- Power-ups com expiração calculada via timestamp ISO no hook.
+- Sem alterações no `curriculo.ts` nem na `BottomNav`.
