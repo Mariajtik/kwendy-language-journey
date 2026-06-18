@@ -3,7 +3,7 @@
  * Power-ups ativos, desbloqueios e atalho para a Loja.
  */
 import { AnimatePresence, motion } from "framer-motion";
-import { ShoppingBag, X } from "lucide-react";
+import { Backpack, ShoppingBag, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useInventario } from "@/hooks/useInventario";
 import { ITENS_LOJA, getItem, type ItemId } from "@/data/loja";
@@ -50,7 +50,10 @@ const MochilaSheet = ({ aberto, onFechar }: Props) => {
             className="w-full max-w-md bg-card rounded-t-3xl sm:rounded-3xl border-2 border-border p-5 max-h-[80dvh] overflow-y-auto"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-extrabold text-foreground">🎒 Mochila</h2>
+              <h2 className="text-lg font-extrabold text-foreground flex items-center gap-2">
+                <Backpack className="w-5 h-5" style={{ color: "hsl(160 60% 35%)" }} />
+                Mochila
+              </h2>
               <button
                 onClick={onFechar}
                 aria-label="Fechar"
@@ -62,7 +65,10 @@ const MochilaSheet = ({ aberto, onFechar }: Props) => {
 
             {vazio ? (
               <div className="text-center py-8">
-                <div className="text-5xl mb-2">🎒</div>
+                <Backpack
+                  className="w-12 h-12 mx-auto mb-2"
+                  style={{ color: "hsl(160 60% 35%)" }}
+                />
                 <p className="text-sm text-muted-foreground mb-4">
                   A tua mochila está vazia. Visita a loja!
                 </p>
