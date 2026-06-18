@@ -1,75 +1,41 @@
-# Reverter e reestruturar a HomeScreen como sequência única
-
-Tudo acontece dentro da `HomeScreen` (sem mais navegar para `/unidade/:id`). A tela vira uma trilha vertical contínua: módulos e unidades aparecem em sequência, somente Módulo 1 / Unidade 1 mostra o zig-zag aberto, todos os outros aparecem como cards fechados com ícone de livro que abre as lições num popover na mesma tela.
-
 ## O que muda
 
-### 1. Cor do banner (volta ao crimson original)
-- O banner do topo (unidade atual) e os botões da trilha hoje usam `hsl(${unidade.cor})` (cor variável por unidade — atualmente está cinza/azulado).
-- Voltar a usar **`hsl(var(--primary))`** (crimson da marca) com sombra `hsl(var(--kwendi-red-dark))`, como na captura de tela enviada.
-- O campo `unidade.cor` deixa de ser usado para colorir o banner principal; fica reservado para futura diferenciação se necessário.
+### 1. Separadores entre módulos (alternados)
 
-### 2. Sequência única na mesma tela (zero navegação)
-Estrutura vertical renderizada dentro do `<div ref={scrollRef}>`:
+Substituir o `TotemSeparador` SVG actual por **imagens reais** das pedras enviadas. Alternar conforme a posição:
 
-```text
-[ Banner Módulo 1 · Unidade 1 ]    ← crimson, aberto
-[ zig-zag completo da Unidade 1 ]
-[ ─── separador “Saúda…” ────── ]
-[ Card Unidade 2 (fechado) 📖 ]    ← clica no livro = popover
-[ Card Unidade 3 (fechado) 📖 ]
-…fim do Módulo 1…
-[ 🗿 TOTEM separador de módulo 🗿 ]
-[ Card Módulo 2 (fechado) ]
-   [ Card Unidade 1 do M2 📖 ]
-   [ Card Unidade 2 do M2 📖 ]
-…
-[ 🗿 TOTEM ]
-[ Módulo 3… ]
-```
+- Entre M1↔M2: **arco de pedra** (portal)
+- Entre M2↔M3: **pilha de pedras** (cairn)
+- Entre M3↔M4: arco
+- Entre M4↔M5: pilha
 
-Regras:
-- A **única** unidade com zig-zag visível é a unidade atual (vinda de `useProgresso().unidadeAtualInfo()`).
-- Todas as demais unidades aparecem como **cards compactos**: faixa colorida com `MÓDULO X, UNIDADE Y` + título + botão livro à direita.
-- O botão livro do card abre um **Dialog/popover** que renderiza o mesmo componente de zig-zag da unidade (em modo somente leitura, com os botões de lição bloqueados/visualização). Nada navega para outra rota.
+### 2. Piscina decorativa no Módulo 4
 
-### 3. Remover navegação para `/unidade/:id`
-- O `useParams()` e a lógica de “preview” saem da `HomeScreen`.
-- O botão livro do banner da próxima unidade deixa de chamar `navigate(...)` e passa a abrir o mesmo popover.
-- A rota `/unidade/:unidadeId` em `App.tsx` é removida (não há mais redirecionamento entre unidades).
+Aparece como **cena lateral** dentro do zig-zag do Módulo 4: piscina + Yellen + Otchali flutuando ao lado das lições (não interativa, decorativa).
 
-### 4. Totem separador entre módulos
-Entre o último item do Módulo N e o card do Módulo N+1, renderizar um separador visual estilo “marco de pedra / totem”:
+---
 
-```text
-        ╱╲
-       ▕░░▏        ← bloco de pedra com sombra
-       ▕░░▏
-       ▕░░▏
-   ════╧══╧════    ← base/grama
-```
+## Passos técnicos
 
-Implementação:
-- Componente `<TotemSeparador />` em `src/components/TotemSeparador.tsx`: SVG inline (~80×120) com forma de menir/pedra empilhada em tons de cinza-quente (`#6E6259`, `#8A7C70`), sombra inferior e pequenas marcas decorativas (pode incluir o número do próximo módulo gravado).
-- Renderizado uma vez entre módulos diferentes durante o mapeamento da sequência.
+1. **Upload dos 2 PNGs como assets CDN** (arco + piscina + pilha já vão como assets):
+  - `src/assets/separadores/arco-pedra.png.asset.json`
+  - `src/assets/separadores/pilha-pedras.png.asset.json`
+  - `src/assets/cenas/piscina.png.asset.json`
+   Usar `lovable-assets create --file /mnt/user-uploads/<file>`.
+2. **Reescrever `src/components/TotemSeparador.tsx**`: remover o SVG actual; aceitar nova prop `variante: "arco" | "pilha"`; renderizar `<img>` com a respectiva asset (largura ~140-180px, sombra ao chão, número do próximo módulo sobreposto em chip branco/castanho no topo do arco ou na pedra superior da pilha).
+3. `**HomeScreen.tsx**` — onde renderiza `<TotemSeparador numeroProximoModulo={mod.numero} />`, calcular variante:
+  ```ts
+   variante={mi % 2 === 1 ? "arco" : "pilha"}
+  ```
+4. **Nova `CenaPiscina.tsx**` (componente decorativo): `<div>` absoluto/relativo com a piscina ao fundo + Yellen (avatar sem background) + Otchali (o mesmo). `aria-hidden`. Posicionado à direita do zig-zag. Como se estivessem brincando à beira da piscina.
+5. `HomeScreen.tsx` **(renderZigZag ou wrapper do Módulo 4)** — quando `mod.id === "m4"`, envolver o bloco do módulo num container relativo e injectar `<CenaPiscina />` sobreposta numa posição lateral (ex.: `top: 40%`, `right: -20px`, `opacity: 0.95`, atrás dos botões com `pointer-events: none`).
 
-### 5. Cabeçalho de módulo (antes do primeiro card de cada módulo)
-Pequeno chip centralizado “MÓDULO 2 — Eu e tu” em marrom/branco com sombra para legibilidade (mesmo estilo do separador atual da unidade).
+## Fora de escopo
 
-## Detalhes técnicos
+- Animação da água (estática por agora).
+- Mudanças no zig-zag, banner ou nav.
 
-Arquivos tocados:
-- `src/screens/HomeScreen.tsx`:
-  - Remover `useParams`, `preview`, e o uso de `unidade.cor` no banner principal (trocar por `hsl(var(--primary))`).
-  - Construir lista linear iterando `CURRICULO`:
-    - Para a unidade atual → renderiza banner + zig-zag existentes.
-    - Para outras unidades do mesmo módulo da atual e dos módulos seguintes → renderiza `<UnidadeCardFechado>` (novo, inline ou em `src/components/UnidadeCardFechado.tsx`).
-    - Entre módulos diferentes → `<TotemSeparador />`.
-  - Estado novo: `popoverUnidadeId: string | null` → controla `<Dialog>` que mostra o zig-zag da unidade selecionada.
-- `src/components/UnidadeCardFechado.tsx` (novo): faixa colorida + título + botão livro (`onClick` abre popover).
-- `src/components/TotemSeparador.tsx` (novo): SVG do totem.
-- `src/components/ZigZagUnidade.tsx` (novo, extraído do JSX atual da trilha): recebe `unidade` + `modoVisualizacao?: boolean`. Usado tanto na unidade atual quanto dentro do Dialog do popover.
-- `src/App.tsx`: remover a rota `/unidade/:unidadeId`.
-- `src/hooks/useProgresso.ts`: sem mudanças funcionais; continua sendo a fonte da unidade atual.
+## Ficheiros tocados
 
-Fora de escopo: progresso/desbloqueio (continua igual), bottom nav, header, tela de lição.
+- Criar: 3 `.asset.json`, `src/components/CenaPiscina.tsx`
+- Editar: `src/components/TotemSeparador.tsx`, `src/screens/HomeScreen.tsx`
