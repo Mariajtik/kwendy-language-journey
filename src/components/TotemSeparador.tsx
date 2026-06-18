@@ -5,7 +5,7 @@
  * sobre o cadeado.
  */
 
-import cercaAsset from "@/assets/separadores/cerca-portao.png.asset.json";
+import cercaUrl from "@/assets/separadores/cerca-portao.png";
 import { motion } from "framer-motion";
 
 type Variante = "arco" | "pilha";
@@ -27,7 +27,7 @@ const TotemSeparador = ({ numeroProximoModulo }: Props) => {
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
         <img
-          src={cercaAsset.url}
+          src={cercaUrl}
           alt=""
           loading="lazy"
           className="h-full w-auto object-contain select-none"
