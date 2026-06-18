@@ -30,6 +30,9 @@ import LessonScreen from "./screens/LessonScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import MissoesScreen from "./screens/MissoesScreen";
 import HistoriasScreen from "./screens/HistoriasScreen";
+import HistoriaDetalheScreen from "./screens/HistoriaDetalheScreen";
+import HistoriaLeituraScreen from "./screens/HistoriaLeituraScreen";
+import HistoriaFimScreen from "./screens/HistoriaFimScreen";
 import CuriosidadesScreen from "./screens/CuriosidadesScreen";
 import SecaoScreen from "./screens/SecaoScreen";
 import NotFound from "./pages/NotFound";
@@ -57,6 +60,9 @@ const AnimatedRoutes = () => {
         <Route path="/profile" element={<ProfileScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
         <Route path="/historias" element={<HistoriasScreen />} />
+        <Route path="/historias/:id" element={<HistoriaDetalheScreen />} />
+        <Route path="/historias/:id/ler" element={<HistoriaLeituraScreen />} />
+        <Route path="/historias/:id/fim" element={<HistoriaFimScreen />} />
         <Route path="/curiosidades" element={<CuriosidadesScreen />} />
         <Route path="/secao/:tipo" element={<SecaoScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
