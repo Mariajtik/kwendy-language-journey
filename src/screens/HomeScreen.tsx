@@ -22,7 +22,7 @@ import { useProgresso } from "@/hooks/useProgresso";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import TotemSeparador from "@/components/TotemSeparador";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
-import BannerVines from "@/components/BannerVines";
+import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
 import {
   Dialog,
   DialogContent,
@@ -175,6 +175,15 @@ const HomeScreen = () => {
       else next.add(id);
       return next;
     });
+
+  /** Mapa: unidade -> animação temática do banner (uma por módulo). */
+  const ANIMACOES_UNIDADE: Record<string, AnimacaoBanner> = {
+    m1u1: "bubbles",
+    m2u2: "sparkles",
+    m3u1: "hearts",
+    m4u2: "footprints",
+    m5u3: "vines",
+  };
 
   // Zig-zag horizontal offsets (in px) for the trail
   const offsets = [0, 60, -60, -40, 40, -30, 50];
@@ -451,13 +460,13 @@ const HomeScreen = () => {
             )}
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
-              const withVines = u.id === "m5u1";
+              const animacao = ANIMACOES_UNIDADE[u.id];
               if (u.id === atual.unidade.id) {
                 return (
                   <div key={u.id} className="mb-6">
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-2xl">
                       {renderBannerAtual(mod, u)}
-                      {withVines && <BannerVines />}
+                      {animacao && <BannerAnimacao tipo={animacao} />}
                     </div>
                     {renderZigZag(u)}
                   </div>
@@ -466,9 +475,9 @@ const HomeScreen = () => {
               if (expandedUnidades.has(u.id)) {
                 return (
                   <div key={u.id} className="mb-6">
-                    <div className="relative">
+                    <div className="relative overflow-hidden rounded-2xl">
                       {renderBannerExpandida(mod, u)}
-                      {withVines && <BannerVines />}
+                      {animacao && <BannerAnimacao tipo={animacao} />}
                     </div>
                     {renderZigZag(u, true)}
                   </div>
