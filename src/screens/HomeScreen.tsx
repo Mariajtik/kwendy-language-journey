@@ -163,13 +163,21 @@ const HomeScreen = () => {
       return next;
     });
 
-  /** Mapa: unidade -> animação temática do banner (uma por módulo). */
-  const ANIMACOES_UNIDADE: Record<string, AnimacaoBanner> = {
-    m1u1: "bubbles",
-    m2u2: "sparkles",
-    m3u1: "hearts",
-    m4u2: "footprints",
-    m5u3: "vines",
+  /** Mapa: módulo -> animação temática (aplicada ao banner de qualquer
+   *  unidade desse módulo). Cada animação reflecte o tema do módulo. */
+  const ANIMACOES_MODULO: Record<string, AnimacaoBanner> = {
+    m1: "bubbles",      // Saúda a tua comunidade
+    m3: "sparkles",     // Eu e tu (pronomes/identidade)
+    m4: "hearts",       // Família
+    m5: "footprints",   // Ações e rotina
+    m6: "vines",        // Natureza
+    m7: "heartbeat",    // Corpo e saúde
+    m8: "clock",        // Tempo e calendário
+    m9: "smoke",        // Em casa (cozinha)
+    m10: "coins",       // Trabalho e comunidade
+    m11: "links",       // Advérbios e ligações
+    m12: "letters",     // Pronomes e verbos
+    m13: "leaves",      // Provérbios
   };
 
   // Zig-zag horizontal offsets (in px) for the trail
@@ -468,7 +476,7 @@ const HomeScreen = () => {
           >
             {renderModuloHeader(mod)}
             {mod.unidades.map((u) => {
-              const animacao = ANIMACOES_UNIDADE[u.id];
+              const animacao = ANIMACOES_MODULO[mod.id];
               if (u.id === atual.unidade.id) {
                 return (
                   <div key={u.id} className="mb-6">
