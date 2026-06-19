@@ -51,7 +51,8 @@ export type ConquistaCategoria =
   | "linguagem"
   | "cultural"
   | "consistencia"
-  | "fronteiras";
+  | "fronteiras"
+  | "exploracao";
 
 export interface ConquistaDef {
   id: string;
@@ -92,6 +93,11 @@ export const CATEGORIA_INFO: Record<
     label: "Para Além de Fronteiras",
     cor: "45 90% 50%",
     corBg: "45 90% 50%",
+  },
+  exploracao: {
+    label: "Exploração",
+    cor: "160 55% 38%",
+    corBg: "160 55% 38%",
   },
 };
 
@@ -135,10 +141,20 @@ CONQUISTAS.push(
   { id: "fr7", titulo: "Maratonista Cultural",     descricao: "Acumule 10 minutos de jogo no quiz.",            icone: Sparkles, categoria: "fronteiras", meta: 1,   recompensa: { xp: 150, diamantes: 75 },                       badge: "rosa" },
 );
 
+// Exploração — usar as 4 pills do app (Dicionário, Caderno, Fala & Escuta, Alfabeto)
+import { Bookmark, NotebookPen, AudioLines } from "lucide-react";
+CONQUISTAS.push(
+  { id: "e1", titulo: "Curioso",         descricao: "Faça a sua primeira pesquisa no Dicionário.",      icone: Bookmark,    categoria: "exploracao", meta: 1,  recompensa: { xp: 30,  diamantes: 15 },                badge: "azul" },
+  { id: "e2", titulo: "Coleccionador",   descricao: "Guarde 10 palavras no Caderno.",                   icone: NotebookPen, categoria: "exploracao", meta: 10, recompensa: { xp: 120, diamantes: 60 },                badge: "verde" },
+  { id: "e3", titulo: "Boca de Ouro",    descricao: "Pratique 5 frases em Fala & Escuta.",              icone: Mic,         categoria: "exploracao", meta: 5,  recompensa: { xp: 120, diamantes: 60 },                badge: "rosa" },
+  { id: "e4", titulo: "Som das Letras",  descricao: "Ouça 15 letras do Alfabeto.",                      icone: AudioLines,  categoria: "exploracao", meta: 15, recompensa: { xp: 150, diamantes: 75, bau: "raro" },   badge: "roxa" },
+);
+
 export const CONQUISTAS_POR_CATEGORIA: Record<ConquistaCategoria, ConquistaDef[]> = {
   primeiros_passos: CONQUISTAS.filter((c) => c.categoria === "primeiros_passos"),
   linguagem: CONQUISTAS.filter((c) => c.categoria === "linguagem"),
   cultural: CONQUISTAS.filter((c) => c.categoria === "cultural"),
   consistencia: CONQUISTAS.filter((c) => c.categoria === "consistencia"),
   fronteiras: CONQUISTAS.filter((c) => c.categoria === "fronteiras"),
+  exploracao: CONQUISTAS.filter((c) => c.categoria === "exploracao"),
 };
