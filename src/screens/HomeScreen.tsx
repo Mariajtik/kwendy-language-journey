@@ -132,12 +132,12 @@ const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; c
 );
 
 /** Campfire = lucide Flame + two crossed logs underneath */
-const Campfire = () => (
+const Campfire = ({ ativo = true }: { ativo?: boolean }) => (
   <div className="relative w-7 h-7 flex items-center justify-center">
     <Flame
       className="w-5 h-5"
-      fill="#FF7A2E"
-      color="#FF4D4D"
+      fill={ativo ? "#FF7A2E" : "#D6D6D6"}
+      color={ativo ? "#FF4D4D" : "#B5B5B5"}
       strokeWidth={1.5}
     />
   </div>
@@ -149,8 +149,12 @@ const HomeScreen = () => {
   const { saldo } = useSaldo();
   const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
   const atual = unidadeAtualInfo();
+  const totalVidas = saldo.vidas + saldo.vidasExtra;
+  const semVidas = totalVidas <= 0;
+  const semOfensiva = saldo.ofensiva <= 0;
   type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
+  const [semVidasOpen, setSemVidasOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
@@ -256,6 +260,7 @@ const HomeScreen = () => {
                   };
                   setActiveLesson(item);
                   if (status === "bloqueada") setLockedOpen(true);
+                  else if (semVidas) setSemVidasOpen(true);
                   else setStartOpen(true);
                 }}
                 className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
@@ -408,8 +413,11 @@ const HomeScreen = () => {
 
           {/* Campfire + streak */}
           <div className="flex items-center gap-1">
-            <Campfire />
-            <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
+            <Campfire ativo={!semOfensiva} />
+            <span
+              className="font-extrabold text-sm"
+              style={{ color: semOfensiva ? "#B5B5B5" : "#5E5C5C" }}
+            >
               {saldo.ofensiva}
             </span>
           </div>
@@ -439,11 +447,14 @@ const HomeScreen = () => {
           <div className="flex items-center gap-1">
             <Heart
               className="w-5 h-5"
-              fill="hsl(var(--primary))"
-              color="hsl(var(--primary))"
+              fill={semVidas ? "#D6D6D6" : "hsl(var(--primary))"}
+              color={semVidas ? "#B5B5B5" : "hsl(var(--primary))"}
             />
-            <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-              {saldo.vidas + saldo.vidasExtra}
+            <span
+              className="font-extrabold text-sm"
+              style={{ color: semVidas ? "#B5B5B5" : "hsl(var(--primary))" }}
+            >
+              {totalVidas}
             </span>
             {saldo.vidasExtra > 0 && (
               <span
@@ -551,6 +562,40 @@ const HomeScreen = () => {
           >
             Entendi
           </button>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---- No-lives dialog ---- */}
+      <Dialog open={semVidasOpen} onOpenChange={setSemVidasOpen}>
+        <DialogContent className="max-w-xs rounded-3xl text-center">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+              <Heart className="w-8 h-8 text-gray-400" strokeWidth={3} />
+            </div>
+            <DialogTitle className="text-center text-xl font-extrabold">
+              Sem vidas
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Ficaste sem vidas. Visita a Loja para comprar mais ou aguarda a recuperação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-2">
+            <button
+              onClick={() => {
+                setSemVidasOpen(false);
+                navigate("/loja");
+              }}
+              className="btn-duo btn-duo-primary w-full"
+            >
+              Ir à Loja
+            </button>
+            <button
+              onClick={() => setSemVidasOpen(false)}
+              className="btn-duo btn-duo-secondary w-full"
+            >
+              Fechar
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
