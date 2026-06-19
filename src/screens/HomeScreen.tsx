@@ -260,6 +260,7 @@ const HomeScreen = () => {
                   };
                   setActiveLesson(item);
                   if (status === "bloqueada") setLockedOpen(true);
+                  else if (semVidas) setSemVidasOpen(true);
                   else setStartOpen(true);
                 }}
                 className="relative w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold transition-transform active:translate-y-0.5"
