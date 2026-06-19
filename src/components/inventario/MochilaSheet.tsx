@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Backpack, ShoppingBag, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useInventario } from "@/hooks/useInventario";
+import { useSaldo } from "@/hooks/useSaldo";
 import { ITENS_LOJA, getItem, type ItemId } from "@/data/loja";
 
 interface Props {
@@ -13,24 +14,39 @@ interface Props {
   onFechar: () => void;
 }
 
-const POWERUP_IDS: ItemId[] = ["manter-chama", "dobrador-xp", "dica-extra", "vida-extra"];
+// vida-extra é tratada à parte (pool global em useSaldo.vidasExtra)
+const POWERUP_IDS: ItemId[] = ["manter-chama", "dobrador-xp", "dica-extra"];
+
+/** Formata minutos em "Xd Yh", "Yh Zm" ou "Zm". */
+function formatExp(min: number | null): string | null {
+  if (min === null) return null;
+  if (min <= 0) return "Expirado";
+  if (min < 60) return `Expira em ${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h < 24) return `Expira em ${h}h ${m}m`;
+  const d = Math.floor(h / 24);
+  const rh = h % 24;
+  return `Expira em ${d}d ${rh}h`;
+}
 
 const MochilaSheet = ({ aberto, onFechar }: Props) => {
   const nav = useNavigate();
   const { inventario, tempoRestante } = useInventario();
+  const { saldo } = useSaldo();
 
   const linhas = POWERUP_IDS.map((id) => {
     const item = getItem(id);
     const p = inventario.powerUps.find((x) => x.itemId === id);
     return { item, qtd: p?.quantidade ?? 0, restante: tempoRestante(id) };
-  }).filter((l) => l.item);
+  }).filter((l) => l.item && l.qtd > 0);
 
   const desbloqueios = inventario.desbloqueios
     .map((id) => ITENS_LOJA.find((i) => i.id === id))
     .filter(Boolean);
 
   const vazio =
-    linhas.every((l) => l.qtd === 0) && desbloqueios.length === 0;
+    linhas.length === 0 && desbloqueios.length === 0 && saldo.vidasExtra === 0;
 
   return (
     <AnimatePresence>
