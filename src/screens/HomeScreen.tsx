@@ -580,12 +580,6 @@ const HomeScreen = () => {
               >
                 Começar +10 XP
               </button>
-              <button
-                disabled
-                className="btn-duo btn-duo-secondary w-full opacity-50 cursor-not-allowed"
-              >
-                Ver dica
-              </button>
             </div>
           </div>
         </DialogContent>
