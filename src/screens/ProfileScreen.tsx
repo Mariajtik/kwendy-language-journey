@@ -33,7 +33,6 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
-import SairConfirmModal from "@/screens/definicoes/SairConfirmModal";
 import trofeu30dias from "@/assets/missoes/trofeu.png.asset.json";
 import { getStat, STATS } from "@/lib/stats";
 
@@ -51,13 +50,12 @@ const profileBase = {
 
 const Diamond = DiamanteNegro;
 
-type Tab = "perfil" | "comunidade" | "definicoes";
+type Tab = "perfil" | "comunidade";
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("perfil");
   const [conquistaAberta, setConquistaAberta] = useState<ConquistaView | null>(null);
-  const [sairAberto, setSairAberto] = useState(false);
   const { saldo } = useSaldo();
   const { conquistas, resgatarConquista } = useMissoes();
   const desbloqueadas = useMemo(
@@ -124,7 +122,7 @@ const ProfileScreen = () => {
             </button>
             <button
               aria-label="Definições"
-              onClick={() => setTab("definicoes")}
+              onClick={() => navigate("/profile/definicoes")}
               className="p-1.5"
             >
               <Settings className="w-5 h-5" />
@@ -146,7 +144,6 @@ const ProfileScreen = () => {
           {([
             { id: "perfil", label: "Perfil" },
             { id: "comunidade", label: "Comunidade" },
-            { id: "definicoes", label: "Definições" },
           ] as { id: Tab; label: string }[]).map((t) => {
             const active = tab === t.id;
             return (
@@ -326,37 +323,6 @@ const ProfileScreen = () => {
         )}
 
         {tab === "comunidade" && <CommunityFeed />}
-
-        {tab === "definicoes" && (
-          <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">
-            {[
-              { icon: UserIcon, label: "Conta", onClick: () => navigate("/profile/conta") },
-              { icon: Bell, label: "Notificações", onClick: () => navigate("/profile/notificacoes") },
-              { icon: Info, label: "Sobre o Kwendi", onClick: () => navigate("/profile/sobre") },
-              { icon: LogOut, label: "Sair", destructive: true, onClick: () => setSairAberto(true) },
-            ].map((item, i, arr) => (
-              <button
-                key={item.label}
-                onClick={item.onClick}
-                className="w-full flex items-center justify-between px-4 py-4 text-left"
-                style={{
-                  borderBottom: i < arr.length - 1 ? "1px solid hsl(var(--border))" : "none",
-                }}
-              >
-                <span className="flex items-center gap-3 font-bold">
-                  <item.icon
-                    className="w-5 h-5"
-                    style={{ color: item.destructive ? "hsl(var(--destructive))" : "hsl(var(--muted-foreground))" }}
-                  />
-                  <span style={{ color: item.destructive ? "hsl(var(--destructive))" : "hsl(var(--foreground))" }}>
-                    {item.label}
-                  </span>
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <BottomNav active="user" />
@@ -370,7 +336,6 @@ const ProfileScreen = () => {
         }}
       />
 
-      <SairConfirmModal aberto={sairAberto} onFechar={() => setSairAberto(false)} />
     </motion.div>
   );
 };
