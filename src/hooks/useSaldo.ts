@@ -100,3 +100,27 @@ export function useSaldo() {
 
   return { saldo, update };
 }
+
+/**
+ * Consome uma vida: primeiro do pool de vidasExtra (comprado),
+ * depois das vidas normais. Devolve o novo total combinado.
+ */
+export function perderVida(): number {
+  const next = setSaldo((prev) => {
+    if (prev.vidasExtra > 0) {
+      return { ...prev, vidasExtra: prev.vidasExtra - 1 };
+    }
+    return { ...prev, vidas: Math.max(0, prev.vidas - 1) };
+  });
+  return next.vidas + next.vidasExtra;
+}
+
+/** Recupera vidas normais (até VIDAS_MAX). Não toca em vidasExtra. */
+export function recuperarVidas(n = VIDAS_MAX): void {
+  setSaldo((prev) => ({ ...prev, vidas: Math.min(VIDAS_MAX, prev.vidas + n) }));
+}
+
+/** Adiciona vidas extra ao pool comprado. */
+export function adicionarVidaExtra(n = 1): void {
+  setSaldo((prev) => ({ ...prev, vidasExtra: prev.vidasExtra + n }));
+}
