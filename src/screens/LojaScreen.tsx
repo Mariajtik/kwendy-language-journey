@@ -16,8 +16,10 @@ import { CATEGORIAS, ITENS_LOJA, type CategoriaLoja, type ItemLoja } from "@/dat
 import { useLoja } from "@/hooks/useLoja";
 import PremiumPackCard from "@/components/loja/PremiumPackCard";
 import PremiumInteresseModal from "@/components/loja/PremiumInteresseModal";
+import { toast } from "sonner";
 
 const PREMIUM_KEY = "kwendi.premium.interessados";
+const PREMIUM_EU_KEY = "kwendi.premium.eu";
 
 const LojaScreen = () => {
   const nav = useNavigate();
@@ -28,6 +30,9 @@ const LojaScreen = () => {
   const [faltam, setFaltam] = useState<number | null>(null);
   const [mochilaAberta, setMochilaAberta] = useState(false);
   const [premiumPos, setPremiumPos] = useState<number | null>(null);
+  const [jaInteressado, setJaInteressado] = useState<boolean>(
+    () => localStorage.getItem(PREMIUM_EU_KEY) === "1"
+  );
   const totalMochila =
     inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
     inventario.desbloqueios.length +
@@ -35,18 +40,23 @@ const LojaScreen = () => {
 
   const itens = useMemo(() => ITENS_LOJA.filter((i) => i.categoria === tab), [tab]);
 
-  const registarInteressePremium = () => {
+  const togglePremiumInteresse = () => {
     const atual = Number(localStorage.getItem(PREMIUM_KEY) ?? "0");
-    const jaInteressado = localStorage.getItem("kwendi.premium.eu") === "1";
-    let pos = atual;
-    if (!jaInteressado) {
-      pos = atual + 1;
+    if (jaInteressado) {
+      const novo = Math.max(0, atual - 1);
+      localStorage.setItem(PREMIUM_KEY, String(novo));
+      localStorage.removeItem(PREMIUM_EU_KEY);
+      setJaInteressado(false);
+      toast("Interesse retirado", {
+        description: "Já não estás na fila do Pacote Premium.",
+      });
+    } else {
+      const pos = atual + 1;
       localStorage.setItem(PREMIUM_KEY, String(pos));
-      localStorage.setItem("kwendi.premium.eu", "1");
-    } else if (atual === 0) {
-      pos = 1;
+      localStorage.setItem(PREMIUM_EU_KEY, "1");
+      setJaInteressado(true);
+      setPremiumPos(pos);
     }
-    setPremiumPos(pos);
   };
 
   const handleComprar = () => {
@@ -151,7 +161,10 @@ const LojaScreen = () => {
             className="grid grid-cols-2 gap-3"
           >
             {tab === "premium" ? (
-              <PremiumPackCard onInteresse={registarInteressePremium} />
+              <PremiumPackCard
+                onInteresse={togglePremiumInteresse}
+                jaInteressado={jaInteressado}
+              />
             ) : (
               itens.map((it) => (
                 <ItemLojaCard

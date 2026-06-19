@@ -32,9 +32,12 @@ function carregar(): Estado {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return estadoInicial();
     const parsed = JSON.parse(raw);
+    const unidadeId = typeof parsed.unidadeAtual === "string" ? parsed.unidadeAtual : PRIMEIRA_UNIDADE.id;
+    // Valida que a unidade ainda existe no currículo (pode ter sido reestruturado)
+    const existe = !!getUnidade(unidadeId);
     return {
       seccoesCompletas: Array.isArray(parsed.seccoesCompletas) ? parsed.seccoesCompletas : [],
-      unidadeAtual: typeof parsed.unidadeAtual === "string" ? parsed.unidadeAtual : PRIMEIRA_UNIDADE.id,
+      unidadeAtual: existe ? unidadeId : PRIMEIRA_UNIDADE.id,
     };
   } catch {
     return estadoInicial();
