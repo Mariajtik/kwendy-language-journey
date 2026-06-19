@@ -217,7 +217,7 @@ const LessonScreen = () => {
             className="text-xs font-extrabold tracking-widest"
             style={{ color: "#5E5C5C" }}
           >
-            LIÇÃO {id ?? 1} · PERGUNTA {index + 1}/{total}
+            PERGUNTA {index + 1}/{total}
           </p>
           <div className="flex items-center gap-1.5">
             {dobradorOn && (
