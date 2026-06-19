@@ -7,7 +7,7 @@ import bauComum from "@/assets/missoes/bau-comum.png.asset.json";
 import bauRaro from "@/assets/missoes/bau-raro.png.asset.json";
 import bauLendario from "@/assets/missoes/bau-lendario.png.asset.json";
 
-export type CategoriaLoja = "powerup" | "bau" | "cultura";
+export type CategoriaLoja = "powerup" | "bau" | "cultura" | "premium";
 
 export type PowerUpId =
   | "manter-chama"
@@ -163,6 +163,7 @@ export const CATEGORIAS: { id: CategoriaLoja; nome: string; cor: string }[] = [
   { id: "powerup", nome: "Power-ups", cor: "25 90% 55%" },
   { id: "bau", nome: "Baús", cor: "270 60% 50%" },
   { id: "cultura", nome: "Cultura", cor: "5 84% 42%" },
+  { id: "premium", nome: "Premium", cor: "45 96% 53%" },
 ];
 
 export const getItem = (id: ItemId) => ITENS_LOJA.find((i) => i.id === id);
