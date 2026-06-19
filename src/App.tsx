@@ -39,6 +39,9 @@ import LojaScreen from "./screens/LojaScreen";
 import DicionarioScreen from "./screens/DicionarioScreen";
 import FalaEscutaScreen from "./screens/FalaEscutaScreen";
 import CadernoScreen from "./screens/CadernoScreen";
+import ContaScreen from "./screens/definicoes/ContaScreen";
+import NotificacoesScreen from "./screens/definicoes/NotificacoesScreen";
+import SobreScreen from "./screens/definicoes/SobreScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +65,9 @@ const AnimatedRoutes = () => {
         <Route path="/home" element={<HomeScreen />} />
         <Route path="/lesson/:id" element={<LessonScreen />} />
         <Route path="/profile" element={<ProfileScreen />} />
+        <Route path="/profile/conta" element={<ContaScreen />} />
+        <Route path="/profile/notificacoes" element={<NotificacoesScreen />} />
+        <Route path="/profile/sobre" element={<SobreScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
         <Route path="/historias" element={<HistoriasScreen />} />
         <Route path="/historias/:id" element={<HistoriaDetalheScreen />} />
