@@ -10,9 +10,33 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, Check, X as XIcon, Lightbulb, Zap } from "lucide-react";
 import { useMissoes } from "@/hooks/useMissoes";
-import { setSaldo } from "@/hooks/useSaldo";
+import { setSaldo, useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
+import { toast } from "@/hooks/use-toast";
+
+/** Controlo de dicas grátis diárias (5/dia). Persiste em localStorage. */
+const DICAS_KEY = "kwendi_dicas_diarias_v1";
+const DICAS_GRATIS_DIA = 5;
+const DICA_CUSTO_DIAMANTES = 15;
+
+function lerDicasHoje(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = localStorage.getItem(DICAS_KEY);
+    if (!raw) return 0;
+    const p = JSON.parse(raw) as { dia: string; usadas: number };
+    const hoje = new Date().toDateString();
+    return p.dia === hoje ? p.usadas : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function gravarDicaUsada(n: number) {
+  const hoje = new Date().toDateString();
+  localStorage.setItem(DICAS_KEY, JSON.stringify({ dia: hoje, usadas: n }));
+}
 
 type Question = {
   prompt: string;
@@ -57,12 +81,46 @@ const LessonScreen = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
   const [dicaAtiva, setDicaAtiva] = useState(false);
+  const [dicasHoje, setDicasHoje] = useState<number>(() => lerDicasHoje());
+  const { saldo } = useSaldo();
   const dobradorMin = tempoRestante("dobrador-xp");
   const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
   const q = QUESTIONS[index];
   const isCorrect = selected === q?.correct;
   const progress = ((index + (checked ? 1 : 0)) / total) * 100;
+
+  const dicasRestantesGratis = Math.max(0, DICAS_GRATIS_DIA - dicasHoje);
+  const podePagarDica = saldo.diamantes >= DICA_CUSTO_DIAMANTES;
+
+  const usarDica = () => {
+    if (dicaAtiva || checked) return;
+    if (dicasRestantesGratis > 0) {
+      const n = dicasHoje + 1;
+      setDicasHoje(n);
+      gravarDicaUsada(n);
+      setDicaAtiva(true);
+      toast({
+        title: "Dica usada",
+        description: `Restam ${DICAS_GRATIS_DIA - n} dicas grátis hoje.`,
+      });
+      return;
+    }
+    if (podePagarDica) {
+      setSaldo((s) => ({ ...s, diamantes: s.diamantes - DICA_CUSTO_DIAMANTES }));
+      setDicaAtiva(true);
+      toast({
+        title: "Dica desbloqueada",
+        description: `−${DICA_CUSTO_DIAMANTES} diamantes.`,
+      });
+      return;
+    }
+    toast({
+      title: "Sem dicas disponíveis",
+      description: `Já usaste as ${DICAS_GRATIS_DIA} dicas grátis de hoje e não tens diamantes suficientes (${DICA_CUSTO_DIAMANTES}).`,
+      variant: "destructive",
+    });
+  };
 
   const handleCheck = () => {
     if (selected === null) return;
