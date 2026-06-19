@@ -132,12 +132,12 @@ const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; c
 );
 
 /** Campfire = lucide Flame + two crossed logs underneath */
-const Campfire = () => (
+const Campfire = ({ ativo = true }: { ativo?: boolean }) => (
   <div className="relative w-7 h-7 flex items-center justify-center">
     <Flame
       className="w-5 h-5"
-      fill="#FF7A2E"
-      color="#FF4D4D"
+      fill={ativo ? "#FF7A2E" : "#D6D6D6"}
+      color={ativo ? "#FF4D4D" : "#B5B5B5"}
       strokeWidth={1.5}
     />
   </div>
@@ -149,8 +149,12 @@ const HomeScreen = () => {
   const { saldo } = useSaldo();
   const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
   const atual = unidadeAtualInfo();
+  const totalVidas = saldo.vidas + saldo.vidasExtra;
+  const semVidas = totalVidas <= 0;
+  const semOfensiva = saldo.ofensiva <= 0;
   type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
+  const [semVidasOpen, setSemVidasOpen] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
@@ -408,8 +412,11 @@ const HomeScreen = () => {
 
           {/* Campfire + streak */}
           <div className="flex items-center gap-1">
-            <Campfire />
-            <span className="font-extrabold text-sm" style={{ color: "#5E5C5C" }}>
+            <Campfire ativo={!semOfensiva} />
+            <span
+              className="font-extrabold text-sm"
+              style={{ color: semOfensiva ? "#B5B5B5" : "#5E5C5C" }}
+            >
               {saldo.ofensiva}
             </span>
           </div>
@@ -439,11 +446,14 @@ const HomeScreen = () => {
           <div className="flex items-center gap-1">
             <Heart
               className="w-5 h-5"
-              fill="hsl(var(--primary))"
-              color="hsl(var(--primary))"
+              fill={semVidas ? "#D6D6D6" : "hsl(var(--primary))"}
+              color={semVidas ? "#B5B5B5" : "hsl(var(--primary))"}
             />
-            <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-              {saldo.vidas + saldo.vidasExtra}
+            <span
+              className="font-extrabold text-sm"
+              style={{ color: semVidas ? "#B5B5B5" : "hsl(var(--primary))" }}
+            >
+              {totalVidas}
             </span>
             {saldo.vidasExtra > 0 && (
               <span
