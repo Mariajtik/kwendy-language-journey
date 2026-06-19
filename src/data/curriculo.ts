@@ -81,52 +81,15 @@ export const CURRICULO: Modulo[] = [
       {
         id: "m1u5",
         numero: 5,
-        titulo: "Conversação",
+        titulo: "Pequenos diálogos",
         cor: "330 75% 55%",
         seccoes: mk("m1u5", ["Diálogo de manhã", "Diálogo na rua", "Diálogo no mercado", "Juntar tudo"]),
       },
     ],
   },
   {
-    id: "m2",
-    numero: 2,
-    titulo: "Perguntas e diálogos",
-    cor: "25 90% 50%",
-    corEscura: "25 90% 38%",
-    unidades: [
-      {
-        id: "m2u1",
-        numero: 1,
-        titulo: "Perguntas simples",
-        cor: "5 84% 42%",
-        seccoes: mk("m2u1", ["Quem, o quê, onde", "Quando e porquê", "Praticar perguntas"]),
-      },
-      {
-        id: "m2u2",
-        numero: 2,
-        titulo: "Respostas curtas",
-        cor: "265 60% 55%",
-        seccoes: mk("m2u2", ["Ee · sim / Tate · não", "Ndapandula · obrigado", "Por favor e perdão"]),
-      },
-      {
-        id: "m2u3",
-        numero: 3,
-        titulo: "Saudar mais-velhos",
-        cor: "200 75% 45%",
-        seccoes: mk("m2u3", ["Formas respeitosas", "Despedidas", "Cortesia no diálogo"]),
-      },
-      {
-        id: "m2u4",
-        numero: 4,
-        titulo: "Pequenos diálogos",
-        cor: "150 60% 40%",
-        seccoes: mk("m2u4", ["Encontrar um amigo", "Pedir uma informação", "Diálogo completo"]),
-      },
-    ],
-  },
-  {
     id: "m3",
-    numero: 3,
+    numero: 2,
     titulo: "Eu e tu",
     cor: "330 75% 50%",
     corEscura: "330 75% 38%",
@@ -163,7 +126,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m4",
-    numero: 4,
+    numero: 3,
     titulo: "Introduza a tua família",
     cor: "200 75% 45%",
     corEscura: "200 75% 32%",
@@ -200,7 +163,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m5",
-    numero: 5,
+    numero: 4,
     titulo: "Ações e rotina",
     cor: "330 75% 50%",
     corEscura: "330 75% 38%",
@@ -244,7 +207,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m6",
-    numero: 6,
+    numero: 5,
     titulo: "Explora a natureza",
     cor: "265 60% 50%",
     corEscura: "265 60% 38%",
@@ -281,7 +244,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m7",
-    numero: 7,
+    numero: 6,
     titulo: "Corpo humano e saúde",
     cor: "210 80% 48%",
     corEscura: "210 80% 36%",
@@ -318,7 +281,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m8",
-    numero: 8,
+    numero: 7,
     titulo: "Tempo e calendário",
     cor: "42 90% 48%",
     corEscura: "42 90% 36%",
@@ -355,7 +318,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m9",
-    numero: 9,
+    numero: 8,
     titulo: "Em casa",
     cor: "178 65% 40%",
     corEscura: "178 65% 30%",
@@ -399,7 +362,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m10",
-    numero: 10,
+    numero: 9,
     titulo: "Trabalho e comunidade",
     cor: "15 85% 55%",
     corEscura: "15 85% 42%",
@@ -436,7 +399,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m11",
-    numero: 11,
+    numero: 10,
     titulo: "Advérbios e ligações",
     cor: "90 45% 38%",
     corEscura: "90 45% 28%",
@@ -473,7 +436,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m12",
-    numero: 12,
+    numero: 11,
     titulo: "Pronomes avançados e verbos",
     cor: "345 65% 42%",
     corEscura: "345 65% 30%",
@@ -510,7 +473,7 @@ export const CURRICULO: Modulo[] = [
   },
   {
     id: "m13",
-    numero: 13,
+    numero: 12,
     titulo: "Provérbios e sabedoria Ovimbundu",
     cor: "28 55% 45%",
     corEscura: "28 55% 32%",
