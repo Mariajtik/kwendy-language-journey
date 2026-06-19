@@ -567,6 +567,44 @@ const HomeScreen = () => {
 
       {/* ---- Start lesson dialog ---- */}
       <Dialog open={startOpen} onOpenChange={setStartOpen}>
+        <></>
+      </Dialog>
+
+      {/* ---- No-lives dialog ---- */}
+      <Dialog open={semVidasOpen} onOpenChange={setSemVidasOpen}>
+        <DialogContent className="max-w-xs rounded-3xl text-center">
+          <DialogHeader>
+            <div className="mx-auto w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
+              <Heart className="w-8 h-8 text-gray-400" strokeWidth={3} />
+            </div>
+            <DialogTitle className="text-center text-xl font-extrabold">
+              Sem vidas
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Ficaste sem vidas. Visita a Loja para comprar mais ou aguarda a recuperação.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-2">
+            <button
+              onClick={() => {
+                setSemVidasOpen(false);
+                navigate("/loja");
+              }}
+              className="btn-duo btn-duo-primary w-full"
+            >
+              Ir à Loja
+            </button>
+            <button
+              onClick={() => setSemVidasOpen(false)}
+              className="btn-duo btn-duo-secondary w-full"
+            >
+              Fechar
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={false}>
         <DialogContent className="max-w-xs rounded-3xl p-0 overflow-hidden">
           <div
             className="px-5 py-3 text-white text-xs font-extrabold tracking-widest"
