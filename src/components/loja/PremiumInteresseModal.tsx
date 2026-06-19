@@ -56,8 +56,8 @@ const PremiumInteresseModal = ({ posicao, onFechar }: Props) => (
           </p>
 
           <p className="text-[13px] font-semibold leading-snug bg-white/15 rounded-xl p-3 mb-4">
-            Quando atingirmos massa crítica, ativamos o Premium e avisamos-te
-            em primeiro lugar.
+            Quando atingirmos massa crítica, ativamos o Premium —
+            <b> 3 meses por $5</b> — e avisamos-te em primeiro lugar.
           </p>
 
           <motion.button

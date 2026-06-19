@@ -16,6 +16,7 @@ import {
 } from "@/data/missoes";
 import { CONQUISTAS, type ConquistaDef } from "@/data/conquistas";
 import { BAUS, type DropItem } from "@/data/recompensas";
+import { getStat, STATS } from "@/lib/stats";
 
 const STORAGE_KEY = "kwendi_missoes_v1";
 
@@ -126,6 +127,45 @@ export function useMissoes() {
   // recheca resets ao montar
   useEffect(() => {
     setState((s) => aplicarResets(s));
+  }, []);
+
+  // sincroniza conquistas de exploração a partir dos contadores locais
+  useEffect(() => {
+    const guardadasLen = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(STATS.cadernoGuardadas) ?? "[]").length as number;
+      } catch {
+        return 0;
+      }
+    })();
+    const valores: Array<{ id: string; val: number }> = [
+      { id: "e1", val: getStat(STATS.dicionarioBuscas) },
+      { id: "e2", val: guardadasLen },
+      { id: "e3", val: getStat(STATS.falaGravacoes) },
+      { id: "e4", val: getStat(STATS.alfabetoEscutas) },
+    ];
+    setState((s) => {
+      const conquistas = { ...s.conquistas };
+      let changed = false;
+      for (const { id, val } of valores) {
+        const def = CONQUISTAS.find((c) => c.id === id);
+        const atual = conquistas[id];
+        if (!def || !atual) continue;
+        const novoProg = Math.min(def.meta, val);
+        if (novoProg !== atual.progresso) {
+          changed = true;
+          conquistas[id] = {
+            ...atual,
+            progresso: novoProg,
+            desbloqueadaEm:
+              !atual.desbloqueadaEm && novoProg >= def.meta
+                ? new Date().toISOString()
+                : atual.desbloqueadaEm,
+          };
+        }
+      }
+      return changed ? { ...s, conquistas } : s;
+    });
   }, []);
 
   const registrarAcao = useCallback((acao: AcaoTipo, qtd = 1) => {

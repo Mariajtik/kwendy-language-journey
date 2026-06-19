@@ -1,105 +1,88 @@
-## Plano de ajustes
+## 1 · Dicionário · só pesquisar, não listar guardados
 
-### 1) Pacote Premium — interesse toggle + sotaque angolano
+`src/screens/DicionarioScreen.tsx`
 
-`**PremiumPackCard.tsx**`
+- Remover a lista "GUARDADOS" e o fallback de favoritos antes de pesquisar — quando `query` está vazia, mostrar apenas o bloco **EXPLORAR** com sugestões aleatórias do dicionário.
+- Manter o botão de bookmark em cada card (continua a gravar em `kwendi.caderno.guardadas`), mas com toast "Guardado no Caderno" e link rápido para `/secao/caderno`.
+- Acrescentar contador local `kwendi.stats.dicionario.buscas` (incrementa a cada pesquisa válida) — usado pelas novas conquistas.
 
-- Receber prop `jaInteressado: boolean` além de `onInteresse`.
-- Quando `jaInteressado === true`:
-  - CTA muda para **"Pensei melhor, retirar interesse"** (estilo mais suave: fundo `bg-white/15` + texto branco, em vez de fundo branco).
-  - Texto de apoio passa a ser: *"Já pertences a família mas podes sair quando quiseres."*
-- Adicionar 1 bullet novo (após o "Dicionário IA ilimitado"):
-  - `🇦🇴 IA Kwendi com sotaque angolano — fala e escrita mais nossa.`
-- Reforçar no parágrafo de abertura: acrescentar frase *"A IA Kwendi ganha sotaque angolano — fala e escreve como em Luanda, Huambo, Benguela."*
+## 2 · Conquistas e Marcos das 4 pills
 
-`**useLoja.ts**` (já gere a lista `kwendi.premium.interessados`)
+`src/data/conquistas.ts` — nova categoria `exploracao` com 4 conquistas:
 
-- Adicionar `removerInteressePremium()` que faz splice do user atual e atualiza posição.
-- Expor `jaInteressadoPremium: boolean` e nova função no hook.
+- **Curioso** — primeira pesquisa no Dicionário (Bookmark)
+- **Coleccionador** — 10 palavras guardadas no Caderno (BookOpen)
+- **Boca de Ouro** — 5 frases gravadas em Fala & Escuta (Mic)
+- **Som das Letras** — ouviu 15 letras do Alfabeto (AudioLines)
 
-`**LojaScreen.tsx**`
+`src/hooks/useMissoes.ts` — ler contadores de `localStorage`:
 
-- Passar `jaInteressado` ao `PremiumPackCard`.
-- `onInteresse` agora despacha: se já interessado → remover (mostrar toast "Interesse removido"); senão → registar e abrir modal.
+- `kwendi.stats.dicionario.buscas`
+- `kwendi.caderno.guardadas` (length)
+- `kwendi.stats.fala.gravacoes`
+- `kwendi.stats.alfabeto.escutas`
 
-`**PremiumInteresseModal.tsx**`
+E atualizar `desbloqueada` automaticamente. Incrementos feitos nos respetivos ecrãs (DicionarioScreen, CadernoScreen, FalaEscutaScreen, SecaoScreen/AlfabetoView).
 
-- Sem mudança estrutural; continua a mostrar a posição apenas quando há novo registo.
+`src/screens/ProfileScreen.tsx` — adicionar **2 marcos** novos à grelha (passa de 4 → 6, 2 colunas × 3 linhas): "Caderno 50" e "Alfabeto" (todas as letras ouvidas).
 
----
+## 3 · Fala & Escuta · estilo Duo, ligado às lições
 
-### 2) Reestruturação pedagógica de M1 e M2
+`src/screens/FalaEscutaScreen.tsx` — passar a alimentar-se das **unidades desbloqueadas** via `useProgresso`:
 
-Princípio: **M1 = primeiríssimo contacto** (sons, saudações, eu/tu, números até 10). **M2 = identificação e família próxima**. Tudo o que é vocabulário temático (corpo, dias, meses, estações) vai para módulos mais avançados, onde faz sentido pedagógico.
+- Calcular `unidadesDesbloqueadas` = unidade atual + todas as anteriores.
+- Mapear ID da unidade → conjunto de frases (novo `src/data/falaEscutaPool.ts`, indexado por `unidadeId`, com `{umbundu, pt}` por tópico).
+- Header com chip "Unidade: …" e seletor (`<select>` redondo) para escolher entre as desbloqueadas. Frases bloqueadas aparecem com cadeado e tooltip "Desbloqueia a unidade X".
+- **FalaTab**: novo fluxo Duo — frase grande no topo, microfone gigante central, barra de "match" pós-gravação (placeholder 70–95% aleatório), botão "Próxima" para avançar como num exercício; XP +5 por frase praticada via `adicionarXP`.
+- **EscutaTab**: 5 perguntas por sessão, contador "1/5", barra de progresso superior estilo lição, ecrã final com XP+ganho.
 
-**Módulo 1 — "Primeiros passos"** (5 unidades, em vez de 8)
+## 4 · Alfabeto · ícones melhores + limpeza
 
-1. **Sons e alfabeto** — vogais, C-V-C, prefixo `ku-`, tonalidade básica *(novo, ancorado no que já existe em* `/secao/alfabeto`*)*. ( Não, essa sessão é apenas em alfabeto, como no Duo)
-2. **Saudações** — `Wakolelepo`, `Ndapandula`, despedidas.
-3. **Eu e tu** — pronomes pessoais singulares (`ame`, `ove`), frases mínimas "eu sou / tu és".
-4. **Sim, não e cortesia** — `ee`, `tate`, pedir/agradecer, perdão.
-5. **Números 0–10** — contar objetos básicos.
+`src/screens/SecaoScreen.tsx` (`AlfabetoView`)
 
-**Módulo 2 — "Quem sou eu"** (5 unidades)
+- Remover o botão **"Ouvir saudação completa"** e manter o bloco de citação Karl Marx.
+- Substituir os emojis dos cards de fonologia por ícones Lucide consistentes (`Puzzle`, `Type`, `Music2`, `Link2`, `HandHelping`, `Quote`) num círculo colorido — mesmo padrão visual das `StatCard`.
+- Cada letra abre um mini-card inline com palavra-exemplo + áudio (reaproveitando `DICIONARIO`). Incrementa `kwendi.stats.alfabeto.escutas`.
+- No topo, manter título e adicionar pílula "Toca para ouvir · {n}/{total}" como progresso.
 
-1. **Identificação pessoal** — nome, idade ("eu chamo-me…", "tenho X anos").
-2. **Família próxima** — pai, mãe, irmãos (movido de M1).
-3. **Nacionalidade e origem** — de onde sou, países, terra natal.
-4. **A minha casa** — onde vivo, compartimentos essenciais (ponte para M10).
-5. **Conversação I** — diálogos curtos juntando 1–4.
+## 5 · Currículo · módulos por contexto
 
-**Restantes módulos (M3–M12)** — reorganizados para absorver o que sai de M1:
+`src/data/curriculo.ts` — reestruturação completa. Padrão dos módulos: cada unidade faz parte do tema e tem lições temáticas dentro, faz parte.
 
-- M3 *Família alargada* (tios, avós, possessivos).
-- M4 *Tempo e calendário* → **dias, meses, estações** (saem de M1).
-- M5 *Corpo humano e saúde* → **corpo + no médico** (sai de M1).
-- M6 *Ações e rotina* (verbos essenciais).
-- M7 *Pronomes* (possessivos, demonstrativos, interrogativos).
-- M8 *Advérbios*.
-- M9 *Conjunções e frases compostas*.
-- M10 *Vida quotidiana* (casa, loiça, vestuário, alimentação).
-- M11 *Natureza e campo* (animais, aves, plantas, agricultura).
-- M12 *Verbos e tempos*.
-- *(Sabedoria Ovimbundu / provérbios)* — distribuídos como secções-bónus dentro de M3, M6 e M11, em vez de módulo próprio, para evitar bloco isolado pesado.
+**LÓGICA DE PENSAMENTO ERRADA. PULE A ETAPA 5**
 
-Arquivo afetado: `src/data/curriculo.ts` (reescrita completa do array `CURRICULO`, mantendo o shape `Modulo/Unidade/Seccao` e o helper `mk`).
+## 6 · Loja · Pacote Premium = 3 meses
 
----
+`src/components/loja/PremiumPackCard.tsx`
 
-### 3) Bottom Nav — repensar "Palavras"
+- Subtítulo passa a `EXCLUSIVO · $5 / 3 MESES`.
+- Faixa nova abaixo do botão "Importante": "💡 $5 dão-te **3 meses completos** de Premium. Renovação opcional, sem cobrança automática."
+- Atualizar o texto da CTA para "Tenho interesse — 3 meses por $5 🔥".
 
-Hoje o popover do "..." tem 4 pills: **Dicionário · Palavras · Fala & Escuta · Alfabeto**. *Palavras* sobrepõe-se a *Dicionário* e não tem lógica clara.
+`src/components/loja/PremiumInteresseModal.tsx` — mensagem confirma "3 meses por $5".
 
-**Proposta — transformar "Palavras" em "Caderno"** (o teu vocabulário pessoal):
+## 7 · Perfil · Definições com sub-ecrãs
 
-- Rota: `/secao/caderno` (renomear de `/secao/palavras`).
-- Conteúdo:
-  - **Guardadas** — palavras que o utilizador favoritou no Dicionário (estrela). Lista pesquisável, com áudio TTS e tradução.
-  - **Aprendidas** — palavras que apareceram em lições concluídas (derivado de `useProgresso`). Mostradas como flashcards horizontais.
-  - **Para rever** — palavras erradas em lições recentes, com botão "Treinar 5 agora" que abre um mini-quiz tipo Anki (4 cartões).
-- Três tabs no topo (`Guardadas | Aprendidas | Rever`), mesmo padrão visual do `FalaEscutaScreen`.
+`src/screens/ProfileScreen.tsx` — cada linha de Definições passa a navegar para uma rota dedicada.
 
-Assim cada pill tem papel distinto:
+Novos ficheiros em `src/screens/definicoes/`:
 
-- **Dicionário** = consulta + IA (entrada).
-- **Caderno** = o teu acervo pessoal (saída/revisão).
-- **Fala & Escuta** = treino oral.
-- **Alfabeto** = referência fonética.
+- `ContaScreen.tsx` — nome, e-mail, foto, alterar password, eliminar conta (placeholder).
+- `NotificacoesScreen.tsx` — switches para Lembretes diários, Ofensiva, Comunidade, E-mail marketing; horários de lembrete.
+- `IdiomaScreen.tsx` — escolher idioma da interface (PT-PT / PT-AO / EN) BLOQUEADO POR SER PREMIUM e dialecto Umbundu, com rádios ( NÃO IMPLEMENTAR, NÃO ENTENDI).
+- `SobreScreen.tsx` — versão, créditos, termos, privacidade, contacto , link à comunidade discord. e email [kwendi.xyz@gmail.com](mailto:kwendi.xyz@gmail.com) para feedback.
+- `SairConfirmModal.tsx` — confirmação para "Sair".
 
-Arquivos afetados:
+`src/App.tsx` — adicionar rotas `/profile/conta`, `/profile/notificacoes`, `/profile/idioma`, `/profile/sobre`.
 
-- `BottomNav.tsx` — renomear label "Palavras" → "Caderno", rota nova.
-- `App.tsx` — registar `/secao/caderno`.
-- `src/screens/CadernoScreen.tsx` — novo (reusa cards do Dicionário).
-- `DicionarioScreen.tsx` — garantir que o botão estrela escreve em `localStorage` `kwendi.caderno.guardadas`.
-- `useProgresso.ts` — expor lista de IDs de secções concluídas (já existente) para derivar "Aprendidas".
-
-Sem backend; tudo localStorage até integrarmos Supabase.
+Cada sub-ecrã reutiliza o cabeçalho com `ArrowLeft`, mantém estilo do app (cards bordados + sombra 3D) e persiste opções simples em `localStorage` (`kwendi.def.*`).
 
 ---
 
-### Resumo de ficheiros
+### Detalhes técnicos (para a equipa)
 
-**Editar:** `src/data/curriculo.ts`, `src/components/loja/PremiumPackCard.tsx`, `src/components/loja/PremiumInteresseModal.tsx` (sem mudança grande), `src/hooks/useLoja.ts`, `src/screens/LojaScreen.tsx`, `src/components/BottomNav.tsx`, `src/App.tsx`, `src/screens/DicionarioScreen.tsx`.
-
-**Criar:** `src/screens/CadernoScreen.tsx`.
+- Helper novo `src/lib/stats.ts` com `bumpStat(key)` e `getStat(key)` (number em localStorage) para centralizar incrementos.
+- `useMissoes` lê estes contadores em cada render — sem listeners de storage, basta o re-render do ecrã quando o utilizador volta.
+- `src/data/falaEscutaPool.ts` exporta `getFrasesParaUnidade(unidadeId): Frase[]` com fallback para frases base se a unidade não tiver banco específico.
+- `Modulo`/`Unidade` mantêm o tipo atual; só os títulos e ordenação mudam.
+- O fluxo de Duo em Fala/Escuta usa `useState` + barra de progresso simples; sem novas dependências.

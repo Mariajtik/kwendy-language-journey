@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { DICIONARIO, pesquisar, type EntradaDic } from "@/data/dicionario";
+import { bumpStat, STATS } from "@/lib/stats";
+import { toast } from "sonner";
 
 const FAV_KEY = "kwendi.caderno.guardadas";
 const LEGACY_FAV_KEY = "kwendi.dicionario.favoritos";
@@ -56,6 +58,7 @@ const DicionarioScreen = () => {
   });
   const [escutando, setEscutando] = useState(false);
   const [iaResposta, setIaResposta] = useState<string | null>(null);
+  const [jaContou, setJaContou] = useState(false);
   const recRef = useRef<SR | null>(null);
 
   useEffect(() => {
@@ -64,16 +67,31 @@ const DicionarioScreen = () => {
 
   const resultados = useMemo(() => pesquisar(query), [query]);
 
-  const lista: EntradaDic[] = query.trim()
-    ? resultados
-    : DICIONARIO.filter((d) => favoritos.includes(d.id)).concat(
-        DICIONARIO.slice(0, 8)
-      );
+  // Antes de pesquisar, sugere uma amostra para explorar.
+  // Os guardados vivem agora em Caderno.
+  const amostra = useMemo(() => DICIONARIO.slice(0, 12), []);
+  const lista: EntradaDic[] = query.trim() ? resultados : amostra;
+
+  // Conta a primeira pesquisa significativa (usado pela conquista "Curioso").
+  useEffect(() => {
+    if (!jaContou && query.trim().length >= 2) {
+      bumpStat(STATS.dicionarioBuscas);
+      setJaContou(true);
+    }
+  }, [query, jaContou]);
 
   const toggleFav = (id: string) =>
-    setFavoritos((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setFavoritos((prev) => {
+      if (prev.includes(id)) {
+        toast("Removida do Caderno");
+        return prev.filter((x) => x !== id);
+      }
+      toast("Guardada no Caderno", {
+        description: "Vê a tua coleção em Caderno → Guardadas.",
+        action: { label: "Abrir", onClick: () => nav("/secao/caderno") },
+      });
+      return [...prev, id];
+    });
 
   const falar = (texto: string, lang = "pt-PT") => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -210,15 +228,18 @@ const DicionarioScreen = () => {
           </div>
         )}
 
-        {!query.trim() && favoritos.length === 0 && (
-          <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground">
-            EXPLORAR
-          </p>
-        )}
-        {!query.trim() && favoritos.length > 0 && (
-          <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground">
-            GUARDADOS
-          </p>
+        {!query.trim() && (
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground">
+              EXPLORAR
+            </p>
+            <button
+              onClick={() => nav("/secao/caderno")}
+              className="text-[11px] font-extrabold text-foreground/70 underline"
+            >
+              Ver Caderno →
+            </button>
+          </div>
         )}
 
         <AnimatePresence initial={false}>

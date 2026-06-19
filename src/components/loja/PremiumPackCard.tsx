@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 
 const BULLETS = [
+  { emoji: "🗓️", txt: "3 meses completos por apenas $5" },
   { emoji: "🔥", txt: "Chama eterna — nunca perdes ofensiva" },
   { emoji: "❤️", txt: "Vidas infinitas — pratica sem parar" },
   { emoji: "⚡", txt: "XP em dobro, para sempre" },
@@ -57,15 +58,15 @@ const PremiumPackCard = ({ onInteresse, jaInteressado = false }: Props) => (
         </div>
         <div>
           <p className="text-[11px] font-extrabold tracking-widest opacity-90">
-            EXCLUSIVO · $5
+            EXCLUSIVO · $5 / 3 MESES
           </p>
           <h2 className="text-xl font-extrabold leading-tight">Pacote Premium</h2>
         </div>
       </div>
 
       <p className="text-sm font-bold leading-snug mb-3">
-        Desbloqueia o teu poder total. <span className="underline">$5 que mudam tudo</span>.
-        Mais controle, mais opções, zero limites. A IA Kwendi ganha
+        Desbloqueia o teu poder total. <span className="underline">$5 por 3 meses</span> —
+        mais controle, mais opções, zero limites. A IA Kwendi ganha
         <b> sotaque angolano</b> — fala e escreve como em Luanda, Huambo, Benguela.
       </p>
 
@@ -81,13 +82,20 @@ const PremiumPackCard = ({ onInteresse, jaInteressado = false }: Props) => (
         ))}
       </ul>
 
-      <div className="rounded-2xl bg-white/15 backdrop-blur p-3 mb-3 border border-white/25">
+      <div className="rounded-2xl bg-white/15 backdrop-blur p-3 mb-2 border border-white/25">
         <p className="text-[11px] font-extrabold tracking-wider uppercase opacity-95">
           ⚠️ Importante
         </p>
         <p className="text-[12px] font-semibold leading-snug mt-1">
           Só toca em <b>"Tenho interesse"</b> se realmente compravas agora por
-          $5. Estamos a medir o desejo real do mercado.
+          $5 · 3 meses. Estamos a medir o desejo real do mercado.
+        </p>
+      </div>
+
+      <div className="rounded-2xl bg-white/10 p-3 mb-3 border border-white/20">
+        <p className="text-[12px] font-semibold leading-snug">
+          💡 $5 dão-te <b>3 meses completos</b> de Premium. Renovação
+          opcional, sem cobrança automática.
         </p>
       </div>
 
@@ -114,7 +122,7 @@ const PremiumPackCard = ({ onInteresse, jaInteressado = false }: Props) => (
             className="w-full rounded-2xl py-3.5 font-extrabold text-[15px] bg-white text-foreground"
             style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.18)" }}
           >
-            Tenho interesse — avisem-me 🔥
+            Tenho interesse — 3 meses por $5 🔥
           </motion.button>
           <p className="text-[11px] font-semibold text-white/85 text-center mt-2">
             Quanto mais pessoas querem, mais rápido construímos.
