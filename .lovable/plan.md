@@ -1,158 +1,105 @@
-# Plano — Fechamento de Telas (pré-backend)
+## Plano de ajustes
 
-Tudo continua client-side (localStorage). O backend ligará depois.
+### 1) Pacote Premium — interesse toggle + sotaque angolano
 
-## 1) Mochila (refinar)
+`**PremiumPackCard.tsx**`
 
-Em `MochilaSheet.tsx`:
+- Receber prop `jaInteressado: boolean` além de `onInteresse`.
+- Quando `jaInteressado === true`:
+  - CTA muda para **"Pensei melhor, retirar interesse"** (estilo mais suave: fundo `bg-white/15` + texto branco, em vez de fundo branco).
+  - Texto de apoio passa a ser: *"Já pertences a família mas podes sair quando quiseres."*
+- Adicionar 1 bullet novo (após o "Dicionário IA ilimitado"):
+  - `🇦🇴 IA Kwendi com sotaque angolano — fala e escrita mais nossa.`
+- Reforçar no parágrafo de abertura: acrescentar frase *"A IA Kwendi ganha sotaque angolano — fala e escreve como em Luanda, Huambo, Benguela."*
 
-- Mostrar **só itens comprados ainda não usados** (não exibir desbloqueios culturais já permanentes — manter em secção separada "Coleção").
-- Para cada item: nome, quantidade, e — quando aplicável — **"Expira em X"** (usar `tempoRestante()` já existente; formatar dias/horas/minutos).
-- Vidas compradas aparecem como item "Vidas extra: ×N" (pool separado das vidas normais — ver §2).
-- Estado vazio: "A tua mochila está vazia. Visita a Loja."
+`**useLoja.ts**` (já gere a lista `kwendi.premium.interessados`)
 
-## 2) Vidas globais e persistência cross-tela
+- Adicionar `removerInteressePremium()` que faz splice do user atual e atualiza posição.
+- Expor `jaInteressadoPremium: boolean` e nova função no hook.
 
-Hoje `useSaldo` só guarda vidas no contexto de lição. Vamos:
+`**LojaScreen.tsx**`
 
-- Adicionar em `useSaldo` (ou novo `useVidas`) campo `vidasExtra` (pool separado vindo da Loja).
-- **Header global**: vidas completas (5) sempre exibidas no header de Home, Missões e Lição. Quando perde vida na lição, primeiro consome `vidasExtra` antes de descontar das 5 normais.
-- Em Home e Missões, header passa a mostrar vidas reais (não hardcoded). Em Lição já está integrado — apenas ler do mesmo estado.
+- Passar `jaInteressado` ao `PremiumPackCard`.
+- `onInteresse` agora despacha: se já interessado → remover (mostrar toast "Interesse removido"); senão → registar e abrir modal.
 
-## 3) Loja — Pacote Premium ($5)
+`**PremiumInteresseModal.tsx**`
 
-Adicionar nova categoria/aba **"Premium"** em `loja.ts` e `LojaScreen.tsx`.
-
-Card único **"Pacote Premium · $5"**:
-
-- Ícone: Cadeado estilhaçado.
-- Headline agressiva: *"Desbloqueia o teu poder total. $5 que mudam tudo."*
-- Bullets (copy de escala):
-  - 🔥 Chama eterna — nunca perdes ofensiva
-  - ❤️ Vidas infinitas — pratica sem parar
-  - ⚡ XP em dobro permanente
-  - 🎵 Todas as músicas e histórias desbloqueadas
-  - 🧠 Dicionário IA ilimitado
-  - 🚫 Sem anúncios, para sempre
-  - Badge de premium no perfil
-  - Podes postar com foto
-  - Mais eventos para participar
-  - Converse com a IA Kwendi, faça chamadas, troque mensagenss.
-  - outro idioma além do português - inglês e espanhol
-  - Estatísticas
-- CTA: **"Tenho interesse — avisem-me"** (não compra, apenas regista intenção - importante que o usuário saiba que apenas quem compraria na hora pode clicar no botão de interesse.).
-- Ao tocar: modal "Ndapandula Calwa! És o nº **X** interessado. Quando atingirmos massa crítica, ativamos o Premium." (contador em localStorage `kwendi.premium.interessados`).
-- Pequena copy abaixo: *"Quanto mais pessoas querem, mais rápido construímos."*
-
-Sem moeda envolvida. Outros itens da Loja continuam em diamantes.
-
-## 4) Home — Currículo expandido (Capítulo 1) e reordenação pedagógica
-
-Reescrever `CURRICULO` em `src/data/curriculo.ts` com lógica progressiva.
-
-**Módulo 1 — "Primeiros passos" (Saudações + tempo)**, agora com unidades:
-
-1. Saudações & apresentação
-2. Família próxima
-3. **Números & numerais** (0–10, 11–100)
-4. **Dias da semana**
-5. **Meses do ano**
-6. **Estações**
-7. **O corpo humano**
-8. Conversação básica
-
-Reorganizar os módulos seguintes para fluxo pedagógico claro:
-M2 Pronomes → M3 Ações & verbos básicos → M4 Casa & objetos → M5 Comida & mercado → M6 Natureza/animais/aves → M7 Trabalho/profissões → M8 Advérbios → M9 Conjunções → M10 Tempos verbais → M11 Sabedoria/provérbios → M12 Conversação avançada.
-
-Ajustar `getProximaUnidade`, `PRIMEIRA_UNIDADE` continuam válidos.
-
-## 5) Bottom Navigation — reorganizar "..."
-
-Hoje o popover "..." tem 4 opções (Fala, Escuta, Palavras, Alfabeto). Passa a ter **4 pills**:
-
-1. **Dicionário** (novo, primeiro) → `/dicionario`
-2. `Palavras - /secao/palavras`
-3. **Fala & Escuta** (mesclado) → `/secao/fala-escuta`
-4. **Alfabeto** (mantido, agora último) → `/secao/alfabeto`
-
-&nbsp;
-
-## 6) Dicionário (`/dicionario` — nova tela)
-
-`src/screens/DicionarioScreen.tsx`:
-
-**Topo**: search bar grande com microfone (ditado por voz via Web Speech API), placeholder "Procura em umbundu ou português…".
-
-**Lista pré-existente**: criar `src/data/dicionario.ts` com ~80 entradas iniciais (palavras já espalhadas pelo app: saudações, família, números, dias, animais, corpo, etc.) — cada entrada: `{ pt, umbundu, categoria, audio? }`.
-
-**Pesquisa**:
-
-1. Busca local fuzzy primeiro (match em pt ou umbundu).
-2. Se nada bate **e** o utilizador toca em "Pedir à IA", chamar edge function `dicionario-ia` (a criar depois com backend) — por agora, placeholder local que devolve uma de três respostas:
-  - tradução sugerida
-  - "Não entendi o que disseste — quis dizer X?"
-  - "Esta palavra ainda não está na nossa base."
-
-**Resultados (cards)**:
-
-- palavra original
-- tradução
-- botão **áudio** (play TTS via `speechSynthesis` por agora)
-- botão **salvar** (favoritos em localStorage `kwendi.dicionario.favoritos`)
-
-**Voz**: botão de microfone usa `webkitSpeechRecognition` (pt-PT / um — fallback pt) para preencher a search bar.
-
-## 7) Alfabeto (`/secao/alfabeto`)
-
-Reescrever para mostrar:
-
-- Alfabeto umbundu (a, e, i, o, u, b, c, d, f, h, j, k, l, m, n, ng, ñ, p, s, t, u, v, w, y) com botão de som por letra.
-- Secção **"Fonética & Fonologia"** com cards reaproveitando o conhecimento das imagens enviadas:
-  - Estrutura **C-V-C** (radical `kala`, `kwata`).
-  - **Prefixo nominal classe 15 "ku"** para infinitivo verbal.
-  - **Vogal de extensão** (ex.: `okukala`).
-  - **Tonalidade** muda significado (musicalidade do umbundu).
-  - **Palavras chave**: `ondaka` (palavra), `ondimbu` (gesto), `ocileñgi` (som), `ovisimilo` (sentimentos), `omunu` (pessoa), `owiki` (mel), `ovinganji` (palhaços).
-- Citação destacada: *"Na ciência não há via magna…"* (Karl Marx, citado no livro).
-
-## 8) Fala & Escuta (`/secao/fala-escuta`)
-
-Substitui Fala e Escuta separadas. Tela com 2 abas:
-
-- **Fala**: lista de frases curtas (5 do currículo atual). Cada item tem play do áudio modelo + botão "gravar" (MediaRecorder) + reprodução da gravação. Sem avaliação automática agora — só comparação auditiva.
-- **Escuta**: mini-quiz "ouve e escolhe" (3 alternativas) com 5 itens iniciais usando frases do dicionário.
-
-Mantém qualidade visual do app (cards 3D, framer-motion).
-
-## 9) Rotas (App.tsx)
-
-Adicionar:
-
-- `/dicionario` → `DicionarioScreen`
-- `/secao/fala-escuta` → tela própria (`FalaEscutaScreen`) em vez do placeholder genérico.
-- Atualizar BottomNav popover.
+- Sem mudança estrutural; continua a mostrar a posição apenas quando há novo registo.
 
 ---
 
-## Arquivos a criar
+### 2) Reestruturação pedagógica de M1 e M2
 
-- `src/screens/DicionarioScreen.tsx`
-- `src/screens/FalaEscutaScreen.tsx`
-- `src/data/dicionario.ts`
-- `src/components/loja/PremiumPackCard.tsx`
-- `src/components/loja/PremiumInteresseModal.tsx`
+Princípio: **M1 = primeiríssimo contacto** (sons, saudações, eu/tu, números até 10). **M2 = identificação e família próxima**. Tudo o que é vocabulário temático (corpo, dias, meses, estações) vai para módulos mais avançados, onde faz sentido pedagógico.
 
-## Arquivos a editar
+**Módulo 1 — "Primeiros passos"** (5 unidades, em vez de 8)
 
-- `src/data/curriculo.ts` (Módulo 1 expandido + reordenação)
-- `src/data/loja.ts` (categoria "premium")
-- `src/screens/LojaScreen.tsx` (aba Premium)
-- `src/hooks/useSaldo.ts` (campo `vidasExtra` global)
-- `src/hooks/useInventario.ts` (filtrar mochila)
-- `src/components/inventario/MochilaSheet.tsx` (UI + expiração)
-- `src/components/BottomNav.tsx` (3 pills nova ordem)
-- `src/screens/SecaoScreen.tsx` (substituir alfabeto por tela rica; manter fallback)
-- `src/screens/HomeScreen.tsx` + `src/components/missoes/HeaderRecursos.tsx` (vidas globais)
-- `src/App.tsx` (rotas novas)
+1. **Sons e alfabeto** — vogais, C-V-C, prefixo `ku-`, tonalidade básica *(novo, ancorado no que já existe em* `/secao/alfabeto`*)*. ( Não, essa sessão é apenas em alfabeto, como no Duo)
+2. **Saudações** — `Wakolelepo`, `Ndapandula`, despedidas.
+3. **Eu e tu** — pronomes pessoais singulares (`ame`, `ove`), frases mínimas "eu sou / tu és".
+4. **Sim, não e cortesia** — `ee`, `tate`, pedir/agradecer, perdão.
+5. **Números 0–10** — contar objetos básicos.
 
-Sem mudanças de backend nesta fase — tudo persistido em `localStorage`.
+**Módulo 2 — "Quem sou eu"** (5 unidades)
+
+1. **Identificação pessoal** — nome, idade ("eu chamo-me…", "tenho X anos").
+2. **Família próxima** — pai, mãe, irmãos (movido de M1).
+3. **Nacionalidade e origem** — de onde sou, países, terra natal.
+4. **A minha casa** — onde vivo, compartimentos essenciais (ponte para M10).
+5. **Conversação I** — diálogos curtos juntando 1–4.
+
+**Restantes módulos (M3–M12)** — reorganizados para absorver o que sai de M1:
+
+- M3 *Família alargada* (tios, avós, possessivos).
+- M4 *Tempo e calendário* → **dias, meses, estações** (saem de M1).
+- M5 *Corpo humano e saúde* → **corpo + no médico** (sai de M1).
+- M6 *Ações e rotina* (verbos essenciais).
+- M7 *Pronomes* (possessivos, demonstrativos, interrogativos).
+- M8 *Advérbios*.
+- M9 *Conjunções e frases compostas*.
+- M10 *Vida quotidiana* (casa, loiça, vestuário, alimentação).
+- M11 *Natureza e campo* (animais, aves, plantas, agricultura).
+- M12 *Verbos e tempos*.
+- *(Sabedoria Ovimbundu / provérbios)* — distribuídos como secções-bónus dentro de M3, M6 e M11, em vez de módulo próprio, para evitar bloco isolado pesado.
+
+Arquivo afetado: `src/data/curriculo.ts` (reescrita completa do array `CURRICULO`, mantendo o shape `Modulo/Unidade/Seccao` e o helper `mk`).
+
+---
+
+### 3) Bottom Nav — repensar "Palavras"
+
+Hoje o popover do "..." tem 4 pills: **Dicionário · Palavras · Fala & Escuta · Alfabeto**. *Palavras* sobrepõe-se a *Dicionário* e não tem lógica clara.
+
+**Proposta — transformar "Palavras" em "Caderno"** (o teu vocabulário pessoal):
+
+- Rota: `/secao/caderno` (renomear de `/secao/palavras`).
+- Conteúdo:
+  - **Guardadas** — palavras que o utilizador favoritou no Dicionário (estrela). Lista pesquisável, com áudio TTS e tradução.
+  - **Aprendidas** — palavras que apareceram em lições concluídas (derivado de `useProgresso`). Mostradas como flashcards horizontais.
+  - **Para rever** — palavras erradas em lições recentes, com botão "Treinar 5 agora" que abre um mini-quiz tipo Anki (4 cartões).
+- Três tabs no topo (`Guardadas | Aprendidas | Rever`), mesmo padrão visual do `FalaEscutaScreen`.
+
+Assim cada pill tem papel distinto:
+
+- **Dicionário** = consulta + IA (entrada).
+- **Caderno** = o teu acervo pessoal (saída/revisão).
+- **Fala & Escuta** = treino oral.
+- **Alfabeto** = referência fonética.
+
+Arquivos afetados:
+
+- `BottomNav.tsx` — renomear label "Palavras" → "Caderno", rota nova.
+- `App.tsx` — registar `/secao/caderno`.
+- `src/screens/CadernoScreen.tsx` — novo (reusa cards do Dicionário).
+- `DicionarioScreen.tsx` — garantir que o botão estrela escreve em `localStorage` `kwendi.caderno.guardadas`.
+- `useProgresso.ts` — expor lista de IDs de secções concluídas (já existente) para derivar "Aprendidas".
+
+Sem backend; tudo localStorage até integrarmos Supabase.
+
+---
+
+### Resumo de ficheiros
+
+**Editar:** `src/data/curriculo.ts`, `src/components/loja/PremiumPackCard.tsx`, `src/components/loja/PremiumInteresseModal.tsx` (sem mudança grande), `src/hooks/useLoja.ts`, `src/screens/LojaScreen.tsx`, `src/components/BottomNav.tsx`, `src/App.tsx`, `src/screens/DicionarioScreen.tsx`.
+
+**Criar:** `src/screens/CadernoScreen.tsx`.
