@@ -92,14 +92,37 @@ const MochilaSheet = ({ aberto, onFechar }: Props) => {
             ) : (
               <>
                 <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-2">
-                  POWER-UPS
+                  POR USAR
                 </p>
                 <div className="space-y-2 mb-4">
+                  {saldo.vidasExtra > 0 && (
+                    <div className="flex items-center gap-3 rounded-2xl border-2 border-border p-3">
+                      <div
+                        className="w-10 h-10 rounded-xl grid place-items-center text-xl"
+                        style={{ background: "hsl(5 84% 55% / 0.15)" }}
+                      >
+                        ❤️
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-extrabold text-sm text-foreground leading-tight">
+                          Vidas extra
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          consumidas antes das tuas vidas normais
+                        </p>
+                      </div>
+                      <span
+                        className="font-extrabold text-sm tabular-nums px-2 py-1 rounded-lg"
+                        style={{ background: "hsl(5 84% 55% / 0.18)", color: "hsl(5 84% 45%)" }}
+                      >
+                        ×{saldo.vidasExtra}
+                      </span>
+                    </div>
+                  )}
                   {linhas.map(({ item, qtd, restante }) => (
                     <div
                       key={item!.id}
                       className="flex items-center gap-3 rounded-2xl border-2 border-border p-3"
-                      style={{ opacity: qtd === 0 ? 0.45 : 1 }}
                     >
                       <div
                         className="w-10 h-10 rounded-xl grid place-items-center text-xl"
@@ -112,10 +135,10 @@ const MochilaSheet = ({ aberto, onFechar }: Props) => {
                           {item!.nome}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          {qtd === 0
-                            ? "não tens"
-                            : restante !== null && restante > 0
-                            ? `ativo · ${restante} min restantes`
+                          {restante !== null && restante > 0
+                            ? `ativo · ${formatExp(restante)?.replace("Expira em ", "")}`
+                            : restante === 0
+                            ? "expirado"
                             : "pronto a usar"}
                         </p>
                       </div>
@@ -135,7 +158,7 @@ const MochilaSheet = ({ aberto, onFechar }: Props) => {
                 {desbloqueios.length > 0 && (
                   <>
                     <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-2">
-                      DESBLOQUEIOS
+                      COLEÇÃO
                     </p>
                     <div className="space-y-2 mb-4">
                       {desbloqueios.map((d) => (
