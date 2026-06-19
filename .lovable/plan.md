@@ -1,101 +1,158 @@
-## Objetivo
+# Plano — Fechamento de Telas (pré-backend)
 
-Três ajustes na Loja Kwendi:
+Tudo continua client-side (localStorage). O backend ligará depois.
 
-1. **Conectividade**: o que se compra fica acessível em **qualquer tela** (não só na Loja).
-2. **Rebalancear preços** (estavam baratos demais para a economia do app).
-3. **Corrigir descrições truncadas** nos cards (Pack de Músicas, etc.) no mobile.
+## 1) Mochila (refinar)
+
+Em `MochilaSheet.tsx`:
+
+- Mostrar **só itens comprados ainda não usados** (não exibir desbloqueios culturais já permanentes — manter em secção separada "Coleção").
+- Para cada item: nome, quantidade, e — quando aplicável — **"Expira em X"** (usar `tempoRestante()` já existente; formatar dias/horas/minutos).
+- Vidas compradas aparecem como item "Vidas extra: ×N" (pool separado das vidas normais — ver §2).
+- Estado vazio: "A tua mochila está vazia. Visita a Loja."
+
+## 2) Vidas globais e persistência cross-tela
+
+Hoje `useSaldo` só guarda vidas no contexto de lição. Vamos:
+
+- Adicionar em `useSaldo` (ou novo `useVidas`) campo `vidasExtra` (pool separado vindo da Loja).
+- **Header global**: vidas completas (5) sempre exibidas no header de Home, Missões e Lição. Quando perde vida na lição, primeiro consome `vidasExtra` antes de descontar das 5 normais.
+- Em Home e Missões, header passa a mostrar vidas reais (não hardcoded). Em Lição já está integrado — apenas ler do mesmo estado.
+
+## 3) Loja — Pacote Premium ($5)
+
+Adicionar nova categoria/aba **"Premium"** em `loja.ts` e `LojaScreen.tsx`.
+
+Card único **"Pacote Premium · $5"**:
+
+- Ícone: Cadeado estilhaçado.
+- Headline agressiva: *"Desbloqueia o teu poder total. $5 que mudam tudo."*
+- Bullets (copy de escala):
+  - 🔥 Chama eterna — nunca perdes ofensiva
+  - ❤️ Vidas infinitas — pratica sem parar
+  - ⚡ XP em dobro permanente
+  - 🎵 Todas as músicas e histórias desbloqueadas
+  - 🧠 Dicionário IA ilimitado
+  - 🚫 Sem anúncios, para sempre
+  - Badge de premium no perfil
+  - Podes postar com foto
+  - Mais eventos para participar
+  - Converse com a IA Kwendi, faça chamadas, troque mensagenss.
+  - outro idioma além do português - inglês e espanhol
+  - Estatísticas
+- CTA: **"Tenho interesse — avisem-me"** (não compra, apenas regista intenção - importante que o usuário saiba que apenas quem compraria na hora pode clicar no botão de interesse.).
+- Ao tocar: modal "Ndapandula Calwa! És o nº **X** interessado. Quando atingirmos massa crítica, ativamos o Premium." (contador em localStorage `kwendi.premium.interessados`).
+- Pequena copy abaixo: *"Quanto mais pessoas querem, mais rápido construímos."*
+
+Sem moeda envolvida. Outros itens da Loja continuam em diamantes.
+
+## 4) Home — Currículo expandido (Capítulo 1) e reordenação pedagógica
+
+Reescrever `CURRICULO` em `src/data/curriculo.ts` com lógica progressiva.
+
+**Módulo 1 — "Primeiros passos" (Saudações + tempo)**, agora com unidades:
+
+1. Saudações & apresentação
+2. Família próxima
+3. **Números & numerais** (0–10, 11–100)
+4. **Dias da semana**
+5. **Meses do ano**
+6. **Estações**
+7. **O corpo humano**
+8. Conversação básica
+
+Reorganizar os módulos seguintes para fluxo pedagógico claro:
+M2 Pronomes → M3 Ações & verbos básicos → M4 Casa & objetos → M5 Comida & mercado → M6 Natureza/animais/aves → M7 Trabalho/profissões → M8 Advérbios → M9 Conjunções → M10 Tempos verbais → M11 Sabedoria/provérbios → M12 Conversação avançada.
+
+Ajustar `getProximaUnidade`, `PRIMEIRA_UNIDADE` continuam válidos.
+
+## 5) Bottom Navigation — reorganizar "..."
+
+Hoje o popover "..." tem 4 opções (Fala, Escuta, Palavras, Alfabeto). Passa a ter **4 pills**:
+
+1. **Dicionário** (novo, primeiro) → `/dicionario`
+2. `Palavras - /secao/palavras`
+3. **Fala & Escuta** (mesclado) → `/secao/fala-escuta`
+4. **Alfabeto** (mantido, agora último) → `/secao/alfabeto`
+
+&nbsp;
+
+## 6) Dicionário (`/dicionario` — nova tela)
+
+`src/screens/DicionarioScreen.tsx`:
+
+**Topo**: search bar grande com microfone (ditado por voz via Web Speech API), placeholder "Procura em umbundu ou português…".
+
+**Lista pré-existente**: criar `src/data/dicionario.ts` com ~80 entradas iniciais (palavras já espalhadas pelo app: saudações, família, números, dias, animais, corpo, etc.) — cada entrada: `{ pt, umbundu, categoria, audio? }`.
+
+**Pesquisa**:
+
+1. Busca local fuzzy primeiro (match em pt ou umbundu).
+2. Se nada bate **e** o utilizador toca em "Pedir à IA", chamar edge function `dicionario-ia` (a criar depois com backend) — por agora, placeholder local que devolve uma de três respostas:
+  - tradução sugerida
+  - "Não entendi o que disseste — quis dizer X?"
+  - "Esta palavra ainda não está na nossa base."
+
+**Resultados (cards)**:
+
+- palavra original
+- tradução
+- botão **áudio** (play TTS via `speechSynthesis` por agora)
+- botão **salvar** (favoritos em localStorage `kwendi.dicionario.favoritos`)
+
+**Voz**: botão de microfone usa `webkitSpeechRecognition` (pt-PT / um — fallback pt) para preencher a search bar.
+
+## 7) Alfabeto (`/secao/alfabeto`)
+
+Reescrever para mostrar:
+
+- Alfabeto umbundu (a, e, i, o, u, b, c, d, f, h, j, k, l, m, n, ng, ñ, p, s, t, u, v, w, y) com botão de som por letra.
+- Secção **"Fonética & Fonologia"** com cards reaproveitando o conhecimento das imagens enviadas:
+  - Estrutura **C-V-C** (radical `kala`, `kwata`).
+  - **Prefixo nominal classe 15 "ku"** para infinitivo verbal.
+  - **Vogal de extensão** (ex.: `okukala`).
+  - **Tonalidade** muda significado (musicalidade do umbundu).
+  - **Palavras chave**: `ondaka` (palavra), `ondimbu` (gesto), `ocileñgi` (som), `ovisimilo` (sentimentos), `omunu` (pessoa), `owiki` (mel), `ovinganji` (palhaços).
+- Citação destacada: *"Na ciência não há via magna…"* (Karl Marx, citado no livro).
+
+## 8) Fala & Escuta (`/secao/fala-escuta`)
+
+Substitui Fala e Escuta separadas. Tela com 2 abas:
+
+- **Fala**: lista de frases curtas (5 do currículo atual). Cada item tem play do áudio modelo + botão "gravar" (MediaRecorder) + reprodução da gravação. Sem avaliação automática agora — só comparação auditiva.
+- **Escuta**: mini-quiz "ouve e escolhe" (3 alternativas) com 5 itens iniciais usando frases do dicionário.
+
+Mantém qualidade visual do app (cards 3D, framer-motion).
+
+## 9) Rotas (App.tsx)
+
+Adicionar:
+
+- `/dicionario` → `DicionarioScreen`
+- `/secao/fala-escuta` → tela própria (`FalaEscutaScreen`) em vez do placeholder genérico.
+- Atualizar BottomNav popover.
 
 ---
 
-## 1. Inventário global ("Mochila")
+## Arquivos a criar
 
-Hoje `useInventario` já persiste em `localStorage` e dispara eventos, mas só a Loja consome. Vamos expor o inventário em todas as telas com header.
+- `src/screens/DicionarioScreen.tsx`
+- `src/screens/FalaEscutaScreen.tsx`
+- `src/data/dicionario.ts`
+- `src/components/loja/PremiumPackCard.tsx`
+- `src/components/loja/PremiumInteresseModal.tsx`
 
-### 1a. Chip "Mochila" no `HeaderRecursos`
+## Arquivos a editar
 
-- Novo item clicável ao lado dos diamantes, com ícone 🎒 e badge numérico (total de power-ups ativos + vidas + dicas).
-- Aparece em: Home, Missões, Histórias, Curiosidades, Perfil (todas usam `HeaderRecursos` ou o header da Home).
-- Tap abre o **MochilaSheet** (Drawer/Sheet inferior).
+- `src/data/curriculo.ts` (Módulo 1 expandido + reordenação)
+- `src/data/loja.ts` (categoria "premium")
+- `src/screens/LojaScreen.tsx` (aba Premium)
+- `src/hooks/useSaldo.ts` (campo `vidasExtra` global)
+- `src/hooks/useInventario.ts` (filtrar mochila)
+- `src/components/inventario/MochilaSheet.tsx` (UI + expiração)
+- `src/components/BottomNav.tsx` (3 pills nova ordem)
+- `src/screens/SecaoScreen.tsx` (substituir alfabeto por tela rica; manter fallback)
+- `src/screens/HomeScreen.tsx` + `src/components/missoes/HeaderRecursos.tsx` (vidas globais)
+- `src/App.tsx` (rotas novas)
 
-### 1b. `MochilaSheet` (novo componente, `src/components/inventario/MochilaSheet.tsx`)
-
-- Lista os power-ups ativos com quantidade e tempo restante (para Dobrador de XP):
-  - 🔥 Manter Chama × N — "pronto a usar"
-  - ⚡ Dobrador de XP × N — "ativo: 12:34" ou "pronto a usar"
-  - 💡 Dica Extra × N
-  - ❤️ Coração Extra × N
-- Desbloqueios culturais listados abaixo (com check).
-- CTAs: "Usar agora" (quando aplicável no contexto — ex.: vida extra), "Abrir loja".
-- Empty state amigável com botão para a Loja.
-
-### 1c. Uso contextual dos power-ups
-
-- `**LessonScreen**`: botão 💡 "Dica" lê do inventário; ❤️ "Recuperar vida" aparece quando vidas = 0 e há `vida-extra`. Dobrador de XP, se ativo, multiplica XP ganho ao finalizar lição.
-- `**HomeScreen` / streak**: `manter-chama` é consumido automaticamente quando o streak corre risco (passo já preparado no `useProgresso` — apenas ler do inventário).
-- `**HistoriasScreen**`: cards com `bloqueado: true` ficam livres quando `inventario.desbloqueios` inclui o id correspondente (já existe).
-
-### 1d. API do hook
-
-Adicionar helpers em `useInventario.ts`:
-
-- `usarPowerUp(id)` — decrementa quantidade, dispara evento.
-- `temPowerUp(id): boolean`
-- `tempoRestante(id): number | null` (minutos) para dobrador.
-
----
-
-## 2. Rebalancear preços
-
-Economia atual (referência): missão diária ≈ 20-50 💎. Loja deve sentir-se aspiracional.
-
-
-| Item                         | Antes  | Depois                                   |
-| ---------------------------- | ------ | ---------------------------------------- |
-| Dica Extra                   | 10     | **25**                                   |
-| Coração Extra                | 20     | **50**                                   |
-| Manter Chama                 | 30     | **80**                                   |
-| Dobrador de XP (15min)       | 50     | **120**                                  |
-| Baú Comum                    | 40     | **100**                                  |
-| Pacote 10 Fragmentos         | 60     | **180**                                  |
-| Baú Raro                     | 120    | **350**                                  |
-| Baú Lendário                 | 300    | **900**                                  |
-| Mais Curiosidades (×3)       | 1.500  | **950**                                  |
-| História: Sumbi              | 1.000  | **1.200**                                |
-| História: A Kianda do Mar    | 5.000  | **1.500** *(reduzir — bloqueava demais)* |
-| Pack de Músicas Tradicionais | 10.000 | **5.000** *(reduzir — era proibitivo)*   |
-
-
-(Valores podem ser ajustados depois; ficam num único arquivo.)
-
----
-
-## 3. Fix descrições truncadas no mobile
-
-Em `ItemLojaCard.tsx`:
-
-- `line-clamp-3` corta no 390px porque o card divide a largura em 2 colunas e a descrição é longa.
-- **Mudanças**:
-  - Aumentar área da descrição: `min-h-[3.5rem]` e subir para `line-clamp-4` em telas pequenas (ou remover clamp e deixar fluir, já que o card é flex-col).
-  - Encurtar copys longas (ex.: Pack de Músicas → "Trilha sonora extra em 'Para Além de Fronteiras' (+2 opções).").
-  - Para garantir que o conteúdo nunca colide com o CTA, dar `flex-1` à descrição (já tem) e remover o clamp restritivo.
-  - Aumentar leve `text-[11px] sm:text-xs` para caber mais palavra por linha.
-
----
-
-## Arquivos afetados
-
-**Novos**
-
-- `src/components/inventario/MochilaSheet.tsx`
-
-**Editados**
-
-- `src/data/loja.ts` — novos preços e copy mais curta do pack de músicas.
-- `src/hooks/useInventario.ts` — `usarPowerUp`, `temPowerUp`, `tempoRestante`.
-- `src/components/missoes/HeaderRecursos.tsx` — novo chip "Mochila" abrindo o sheet.
-- `src/screens/HomeScreen.tsx` — incluir chip Mochila no header.
-- `src/screens/LessonScreen.tsx` — consumir dica/vida/dobrador a partir do inventário.
-- `src/components/loja/ItemLojaCard.tsx` — fix do truncamento da descrição.
-
-**Não tocar**: `BottomNav`, `curriculo.ts`, rotas existentes, fluxo da Loja em si.
+Sem mudanças de backend nesta fase — tudo persistido em `localStorage`.

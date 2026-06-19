@@ -84,10 +84,10 @@ const navItems: NavItem[] = [
 ];
 
 const moreOptions = [
-  { label: "Fala", route: "/secao/fala" },
-  { label: "Escuta", route: "/secao/escuta" },
+  { label: "Dicionário", route: "/dicionario" },
   { label: "Palavras", route: "/secao/palavras" },
-  { label: "Alfabeto/pronúncia", route: "/secao/alfabeto" },
+  { label: "Fala & Escuta", route: "/secao/fala-escuta" },
+  { label: "Alfabeto", route: "/secao/alfabeto" },
 ];
 
 interface BottomNavProps {

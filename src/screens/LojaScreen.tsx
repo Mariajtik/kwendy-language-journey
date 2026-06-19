@@ -14,6 +14,10 @@ import SaldoInsuficienteModal from "@/components/loja/SaldoInsuficienteModal";
 import MochilaSheet from "@/components/inventario/MochilaSheet";
 import { CATEGORIAS, ITENS_LOJA, type CategoriaLoja, type ItemLoja } from "@/data/loja";
 import { useLoja } from "@/hooks/useLoja";
+import PremiumPackCard from "@/components/loja/PremiumPackCard";
+import PremiumInteresseModal from "@/components/loja/PremiumInteresseModal";
+
+const PREMIUM_KEY = "kwendi.premium.interessados";
 
 const LojaScreen = () => {
   const nav = useNavigate();
@@ -23,11 +27,27 @@ const LojaScreen = () => {
   const [sucesso, setSucesso] = useState<ItemLoja | null>(null);
   const [faltam, setFaltam] = useState<number | null>(null);
   const [mochilaAberta, setMochilaAberta] = useState(false);
+  const [premiumPos, setPremiumPos] = useState<number | null>(null);
   const totalMochila =
     inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
-    inventario.desbloqueios.length;
+    inventario.desbloqueios.length +
+    saldo.vidasExtra;
 
   const itens = useMemo(() => ITENS_LOJA.filter((i) => i.categoria === tab), [tab]);
+
+  const registarInteressePremium = () => {
+    const atual = Number(localStorage.getItem(PREMIUM_KEY) ?? "0");
+    const jaInteressado = localStorage.getItem("kwendi.premium.eu") === "1";
+    let pos = atual;
+    if (!jaInteressado) {
+      pos = atual + 1;
+      localStorage.setItem(PREMIUM_KEY, String(pos));
+      localStorage.setItem("kwendi.premium.eu", "1");
+    } else if (atual === 0) {
+      pos = 1;
+    }
+    setPremiumPos(pos);
+  };
 
   const handleComprar = () => {
     if (!confirmar) return;
@@ -130,16 +150,20 @@ const LojaScreen = () => {
             transition={{ duration: 0.2 }}
             className="grid grid-cols-2 gap-3"
           >
-            {itens.map((it) => (
-              <ItemLojaCard
-                key={it.id}
-                item={it}
-                desbloqueado={
-                  it.categoria === "cultura" && inventario.desbloqueios.includes(it.id)
-                }
-                onComprar={() => setConfirmar(it)}
-              />
-            ))}
+            {tab === "premium" ? (
+              <PremiumPackCard onInteresse={registarInteressePremium} />
+            ) : (
+              itens.map((it) => (
+                <ItemLojaCard
+                  key={it.id}
+                  item={it}
+                  desbloqueado={
+                    it.categoria === "cultura" && inventario.desbloqueios.includes(it.id)
+                  }
+                  onComprar={() => setConfirmar(it)}
+                />
+              ))
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -157,6 +181,7 @@ const LojaScreen = () => {
         onFechar={() => setFaltam(null)}
       />
       <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
+      <PremiumInteresseModal posicao={premiumPos} onFechar={() => setPremiumPos(null)} />
     </motion.div>
   );
 };

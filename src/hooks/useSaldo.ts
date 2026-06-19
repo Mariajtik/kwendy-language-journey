@@ -17,10 +17,16 @@ export interface Saldo {
   ofensiva: number;
   ultimoDiaAtivo: string;
   curiosidadesLidas: string[];
+  /** Vidas atuais (0..VIDAS_MAX) — partilhadas em todo o app */
+  vidas: number;
+  /** Vidas extra compradas na Loja (pool separado, sem limite) */
+  vidasExtra: number;
 }
 
 const KEY = "kwendi_saldo_v1";
 const EVT = "kwendi:saldo-changed";
+
+export const VIDAS_MAX = 5;
 
 const DEFAULT: Saldo = {
   xp: 0,
@@ -30,6 +36,8 @@ const DEFAULT: Saldo = {
   ofensiva: 3,
   ultimoDiaAtivo: "",
   curiosidadesLidas: [],
+  vidas: VIDAS_MAX,
+  vidasExtra: 0,
 };
 
 function load(): Saldo {
@@ -45,6 +53,8 @@ function load(): Saldo {
       diamantes: p.diamantes ?? (p.kindeles != null ? DEFAULT.diamantes + p.kindeles : DEFAULT.diamantes),
       baus: { ...DEFAULT.baus, ...(p.baus ?? {}) },
       curiosidadesLidas: p.curiosidadesLidas ?? [],
+      vidas: typeof p.vidas === "number" ? Math.min(VIDAS_MAX, Math.max(0, p.vidas)) : VIDAS_MAX,
+      vidasExtra: typeof p.vidasExtra === "number" ? Math.max(0, p.vidasExtra) : 0,
     };
   } catch {
     return DEFAULT;
@@ -89,4 +99,28 @@ export function useSaldo() {
   }, []);
 
   return { saldo, update };
+}
+
+/**
+ * Consome uma vida: primeiro do pool de vidasExtra (comprado),
+ * depois das vidas normais. Devolve o novo total combinado.
+ */
+export function perderVida(): number {
+  const next = setSaldo((prev) => {
+    if (prev.vidasExtra > 0) {
+      return { ...prev, vidasExtra: prev.vidasExtra - 1 };
+    }
+    return { ...prev, vidas: Math.max(0, prev.vidas - 1) };
+  });
+  return next.vidas + next.vidasExtra;
+}
+
+/** Recupera vidas normais (até VIDAS_MAX). Não toca em vidasExtra. */
+export function recuperarVidas(n = VIDAS_MAX): void {
+  setSaldo((prev) => ({ ...prev, vidas: Math.min(VIDAS_MAX, prev.vidas + n) }));
+}
+
+/** Adiciona vidas extra ao pool comprado. */
+export function adicionarVidaExtra(n = 1): void {
+  setSaldo((prev) => ({ ...prev, vidasExtra: prev.vidasExtra + n }));
 }
