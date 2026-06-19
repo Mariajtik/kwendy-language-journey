@@ -20,7 +20,8 @@ import {
 import BottomNav from "@/components/BottomNav";
 import { DICIONARIO, pesquisar, type EntradaDic } from "@/data/dicionario";
 
-const FAV_KEY = "kwendi.dicionario.favoritos";
+const FAV_KEY = "kwendi.caderno.guardadas";
+const LEGACY_FAV_KEY = "kwendi.dicionario.favoritos";
 
 /** Type lightweight para Web Speech API */
 type SR = {
@@ -39,7 +40,16 @@ const DicionarioScreen = () => {
   const [query, setQuery] = useState("");
   const [favoritos, setFavoritos] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem(FAV_KEY) ?? "[]");
+      const atual = localStorage.getItem(FAV_KEY);
+      if (atual) return JSON.parse(atual);
+      // Migra chave antiga (uma vez)
+      const legacy = localStorage.getItem(LEGACY_FAV_KEY);
+      if (legacy) {
+        localStorage.setItem(FAV_KEY, legacy);
+        localStorage.removeItem(LEGACY_FAV_KEY);
+        return JSON.parse(legacy);
+      }
+      return [];
     } catch {
       return [];
     }

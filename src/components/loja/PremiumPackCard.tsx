@@ -12,6 +12,7 @@ const BULLETS = [
   { emoji: "⚡", txt: "XP em dobro, para sempre" },
   { emoji: "🎵", txt: "Todas as músicas e histórias desbloqueadas" },
   { emoji: "🧠", txt: "Dicionário IA ilimitado" },
+  { emoji: "🇦🇴", txt: "IA Kwendi com sotaque angolano — fala e escrita mais nossa" },
   { emoji: "🌍", txt: "Inglês e espanhol além do português" },
   { emoji: "💬", txt: "Conversa, chama e troca msgs com a IA Kwendi" },
   { emoji: "📸", txt: "Posta com foto na comunidade" },
@@ -23,9 +24,10 @@ const BULLETS = [
 
 interface Props {
   onInteresse: () => void;
+  jaInteressado?: boolean;
 }
 
-const PremiumPackCard = ({ onInteresse }: Props) => (
+const PremiumPackCard = ({ onInteresse, jaInteressado = false }: Props) => (
   <motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
@@ -63,7 +65,8 @@ const PremiumPackCard = ({ onInteresse }: Props) => (
 
       <p className="text-sm font-bold leading-snug mb-3">
         Desbloqueia o teu poder total. <span className="underline">$5 que mudam tudo</span>.
-        Mais controle, mais opções, zero limites.
+        Mais controle, mais opções, zero limites. A IA Kwendi ganha
+        <b> sotaque angolano</b> — fala e escreve como em Luanda, Huambo, Benguela.
       </p>
 
       <ul className="space-y-1.5 mb-4">
@@ -88,19 +91,36 @@ const PremiumPackCard = ({ onInteresse }: Props) => (
         </p>
       </div>
 
-      <motion.button
-        type="button"
-        onClick={onInteresse}
-        whileTap={{ scale: 0.97 }}
-        className="w-full rounded-2xl py-3.5 font-extrabold text-[15px] bg-white text-foreground"
-        style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.18)" }}
-      >
-        Tenho interesse — avisem-me 🔥
-      </motion.button>
-
-      <p className="text-[11px] font-semibold text-white/85 text-center mt-2">
-        Quanto mais pessoas querem, mais rápido construímos.
-      </p>
+      {jaInteressado ? (
+        <>
+          <motion.button
+            type="button"
+            onClick={onInteresse}
+            whileTap={{ scale: 0.97 }}
+            className="w-full rounded-2xl py-3.5 font-extrabold text-[14px] bg-white/15 text-white border border-white/40"
+          >
+            Pensei melhor, retirar interesse
+          </motion.button>
+          <p className="text-[11px] font-semibold text-white/85 text-center mt-2">
+            Já pertences à família — podes sair quando quiseres.
+          </p>
+        </>
+      ) : (
+        <>
+          <motion.button
+            type="button"
+            onClick={onInteresse}
+            whileTap={{ scale: 0.97 }}
+            className="w-full rounded-2xl py-3.5 font-extrabold text-[15px] bg-white text-foreground"
+            style={{ boxShadow: "0 4px 0 rgba(0,0,0,0.18)" }}
+          >
+            Tenho interesse — avisem-me 🔥
+          </motion.button>
+          <p className="text-[11px] font-semibold text-white/85 text-center mt-2">
+            Quanto mais pessoas querem, mais rápido construímos.
+          </p>
+        </>
+      )}
     </div>
   </motion.div>
 );

@@ -85,7 +85,7 @@ const navItems: NavItem[] = [
 
 const moreOptions = [
   { label: "Dicionário", route: "/dicionario" },
-  { label: "Palavras", route: "/secao/palavras" },
+  { label: "Caderno", route: "/secao/caderno" },
   { label: "Fala & Escuta", route: "/secao/fala-escuta" },
   { label: "Alfabeto", route: "/secao/alfabeto" },
 ];
