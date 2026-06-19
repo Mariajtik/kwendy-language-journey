@@ -435,8 +435,17 @@ const HomeScreen = () => {
               color="hsl(var(--primary))"
             />
             <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-              5
+              {saldo.vidas + saldo.vidasExtra}
             </span>
+            {saldo.vidasExtra > 0 && (
+              <span
+                className="text-[10px] font-extrabold px-1 rounded"
+                style={{ background: "hsl(45 96% 53%)", color: "#fff" }}
+                title="Vidas extra da Loja"
+              >
+                +{saldo.vidasExtra}
+              </span>
+            )}
           </div>
 
         </div>
