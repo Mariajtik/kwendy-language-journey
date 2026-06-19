@@ -1,44 +1,66 @@
-## Objetivo
+## Objectivo
 
-Reorganizar `src/data/curriculo.ts` para que o **Módulo 1** funcione como uma "viagem" pelos primeiros cenários reais do dia-a-dia (mistura solta de saudações, perguntas, números, lugares, compras), e os módulos seguintes aprofundem cada tema com a espinha pedagógica acordada.
+Produzir documentação técnico-académica completa do Kwendi e propor um **modelo relacional ideal para futuro backend Supabase**, mantendo coerência com o que já existe em código (hooks `useSaldo`, `useProgresso`, `useMissoes`, `useInventario`, `useLoja`, currículo, loja, missões, conquistas, recompensas, fronteiras, histórias, curiosidades, dicionário, fala-escuta).
 
-Único ficheiro alterado: `src/data/curriculo.ts`. IDs (`m{N}u{N}sN`, `…bau`) mantidos. Sem impacto em `useProgresso`, `HomeScreen`, `FalaEscutaScreen`, `SecaoScreen` — todos consomem `CURRICULO` dinamicamente.
+A entrega tem duas partes:
 
----
+1. **Ficheiro `Kwendi_Analise_Tecnica.docx**` em `/mnt/documents/` — entregável formal, com todas as secções pedidas em texto corrido, tabelas e descrições.
+2. **Diagramas Mermaid renderizados no chat** (artifacts `.mmd`) — para reveres visualmente o modelo lógico, diagrama de classes, casos de uso (sistema e negócio) e fluxo de funcionamento.
 
-## Módulo 1 — **Saúda a tua comunidade**
+## Estrutura do documento (.docx)
 
-Cenários reais, vocabulário "solto" puxado de vários temas do livro (saudações, pronomes, números, verbos básicos, lugares, mercado). O objectivo é o aluno **safar-se em situações reais** antes de aprofundar a gramática.
+11 secções numeradas, todas em Português (Angola/Portugal):
 
-1. **Identificação pessoal** — "Como te chamas?", "Quem sou eu?", "Como estás?", apresentar-se em poucas frases.
-2. **De manhã** — Wakolelepo, bom dia, saudar mais-velhos, responder a "como passaste a noite".
-3. **Na rua** — "Para onde vais?", "De onde vens?", "Quantos anos tens?", direcções simples, cumprimentar conhecidos.
-4. **No mercado** — "Quanto é?", "Quero comprar…", números 1–10 aplicados, nomes de comida básica, agradecer.
-5. **Conversação** — diálogo curto que junta os 4 cenários anteriores numa interacção corrida.
+1. **Identificação do Projecto** — público-alvo, stack actual (React 18 + Vite + Tailwind + Framer Motion + localStorage), stack-alvo proposta (Lovable Cloud / Supabase: Auth, Postgres, Storage, Edge Functions).
+2. **Funcionamento do Sistema** — Descrição narrativa do fluxo: Splash → Welcome → Apresentação → Features → Fronteiras (intro/quiz) → Signup/Login/Stealth → Processing → Home (mapa de lições) → Lição (exercícios: completar palavra, escolha múltipla, pares, certo/errado, fala/escuta) → Recompensas → Missões/Loja/Perfil/Histórias/Curiosidades/Dicionário/Caderno. Inclui regras: 5 vidas máx, 5 dicas grátis/dia, dica paga 15 💎, ofensiva, dobrador XP, baús (comum/raro/lendário), fragmentos.
+3. **Descrição das Entidades do Modelo Relacional** — ficha textual de cada entidade com finalidade, atributos-chave e relações. Entidades propostas:
+  - `utilizador` (perfil, idade, motivo, nível-actual)
+  - `sessao_stealth` (acesso 7 dias sem conta)
+  - `modulo`, `unidade`, `seccao` (currículo)
+  - `progresso_seccao` (utilizador × secção)
+  - `licao` (cabeçalho) e `exercicio` (tipo: completar / escolha / pares / certo-errado / fala / escuta)
+  - `tentativa_exercicio` (resposta, correcto, tempo)
+  - `saldo` (xp, diamantes, fragmentos, ofensiva, vidas, vidas_extra, ultimo_dia_activo)
+  - `dica_diaria` (contador de dicas grátis usadas no dia)
+  - `bau_inventario` (utilizador × raridade × quantidade) e `bau_abertura` (histórico de drops)
+  - `item_loja`, `categoria_loja`, `compra` (transacção em diamantes), `precoreal_pack` (futuro Stripe/Paddle)
+  - `powerup_activo` (utilizador × item × quantidade × expira_em)
+  - `desbloqueio_cultura` (histórias/packs comprados)
+  - `missao` (def), `missao_progresso`, `conquista` (def), `conquista_progresso`
+  - `historia`, `historia_leitura`
+  - `curiosidade`, `curiosidade_lida`
+  - `palavra_dicionario`, `busca_dicionario`, `caderno_guardada`
+  - `fala_escuta_pool`, `gravacao_fala`
+  - `fronteiras_pergunta`, `fronteiras_partida`
+  - `notificacao_pref`, `audit_log`
+4. **Modelo Conceitual (ER)** — diagrama Entidade-Relação de alto nível (Chen/UML simplificado em ASCII + descrição das cardinalidades 1:N e N:N). Não tem PK/FK nem tipos.
+5. **Modelo Lógico (Relacional)** — tabelas com PKs, FKs, restrições (UNIQUE, NOT NULL, CHECK, ENUMs), normalizado até 3FN. Apresentado como tabela "Tabela | Colunas | PK | FK | Restrições".
+6. **Modelo Físico (SQL Postgres / Supabase)** — DDL completo (`CREATE TYPE`, `CREATE TABLE`, índices, `GRANT`, `ENABLE RLS`, políticas `auth.uid()`, função `has_role` + tabela `user_roles` para admins do conteúdo) **apenas como anexo SQL no documento** — não executado, é uma proposta.
+7. **Diagrama de Classes (UML)** — classes que representam as entidades e os principais serviços (`SaldoService`, `ProgressoService`, `MissoesService`, `LojaService`, `LicaoService`, `DicaService`, `BauService`) com atributos, métodos públicos e relações (associação, composição, herança onde aplicável: `Missao` ← `MissaoDiaria`/`Semanal`/`Especial`).
+8. **Diagrama de Casos de Uso do Sistema (UML)** — Actores: *Visitante*, *Utilizador Stealth*, *Aprendiz Registado*, *Sistema Temporal* (resets diários/semanais), *Administrador de Conteúdo*. Casos: registar-se, entrar como furtivo, fazer lição, usar dica grátis/paga, perder vida, comprar item, abrir baú, completar missão, resgatar conquista, ler história, ler curiosidade, jogar Fronteiras, etc., com relações `<<include>>` e `<<extend>>`.
+9. **Diagrama de Casos de Uso de Negócio** — visão de mais alto nível, sem detalhe técnico: *Aprender Umbundu*, *Reter o aprendiz*, *Monetizar via Loja/Premium*, *Promover cultura angolana*, *Recolher feedback*. Actores de negócio: *Aprendiz*, *Equipa de Conteúdo*, *Equipa Comercial*, *Parceiros culturais*.
+10. **Funcionamento Detalhado por Módulo** — fluxos passo-a-passo: aprendizagem, economia (diamantes/vidas/dicas), gamificação (XP/ofensiva/baús), conteúdo cultural, jogo Fronteiras.
+11. **Programa para Implementação (Roadmap)** — fases: (F1) activar Lovable Cloud + Auth, (F2) migrar `useSaldo`/`useProgresso` para tabelas, (F3) missões/conquistas server-side com cron de reset, (F4) loja com pagamento real Stripe, (F5) painel admin de conteúdo, (F6) ranking social e amigos. Cada fase com entregáveis e dependências.
 
-## Módulos 2–12 — espinha temática + absorção do livro
+## Diagramas Mermaid no chat (artifacts)
 
-continue pelo 2 até 12 mesmo
+Quatro ficheiros `.mmd` em `/mnt/documents/`, cada um inserido com `<lov-artifact mime_type="text/vnd.mermaid">`:
 
-- **M3 Eu e tu** — pronomes pessoais (sing./pl.), formas dos pronomes pessoais, conversação I, II, III
-- **M4 Introduza a tua família** — família básica, alargada (avós/tios/primos/sogros), amizades e vizinhança, Prática
-- **M5 Ações e rotina** — verbos presente do indicativo, preterito perfeito,imperfeito, futuro imperfeito, modo condicional, conjuntivo, p.i. do conjuntivo, f.i do conjuntivo
-  perguntar com verbos ("o que fazes / onde vais / quando voltas").
-- **M6 Explora a natureza** — animais da casa e selvagens, aves, plantas e árvores, agricultura e ferramentas.
-- **M7 Corpo humano e saúde** — rosto/cabeça, tronco/membros, no médico, hábitos saudáveis.
-- **M8 Tempo e calendário** — dias, meses, estações (cacimbo/chuvas), horas e momentos do dia.
-- **M9 Em casa** — compartimentos, mobília, loiça/utensílios, vestuário (dia-a-dia + tradicional), alimentação.
-- **M10 Trabalho e comunidade** — profissões da aldeia/cidade, comércio, vida na comunidade, provérbios do trabalho.
-- **M11 Advérbios e ligações** — advérbios de modo/lugar/tempo/quantidade/dúvida/negação + conjunções (copulativas, adversativas, condicionais, temporais, disjuntivas, conclusivas, coordenativas, casuais,concessivas).
-- **M12 Pronomes avançados e verbos** formação dos tempos verbais— possessivos, demonstrativos, interrogativos/indefinidos + presente, pretéritos, futuro, condicional, conjuntivo.
-- m13 provérbios
+- `Kwendi_ER.mmd` — `erDiagram` com todas as tabelas e relações (modelo lógico visual).
+- `Kwendi_Classes.mmd` — `classDiagram` das classes/serviços.
+- `Kwendi_CasosUso_Sistema.mmd` — casos de uso técnicos (flowchart com actores e elipses).
+- `Kwendi_CasosUso_Negocio.mmd` — casos de uso de negócio.
+- `Kwendi_Fluxo.mmd` — `flowchart TD` do funcionamento (Splash → Home → Lição → Recompensa).
 
-Cada unidade mantém 3–5 secções `licao` + 1 `bau` no fim (via helper `mk`). Cores HSL reutilizadas das paletas já existentes nos módulos. Número de unidades varia por módulo (M5/M11/M12 podem ter 5–6 unidades para absorver toda a matéria do livro; outros 4).
+## Detalhes técnicos de geração
 
----
+- Gerar `.docx` com **docx-js** (script Node em `/tmp`), página A4, fonte Arial, títulos Heading1/2/3 com `outlineLevel`, tabelas com `WidthType.DXA`, listas com `LevelFormat.BULLET`/`DECIMAL`.
+- Diagramas no .docx: inserir como blocos de código pré-formatados (ASCII) **e** como `tabelas`. 
+- Após gerar, **converter o .docx para PDF + tabelas** com LibreOffice e inspeccionar cada página (overflow, fontes, tabelas cortadas) antes de entregar.
+- Sem alterações a código-fonte do app — é puramente documentação.
 
-## Notas técnicas
+## Entregáveis finais
 
-- `PRIMEIRA_UNIDADE` continua a ser `CURRICULO[0].unidades[0]` → passa a apontar para "Saúda a tua comunidade" (m1u1).
-- Progresso guardado em `localStorage` (`useProgresso`): IDs antigos como `m1u3` continuam válidos estruturalmente; `carregar()` já faz fallback para `m1u1` se `unidadeAtual` for inválido. Utilizadores existentes que estivessem em unidades posteriores podem ser "recolocados" no início do módulo correspondente — aceitável dado o estágio do projecto.
-- Sem alterações em `useMissoes`, `FalaEscutaScreen`, `SecaoScreen` (leem unidades desbloqueadas dinamicamente).
+- `<presentation-artifact path="Kwendi_Analise_Tecnica.docx" ...>` (documento principal)
+- 5 `<lov-artifact ... text/vnd.mermaid>` com os diagramas
+- Mensagem curta a confirmar conteúdo e listar o que foi verificado nas páginas do .docx
