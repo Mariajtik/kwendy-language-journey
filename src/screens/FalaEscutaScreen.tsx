@@ -45,7 +45,8 @@ function unidadesDesbloqueadas(atualId: string): Unidade[] {
 /* ---------------- FALA ---------------- */
 
 const FalaTab = ({ frases }: { frases: Frase[] }) => {
-  const { adicionarXP } = useSaldo();
+  const { update } = useSaldo();
+  const adicionarXP = (n: number) => update((s) => ({ ...s, xp: s.xp + n }));
   const [idx, setIdx] = useState(0);
   const [gravando, setGravando] = useState(false);
   const [match, setMatch] = useState<number | null>(null);
@@ -176,7 +177,8 @@ const FalaTab = ({ frases }: { frases: Frase[] }) => {
 const TOTAL_PERG = 5;
 
 const EscutaTab = ({ frases }: { frases: Frase[] }) => {
-  const { adicionarXP } = useSaldo();
+  const { update } = useSaldo();
+  const adicionarXP = (n: number) => update((s) => ({ ...s, xp: s.xp + n }));
   const pool = useMemo(
     () => (frases.length >= 3 ? frases : [...frases, ...DICIONARIO.slice(0, 6)]),
     [frases]
