@@ -47,8 +47,8 @@ export const CURRICULO: Modulo[] = [
     id: "m1",
     numero: 1,
     titulo: "Saúda a tua comunidade",
-    cor: "0 100% 65%",
-    corEscura: "0 70% 50%",
+    cor: "5 84% 52%",
+    corEscura: "5 84% 38%",
     unidades: [
       {
         id: "m1u1",
@@ -91,8 +91,8 @@ export const CURRICULO: Modulo[] = [
     id: "m3",
     numero: 2,
     titulo: "Eu e tu",
-    cor: "330 75% 50%",
-    corEscura: "330 75% 38%",
+    cor: "265 60% 52%",
+    corEscura: "265 60% 38%",
     unidades: [
       {
         id: "m3u1",
@@ -128,8 +128,8 @@ export const CURRICULO: Modulo[] = [
     id: "m4",
     numero: 3,
     titulo: "Introduza a tua família",
-    cor: "200 75% 45%",
-    corEscura: "200 75% 32%",
+    cor: "330 75% 52%",
+    corEscura: "330 75% 38%",
     unidades: [
       {
         id: "m4u1",
@@ -165,8 +165,8 @@ export const CURRICULO: Modulo[] = [
     id: "m5",
     numero: 4,
     titulo: "Ações e rotina",
-    cor: "330 75% 50%",
-    corEscura: "330 75% 38%",
+    cor: "25 90% 52%",
+    corEscura: "25 90% 38%",
     unidades: [
       {
         id: "m5u1",
@@ -209,8 +209,8 @@ export const CURRICULO: Modulo[] = [
     id: "m6",
     numero: 5,
     titulo: "Explora a natureza",
-    cor: "265 60% 50%",
-    corEscura: "265 60% 38%",
+    cor: "140 55% 38%",
+    corEscura: "140 55% 26%",
     unidades: [
       {
         id: "m6u1",
@@ -246,8 +246,8 @@ export const CURRICULO: Modulo[] = [
     id: "m7",
     numero: 6,
     titulo: "Corpo humano e saúde",
-    cor: "210 80% 48%",
-    corEscura: "210 80% 36%",
+    cor: "200 78% 46%",
+    corEscura: "200 78% 32%",
     unidades: [
       {
         id: "m7u1",
@@ -283,8 +283,8 @@ export const CURRICULO: Modulo[] = [
     id: "m8",
     numero: 7,
     titulo: "Tempo e calendário",
-    cor: "42 90% 48%",
-    corEscura: "42 90% 36%",
+    cor: "42 95% 50%",
+    corEscura: "42 95% 36%",
     unidades: [
       {
         id: "m8u1",
@@ -320,8 +320,8 @@ export const CURRICULO: Modulo[] = [
     id: "m9",
     numero: 8,
     titulo: "Em casa",
-    cor: "178 65% 40%",
-    corEscura: "178 65% 30%",
+    cor: "18 70% 48%",
+    corEscura: "18 70% 34%",
     unidades: [
       {
         id: "m9u1",
@@ -364,8 +364,8 @@ export const CURRICULO: Modulo[] = [
     id: "m10",
     numero: 9,
     titulo: "Trabalho e comunidade",
-    cor: "15 85% 55%",
-    corEscura: "15 85% 42%",
+    cor: "38 80% 45%",
+    corEscura: "38 80% 32%",
     unidades: [
       {
         id: "m10u1",
@@ -401,8 +401,8 @@ export const CURRICULO: Modulo[] = [
     id: "m11",
     numero: 10,
     titulo: "Advérbios e ligações",
-    cor: "90 45% 38%",
-    corEscura: "90 45% 28%",
+    cor: "230 55% 50%",
+    corEscura: "230 55% 36%",
     unidades: [
       {
         id: "m11u1",
@@ -438,8 +438,8 @@ export const CURRICULO: Modulo[] = [
     id: "m12",
     numero: 11,
     titulo: "Pronomes avançados e verbos",
-    cor: "345 65% 42%",
-    corEscura: "345 65% 30%",
+    cor: "300 55% 45%",
+    corEscura: "300 55% 32%",
     unidades: [
       {
         id: "m12u1",
@@ -475,8 +475,8 @@ export const CURRICULO: Modulo[] = [
     id: "m13",
     numero: 12,
     titulo: "Provérbios e sabedoria Ovimbundu",
-    cor: "28 55% 45%",
-    corEscura: "28 55% 32%",
+    cor: "28 70% 38%",
+    corEscura: "28 70% 26%",
     unidades: [
       {
         id: "m13u1",
