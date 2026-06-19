@@ -294,7 +294,7 @@ const HomeScreen = () => {
         MÓDULO {modulo.numero}, UNIDADE {unidade.numero}
       </p>
       <h1 className="text-xl font-extrabold leading-tight mt-1">
-        {unidade.titulo}
+        {modulo.titulo}
       </h1>
     </div>
   );
