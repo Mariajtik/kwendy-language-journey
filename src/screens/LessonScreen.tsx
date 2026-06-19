@@ -10,7 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, Check, X as XIcon, Lightbulb, Zap } from "lucide-react";
 import { useMissoes } from "@/hooks/useMissoes";
-import { setSaldo, useSaldo } from "@/hooks/useSaldo";
+import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 import { toast } from "@/hooks/use-toast";
@@ -77,12 +77,25 @@ const LessonScreen = () => {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
-  const [hearts, setHearts] = useState(5);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
   const [dicaAtiva, setDicaAtiva] = useState(false);
   const [dicasHoje, setDicasHoje] = useState<number>(() => lerDicasHoje());
   const { saldo } = useSaldo();
+  const hearts = saldo.vidas + saldo.vidasExtra;
+
+  // Bloqueia a entrada na lição se já não houver vidas.
+  useEffect(() => {
+    if (hearts <= 0 && !done) {
+      toast({
+        title: "Sem vidas",
+        description: "Recupera vidas para continuar as lições.",
+        variant: "destructive",
+      });
+      navigate("/home");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const dobradorMin = tempoRestante("dobrador-xp");
   const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
@@ -131,14 +144,8 @@ const LessonScreen = () => {
       registrarAcao("resposta_correta_seguida", 1);
       registrarAcao("palavra_traduzida", 1);
     } else {
-      setHearts((h) => {
-        const next = Math.max(0, h - 1);
-        if (next === 0 && temPowerUp("vida-extra")) {
-          usarPowerUp("vida-extra");
-          return 1;
-        }
-        return next;
-      });
+      // Vidas globais: consome 1 (do pool extra primeiro, depois normal).
+      perderVida();
     }
   };
 
