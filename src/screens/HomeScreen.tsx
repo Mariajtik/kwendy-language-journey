@@ -565,11 +565,6 @@ const HomeScreen = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ---- Start lesson dialog ---- */}
-      <Dialog open={startOpen} onOpenChange={setStartOpen}>
-        <></>
-      </Dialog>
-
       {/* ---- No-lives dialog ---- */}
       <Dialog open={semVidasOpen} onOpenChange={setSemVidasOpen}>
         <DialogContent className="max-w-xs rounded-3xl text-center">
@@ -604,7 +599,8 @@ const HomeScreen = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={false}>
+      {/* ---- Start lesson dialog ---- */}
+      <Dialog open={startOpen} onOpenChange={setStartOpen}>
         <DialogContent className="max-w-xs rounded-3xl p-0 overflow-hidden">
           <div
             className="px-5 py-3 text-white text-xs font-extrabold tracking-widest"
