@@ -479,7 +479,7 @@ const HomeScreen = () => {
               const animacao = ANIMACOES_MODULO[mod.id];
               if (u.id === atual.unidade.id) {
                 return (
-                  <div key={u.id} className="mb-6">
+                  <div key={u.id} className="mt-3 mb-8">
                     <div className="relative overflow-hidden rounded-2xl">
                       {renderBannerAtual(mod, u)}
                       {animacao && <BannerAnimacao tipo={animacao} />}
@@ -490,7 +490,7 @@ const HomeScreen = () => {
               }
               if (expandedUnidades.has(u.id)) {
                 return (
-                  <div key={u.id} className="mb-6">
+                  <div key={u.id} className="mt-3 mb-8">
                     <div className="relative overflow-hidden rounded-2xl">
                       {renderBannerExpandida(mod, u)}
                       {animacao && <BannerAnimacao tipo={animacao} />}
