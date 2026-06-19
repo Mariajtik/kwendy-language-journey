@@ -150,16 +150,20 @@ const LojaScreen = () => {
             transition={{ duration: 0.2 }}
             className="grid grid-cols-2 gap-3"
           >
-            {itens.map((it) => (
-              <ItemLojaCard
-                key={it.id}
-                item={it}
-                desbloqueado={
-                  it.categoria === "cultura" && inventario.desbloqueios.includes(it.id)
-                }
-                onComprar={() => setConfirmar(it)}
-              />
-            ))}
+            {tab === "premium" ? (
+              <PremiumPackCard onInteresse={registarInteressePremium} />
+            ) : (
+              itens.map((it) => (
+                <ItemLojaCard
+                  key={it.id}
+                  item={it}
+                  desbloqueado={
+                    it.categoria === "cultura" && inventario.desbloqueios.includes(it.id)
+                  }
+                  onComprar={() => setConfirmar(it)}
+                />
+              ))
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -177,6 +181,7 @@ const LojaScreen = () => {
         onFechar={() => setFaltam(null)}
       />
       <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
+      <PremiumInteresseModal posicao={premiumPos} onFechar={() => setPremiumPos(null)} />
     </motion.div>
   );
 };
