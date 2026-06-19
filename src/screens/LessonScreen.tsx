@@ -287,23 +287,29 @@ const LessonScreen = () => {
                 XP×2 · {dobradorMin}min
               </span>
             )}
-            {temPowerUp("dica-extra") && !checked && (
+            {!checked && (
               <button
                 type="button"
-                onClick={() => {
-                  if (dicaAtiva) return;
-                  usarPowerUp("dica-extra");
-                  setDicaAtiva(true);
-                }}
-                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+                onClick={usarDica}
+                disabled={dicaAtiva}
+                className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full disabled:opacity-60"
                 style={{
                   background: "hsl(50 95% 60% / 0.18)",
                   color: "hsl(40 90% 35%)",
                   border: "1px solid hsl(50 95% 60%)",
                 }}
+                title={
+                  dicasRestantesGratis > 0
+                    ? `${dicasRestantesGratis} dicas grátis hoje`
+                    : `Custa ${DICA_CUSTO_DIAMANTES} diamantes`
+                }
               >
                 <Lightbulb className="w-3 h-3 fill-current" />
-                Dica
+                {dicaAtiva
+                  ? "Dica activa"
+                  : dicasRestantesGratis > 0
+                  ? `Ver dica · ${dicasRestantesGratis} grátis`
+                  : `Ver dica · ${DICA_CUSTO_DIAMANTES}💎`}
               </button>
             )}
           </div>
