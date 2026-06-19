@@ -36,6 +36,8 @@ import HistoriaFimScreen from "./screens/HistoriaFimScreen";
 import CuriosidadesScreen from "./screens/CuriosidadesScreen";
 import SecaoScreen from "./screens/SecaoScreen";
 import LojaScreen from "./screens/LojaScreen";
+import DicionarioScreen from "./screens/DicionarioScreen";
+import FalaEscutaScreen from "./screens/FalaEscutaScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,8 @@ const AnimatedRoutes = () => {
         <Route path="/curiosidades" element={<CuriosidadesScreen />} />
         <Route path="/secao/:tipo" element={<SecaoScreen />} />
         <Route path="/loja" element={<LojaScreen />} />
+        <Route path="/dicionario" element={<DicionarioScreen />} />
+        <Route path="/secao/fala-escuta" element={<FalaEscutaScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
         <Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />
