@@ -30,12 +30,18 @@ function falar(texto: string) {
   window.speechSynthesis.speak(u);
 }
 
-/** Devolve todas as unidades até (e incluindo) a unidade atual. */
-function unidadesDesbloqueadas(atualId: string): Unidade[] {
+/**
+ * Unidades disponíveis para treinar:
+ * - estão desbloqueadas (até à unidade atual, inclusive)
+ * - têm pelo menos uma secção (lição) concluída
+ */
+function unidadesParaTreinar(atualId: string, completas: string[]): Unidade[] {
   const out: Unidade[] = [];
+  const set = new Set(completas);
   for (const m of CURRICULO) {
     for (const u of m.unidades) {
-      out.push(u);
+      const concluidas = u.seccoes.filter((s) => set.has(s.id)).length;
+      if (concluidas > 0) out.push(u);
       if (u.id === atualId) return out;
     }
   }
@@ -332,16 +338,25 @@ const FalaEscutaScreen = () => {
   const nav = useNavigate();
   const { estado } = useProgresso();
   const desbloqueadas = useMemo(
-    () => unidadesDesbloqueadas(estado.unidadeAtual),
-    [estado.unidadeAtual]
+    () => unidadesParaTreinar(estado.unidadeAtual, estado.seccoesCompletas),
+    [estado.unidadeAtual, estado.seccoesCompletas]
   );
   const [unidadeId, setUnidadeId] = useState<string>(
-    desbloqueadas[desbloqueadas.length - 1]?.id ?? estado.unidadeAtual
+    desbloqueadas[desbloqueadas.length - 1]?.id ?? ""
   );
   const [tab, setTab] = useState<Tab>("fala");
 
-  const frases = useMemo(() => getFrasesParaUnidade(unidadeId), [unidadeId]);
+  const frases = useMemo(
+    () => (unidadeId ? getFrasesParaUnidade(unidadeId) : []),
+    [unidadeId]
+  );
   const unidadeAtual = desbloqueadas.find((u) => u.id === unidadeId);
+  const seccoesFeitas = unidadeAtual
+    ? unidadeAtual.seccoes.filter((s) => estado.seccoesCompletas.includes(s.id)).length
+    : 0;
+  const totalSeccoes = unidadeAtual?.seccoes.length ?? 0;
+
+  const semConteudo = desbloqueadas.length === 0;
 
   return (
     <motion.div
@@ -364,12 +379,13 @@ const FalaEscutaScreen = () => {
               Fala & Escuta
             </h1>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Treina a unidade desbloqueada
+              Treina o que já aprendeste nas lições
             </p>
           </div>
         </div>
 
         {/* Seletor de unidade */}
+        {!semConteudo && (
         <div className="relative mb-3">
           <select
             value={unidadeId}
@@ -385,7 +401,9 @@ const FalaEscutaScreen = () => {
           </select>
           <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" />
         </div>
+        )}
 
+        {!semConteudo && (
         <div className="flex gap-2">
           {(["fala", "escuta"] as Tab[]).map((t) => {
             const ativo = tab === t;
@@ -406,15 +424,50 @@ const FalaEscutaScreen = () => {
             );
           })}
         </div>
+        )}
       </div>
 
       <div className="px-4 py-5 pb-28">
-        {unidadeAtual && (
-          <p className="text-[11px] font-extrabold tracking-wider text-muted-foreground mb-3">
-            UNIDADE · {unidadeAtual.titulo.toUpperCase()}
-          </p>
+        {semConteudo ? (
+          <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+            <p className="text-base font-extrabold text-foreground mb-1">
+              Sem lições concluídas ainda
+            </p>
+            <p className="text-sm text-muted-foreground mb-5">
+              Termina pelo menos uma lição na Home para começares a treinar Fala & Escuta.
+            </p>
+            <button
+              onClick={() => nav("/home")}
+              className="rounded-2xl px-6 py-3 font-extrabold text-white"
+              style={{
+                background: "hsl(var(--primary))",
+                boxShadow: "0 4px 0 hsl(var(--kwendi-red-dark))",
+              }}
+            >
+              Ir para a Home
+            </button>
+          </div>
+        ) : (
+          <>
+            {unidadeAtual && (
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] font-extrabold tracking-wider text-muted-foreground">
+                  UNIDADE · {unidadeAtual.titulo.toUpperCase()}
+                </p>
+                <span
+                  className="text-[10px] font-extrabold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "hsl(101 55% 90%)",
+                    color: "hsl(101 45% 30%)",
+                  }}
+                >
+                  {seccoesFeitas}/{totalSeccoes} lições
+                </span>
+              </div>
+            )}
+            {tab === "fala" ? <FalaTab frases={frases} /> : <EscutaTab frases={frases} />}
+          </>
         )}
-        {tab === "fala" ? <FalaTab frases={frases} /> : <EscutaTab frases={frases} />}
       </div>
 
       <BottomNav />
