@@ -52,6 +52,11 @@ export function useLoja() {
           desbloqueios: [...prev.desbloqueios, item.id],
         }));
       } else if (item.categoria === "powerup") {
+        // "vida-extra" alimenta o pool global de vidas extras (cross-tela)
+        if (item.id === "vida-extra") {
+          updateSaldo((prev) => ({ ...prev, vidasExtra: prev.vidasExtra + 1 }));
+          return { ok: true };
+        }
         const expiraEm = item.duracaoMin
           ? new Date(Date.now() + item.duracaoMin * 60_000).toISOString()
           : undefined;
