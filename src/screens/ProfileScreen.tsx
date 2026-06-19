@@ -16,7 +16,6 @@ import {
   Calendar,
   ChevronRight,
   Bell,
-  Globe,
   Info,
   LogOut,
   User as UserIcon,
@@ -34,7 +33,11 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
+import SairConfirmModal from "@/screens/definicoes/SairConfirmModal";
 import trofeu30dias from "@/assets/missoes/trofeu.png.asset.json";
+import { getStat, STATS } from "@/lib/stats";
+
+const TOTAL_LETRAS = 23;
 
 /* ----- Mocked profile data ----- */
 const profileBase = {
@@ -54,6 +57,7 @@ const ProfileScreen = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("perfil");
   const [conquistaAberta, setConquistaAberta] = useState<ConquistaView | null>(null);
+  const [sairAberto, setSairAberto] = useState(false);
   const { saldo } = useSaldo();
   const { conquistas, resgatarConquista } = useMissoes();
   const desbloqueadas = useMemo(
@@ -65,11 +69,21 @@ const ProfileScreen = () => {
   // Marcos: 4 patamares lineares de progresso pessoal
   const marcos = useMemo(() => {
     const completo = profileBase.moduleProgress.current >= profileBase.moduleProgress.total;
+    const guardadas = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(STATS.cadernoGuardadas) ?? "[]").length as number;
+      } catch {
+        return 0;
+      }
+    })();
+    const alfabeto = getStat(STATS.alfabetoEscutas);
     return [
       { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
       { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
       { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
       { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias.url },
+      { label: "Caderno 50", unlocked: guardadas >= 50,    trophy: undefined },
+      { label: "Alfabeto",   unlocked: alfabeto >= TOTAL_LETRAS, trophy: undefined },
     ];
   }, [saldo.xp, saldo.ofensiva]);
 
@@ -221,7 +235,7 @@ const ProfileScreen = () => {
               <p className="text-xs text-muted-foreground mb-3">
                 Patamares da tua jornada.
               </p>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {marcos.map((mk, i) => (
                   <div key={i} className="flex flex-col items-center gap-1">
                     <div
@@ -316,14 +330,14 @@ const ProfileScreen = () => {
         {tab === "definicoes" && (
           <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">
             {[
-              { icon: UserIcon, label: "Conta" },
-              { icon: Bell, label: "Notificações" },
-              { icon: Globe, label: "Idioma" },
-              { icon: Info, label: "Sobre o Kwendi" },
-              { icon: LogOut, label: "Sair", destructive: true },
+              { icon: UserIcon, label: "Conta", onClick: () => navigate("/profile/conta") },
+              { icon: Bell, label: "Notificações", onClick: () => navigate("/profile/notificacoes") },
+              { icon: Info, label: "Sobre o Kwendi", onClick: () => navigate("/profile/sobre") },
+              { icon: LogOut, label: "Sair", destructive: true, onClick: () => setSairAberto(true) },
             ].map((item, i, arr) => (
               <button
                 key={item.label}
+                onClick={item.onClick}
                 className="w-full flex items-center justify-between px-4 py-4 text-left"
                 style={{
                   borderBottom: i < arr.length - 1 ? "1px solid hsl(var(--border))" : "none",
@@ -355,6 +369,8 @@ const ProfileScreen = () => {
           setConquistaAberta(null);
         }}
       />
+
+      <SairConfirmModal aberto={sairAberto} onFechar={() => setSairAberto(false)} />
     </motion.div>
   );
 };
