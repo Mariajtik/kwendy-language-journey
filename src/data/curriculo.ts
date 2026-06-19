@@ -47,8 +47,8 @@ export const CURRICULO: Modulo[] = [
     id: "m1",
     numero: 1,
     titulo: "Saúda a tua comunidade",
-    cor: "5 84% 52%",
-    corEscura: "5 84% 38%",
+    cor: "0 100% 65%",
+    corEscura: "0 100% 50%",
     unidades: [
       {
         id: "m1u1",
