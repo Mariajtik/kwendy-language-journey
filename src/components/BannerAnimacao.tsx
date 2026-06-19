@@ -19,7 +19,14 @@ export type AnimacaoBanner =
   | "sparkles"
   | "hearts"
   | "footprints"
-  | "vines";
+  | "vines"
+  | "heartbeat"
+  | "clock"
+  | "smoke"
+  | "coins"
+  | "links"
+  | "letters"
+  | "leaves";
 
 const Bubbles = () => {
   const balões = [
@@ -181,6 +188,204 @@ const Footprints = () => {
   );
 };
 
+/* M6 — saúde: linha de batimento cardíaco */
+const Heartbeat = () => (
+  <svg
+    className="absolute inset-0 w-full h-full pointer-events-none"
+    viewBox="0 0 100 60"
+    preserveAspectRatio="none"
+    aria-hidden
+  >
+    <motion.path
+      d="M0 35 L20 35 L26 20 L32 50 L40 28 L48 42 L56 35 L100 35"
+      fill="none"
+      stroke="rgba(255,255,255,0.85)"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
+      transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+    />
+  </svg>
+);
+
+/* M7 — tempo: relógio com ponteiros a girar */
+const Clock = () => {
+  const relogios = [
+    { x: 18, y: 30, r: 10, dur: 6 },
+    { x: 50, y: 22, r: 8, dur: 4.5 },
+    { x: 82, y: 36, r: 11, dur: 7 },
+  ];
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 100 60"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      {relogios.map((c, i) => (
+        <g key={i}>
+          <circle cx={c.x} cy={c.y} r={c.r} fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.2" />
+          <motion.line
+            x1={c.x}
+            y1={c.y}
+            x2={c.x}
+            y2={c.y - c.r * 0.6}
+            stroke="#fff"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            style={{ transformOrigin: `${c.x}px ${c.y}px` }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: c.dur, repeat: Infinity, ease: "linear" }}
+          />
+        </g>
+      ))}
+    </svg>
+  );
+};
+
+/* M8 — em casa: baforadas de fumo (cozinha) */
+const Smoke = () => {
+  const puffs = Array.from({ length: 5 }).map((_, i) => ({
+    x: 10 + i * 20,
+    delay: i * 0.6,
+    size: 10 + (i % 3) * 4,
+  }));
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {puffs.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-white/70"
+          style={{ left: `${p.x}%`, bottom: "10%", width: p.size, height: p.size }}
+          initial={{ y: 0, opacity: 0, scale: 0.6 }}
+          animate={{ y: -55, opacity: [0, 0.7, 0], scale: [0.6, 1.4, 1.8] }}
+          transition={{ duration: 3.4, delay: p.delay, repeat: Infinity, ease: "easeOut" }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* M9 — trabalho e mercado: moedas a subir */
+const Coins = () => {
+  const moedas = Array.from({ length: 6 }).map((_, i) => ({
+    x: 8 + i * 15,
+    delay: i * 0.5,
+  }));
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {moedas.map((m, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full flex items-center justify-center text-[10px] font-extrabold"
+          style={{
+            left: `${m.x}%`,
+            bottom: "5%",
+            width: 16,
+            height: 16,
+            background: "#FBBD12",
+            color: "#7a4a00",
+            boxShadow: "0 1px 0 rgba(0,0,0,0.2)",
+          }}
+          initial={{ y: 0, opacity: 0, rotateY: 0 }}
+          animate={{ y: -60, opacity: [0, 1, 0], rotateY: 360 }}
+          transition={{ duration: 3, delay: m.delay, repeat: Infinity, ease: "easeOut" }}
+        >
+          $
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+/* M10 — advérbios/ligações: elos a unirem-se */
+const Links = () => (
+  <svg
+    className="absolute inset-0 w-full h-full pointer-events-none"
+    viewBox="0 0 100 60"
+    preserveAspectRatio="none"
+    aria-hidden
+  >
+    {[0, 1, 2, 3].map((i) => (
+      <motion.circle
+        key={i}
+        cx={15 + i * 22}
+        cy={30}
+        r={6}
+        fill="none"
+        stroke="rgba(255,255,255,0.85)"
+        strokeWidth="1.4"
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: [0.6, 1, 0.9], opacity: [0, 1, 0] }}
+        transition={{ duration: 2.4, delay: i * 0.35, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: `${15 + i * 22}px 30px` }}
+      />
+    ))}
+  </svg>
+);
+
+/* M11 — letras (pronomes/verbos) flutuantes */
+const Letters = () => {
+  const letras = [
+    { ch: "A", x: 10, delay: 0 },
+    { ch: "u", x: 28, delay: 0.6 },
+    { ch: "O", x: 46, delay: 1.2 },
+    { ch: "v", x: 64, delay: 1.8 },
+    { ch: "e", x: 82, delay: 2.4 },
+  ];
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {letras.map((l, i) => (
+        <motion.span
+          key={i}
+          className="absolute font-extrabold text-white/85"
+          style={{ left: `${l.x}%`, top: "70%", fontSize: 16 }}
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: [10, -30, -50], opacity: [0, 1, 0] }}
+          transition={{ duration: 3.2, delay: l.delay, repeat: Infinity, ease: "easeOut" }}
+        >
+          {l.ch}
+        </motion.span>
+      ))}
+    </div>
+  );
+};
+
+/* M12 — provérbios: folhas a cair (sabedoria/tradição) */
+const Leaves = () => {
+  const folhas = Array.from({ length: 6 }).map((_, i) => ({
+    x: 8 + i * 15,
+    delay: i * 0.7,
+    rot: (i % 2 === 0 ? 1 : -1) * 30,
+  }));
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {folhas.map((f, i) => (
+        <motion.svg
+          key={i}
+          viewBox="0 0 24 24"
+          width={14}
+          height={14}
+          className="absolute"
+          style={{ left: `${f.x}%`, top: "-10%" }}
+          initial={{ y: 0, opacity: 0, rotate: 0 }}
+          animate={{ y: 70, opacity: [0, 1, 0], rotate: f.rot }}
+          transition={{ duration: 4, delay: f.delay, repeat: Infinity, ease: "easeIn" }}
+        >
+          <path
+            d="M12 2C7 7 5 12 7 17c2 4 7 5 10 3-2-5-1-10-5-18z"
+            fill="#FFD27A"
+            stroke="#7a4a00"
+            strokeWidth="0.8"
+          />
+        </motion.svg>
+      ))}
+    </div>
+  );
+};
+
 const BannerAnimacao = ({ tipo }: { tipo: AnimacaoBanner }) => {
   switch (tipo) {
     case "vines":
@@ -193,6 +398,20 @@ const BannerAnimacao = ({ tipo }: { tipo: AnimacaoBanner }) => {
       return <Hearts />;
     case "footprints":
       return <Footprints />;
+    case "heartbeat":
+      return <Heartbeat />;
+    case "clock":
+      return <Clock />;
+    case "smoke":
+      return <Smoke />;
+    case "coins":
+      return <Coins />;
+    case "links":
+      return <Links />;
+    case "letters":
+      return <Letters />;
+    case "leaves":
+      return <Leaves />;
     default:
       return null;
   }
