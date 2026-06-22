@@ -1,0 +1,37 @@
+workflows:
+  android-debug:
+    name: Kwendi Android Debug APK
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: 20
+      java: 17
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm install --legacy-peer-deps
+      - name: Build web app (Vite)
+        script: |
+          npm run build
+      - name: Add Android platform if missing
+        script: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+      - name: Sync Capacitor with Android
+        script: |
+          npx cap sync android
+      - name: Build Android debug APK
+        script: |
+          cd android
+          chmod +x ./gradlew || true
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - $CM_NOTIFY_EMAIL
+        notify:
+          success: true
+          failure: true
