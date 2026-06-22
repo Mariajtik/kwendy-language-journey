@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Welcome to your App to Learn New Cultures!
 
 ## Project info
 
