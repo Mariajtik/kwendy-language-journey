@@ -28,10 +28,3 @@ workflows:
           ./gradlew assembleDebug
     artifacts:
       - android/app/build/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - $CM_NOTIFY_EMAIL
-        notify:
-          success: true
-          failure: true
