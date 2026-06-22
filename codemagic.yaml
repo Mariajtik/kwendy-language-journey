@@ -5,7 +5,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       node: 22
-      java: 17
+      java: 21
     scripts:
       - name: Install npm dependencies
         script: |
@@ -23,6 +23,9 @@ workflows:
           npx cap sync android
       - name: Build Android debug APK
         script: |
+          export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+          echo "Using JAVA_HOME=$JAVA_HOME"
+          java -version
           cd android
           chmod +x ./gradlew || true
           ./gradlew assembleDebug
