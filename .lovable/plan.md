@@ -1,52 +1,55 @@
-## Objectivo
+# Ajustes finais no documento — versão v5
 
-Editar **apenas** o ficheiro `INTRODUÇAO.docx` enviado, sem alterar o conteúdo já existente. As alterações limitam-se a: paginação, legendas em falta de figuras/tabelas/gráficos/apêndices, e preenchimento das listas (Figuras, Tabelas, Gráficos) com os respectivos números de página.
+Trabalharei sobre `INTRODUCAO_paginado_v4.docx` para gerar `INTRODUCAO_paginado_v5.docx` (+ PDF). Nada do conteúdo original do trabalho será alterado — apenas listas, legendas e descrições dos apêndices.
 
-Este trabalho é num artefacto Word — não modifica a aplicação Kwendi nem o repositório do GitHub.
+## 1. LISTA DE TABELAS
 
-## 1. Paginação (campos PAGE em rodapé)
+- Remover a frase "Não aplicável — este trabalho não apresenta tabelas."
+- Deixar a seção apenas com o título **LISTA DE TABELAS** (sem itens), mantendo o mesmo padrão tipográfico das outras listas, sem páginas em branco extras.
 
-O documento será dividido em **três secções** via quebras de secção (Section Breaks – Next Page), cada uma com rodapé desvinculado da anterior (`Link to Previous` = OFF):
+## 2. LISTA DE FIGURAS e LISTA DE GRÁFICOS
 
-| Secção | Páginas físicas | Conteúdo | Numeração apresentada |
-|---|---|---|---|
-| 1 | 1, 2, 3 | Capa, contracapa, folha de aprovação | **Sem número** (rodapé vazio) |
-| 2 | 4 → 13 | Dedicatória, Agradecimentos, Epígrafe, Resumo, Abstract, Lista de Abreviaturas, Lista de Figuras, Lista de Gráficos, Índice | **Romanos minúsculos**, começando em `iv` (Dedicatória=iv, Agradecimentos=v, … Índice=xiii) |
-| 3 | 14 em diante | Capítulo I — Introdução até ao fim (Apêndices inclusive) | **Árabes contínuos** começando em `14` (Cap. I=14, 1.1 Problemática=15, … até ao fim) |
+- Reformatar as duas com **a mesma estrutura visual da Lista de Figuras atual** (mas deve usar o mesmo tipo de letra de todo o conteúdo original, pode usar pontilhados/dot leaders, alinhamento de números à direita).
+- Reconstruir as entradas a partir das legendas reais inseridas no corpo + apêndices, **com a página correta de cada uma** (recalculada após a paginação romana/árabe).
+- Estilo acadêmico: "Figura X — Título ………… p."
 
-Implementação: editar `word/document.xml` para inserir `<w:sectPr>` com `w:pgNumType w:start` e `w:fmt` (`upperRoman`/`lowerRoman`/`decimal`/`none`); criar/editar `word/footer1.xml`, `footer2.xml`, `footer3.xml` com o campo `PAGE` centrado; actualizar `word/_rels/document.xml.rels` e `[Content_Types].xml`.
+## 3. Legendas no corpo e nos apêndices
 
-## 2. Legendas e descrições em falta
+- Manter as legendas já existentes (Figuras 1–3 do corpo).
+- Revisar espaçamento antes/depois das imagens para evitar páginas brancas, sem mexer no texto da monografia.
 
-Preencher apenas onde houver lacuna, **reutilizando texto que já existe no documento** (sem inventar conteúdo novo). Estilo: mesmo padrão das legendas existentes (`**Gráfico N** — descrição`).
+## 4. Descrições dos Apêndices (mais específicas, não-genéricas)
 
-- **Figuras** (Figura 1 a 11): adicionar legenda por baixo da imagem com o título exacto já registado na Lista de Figuras (ex.: "Figura 1 — Diagrama do Modelo Relacional (DER) do aplicativo Kwendi").
-- **Gráficos** (1 a 11): as descrições já existem no corpo do capítulo 1.8; apenas garantir que a legenda **"Gráfico N — …"** está formatada de forma consistente abaixo de cada imagem.
-- **Tabelas** dos questionários (pág. 23–27): adicionar título "Tabela N — Respostas à questão: <texto da pergunta>" usando a pergunta já presente acima de cada tabela.
-- **Apêndices A, B, C, D**: na página de abertura de cada apêndice, garantir o título completo já presente no Índice (ex.: "APÊNDICE A — QUESTIONÁRIO APLICADO"). Não é adicionado conteúdo novo aos apêndices em si — apenas a sua identificação/legenda.
+**Apêndice A — Personagens**
+Descrever cada personagem nominalmente, na ordem em que aparecem nas imagens:
 
-## 3. Listas (Figuras, Tabelas, Gráficos)
+- Avó — **Suzana**
+- Irmã — **Kiame**
+- Melhor amiga — **Otchali**
+- Amigo — **Hossy**
+- Amiga albina — **Yellen**
+- Irmãos gêmeos (chineses) — **Keke e Han**
 
-Após a renumeração, recalcular e gravar manualmente os números de página em cada item:
+**Apêndice B — Gráficos** (2 imagens): manter legendas "Gráfico 1", "Gráfico 2" com descrição objetiva do que cada gráfico representa, com base no que está visível.
 
-- **Lista de Figuras** (actualmente vazia/desactualizada para várias entradas): preencher cada `Figura N — …` com o nº da página onde a figura aparece no documento renumerado.
-- **Lista de Gráficos**: actualizar os números (págs. 22–28 conforme a renumeração árabe que mantém estes valores, já que a renumeração árabe começa em 14 e continua sequencial).
-- **Lista de Tabelas**: criar a lista (ainda não existe) com as tabelas dos questionários (pág. 23–27) usando o mesmo formato das outras listas.
+**Apêndice C — Telas do aplicativo (fluxos gerais)**: legendar cada uma das 7 figuras descrevendo a tela mostrada (splash, onboarding, login, etc.), conforme a ordem real no documento.
 
-Os números serão escritos como texto fixo (não campos TOC) para garantir consistência entre Word e Google Docs.
+**Apêndice D — Telas principais do aplicativo (4 imagens)**, **nesta ordem fixa solicitada**:
 
-## 4. O que NÃO será alterado
+1. Home
+2. Curiosidades
+3. Perfil
+4. Missões
 
-- Texto de qualquer capítulo, parágrafo, citação ou tabela existente.
-- Estilos, fontes, espaçamento, margens.
-- Capa, folha de aprovação, dedicatória, agradecimentos, epígrafe, resumo, abstract.
-- Conteúdo do código SQL, requisitos, casos de uso, etc.
+Cada uma com legenda "Figura N — Tela [Nome]" e uma linha curta de descrição.
 
-## Entrega
+## 5. Paginação e índice
 
-Ficheiro final `INTRODUCAO_editado.docx` disponibilizado em `/mnt/documents/` para download, mantendo todo o conteúdo original e contendo apenas as alterações acima descritas. Após a geração será feita validação visual (conversão para PDF/imagens) para confirmar a paginação correcta nas três secções e a presença das legendas/listas.
+- Manter numeração romana (iv–...) da Dedicatória ao Índice, e árabe a partir de 14 na Introdução.
+- Recalcular todos os números de página das três listas após os ajustes de espaçamento.
+- Garantir que não haja folhas em branco entre seções.
 
-## Detalhes técnicos
+## Entregáveis
 
-- Descompactar o `.docx` (zip XML), editar `word/document.xml`, criar `word/footerN.xml`, actualizar relacionamentos e `[Content_Types].xml`, recompactar e validar com `office/validate_document.py`.
-- Validação final: `libreoffice --convert-to pdf` + `pdftoppm` para inspeccionar páginas 1, 4, 13, 14 e 15 e confirmar respectivamente: sem nº, `iv`, `xiii`, `14`, `15`.
+- `INTRODUCAO_paginado_v5.docx`
+- `INTRODUCAO_paginado_v5.pdf` (verificação visual página a página antes de entregar)
