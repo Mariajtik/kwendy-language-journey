@@ -455,15 +455,6 @@ const HomeScreen = () => {
             >
               {totalVidas}
             </span>
-            {saldo.vidasExtra > 0 && (
-              <span
-                className="text-[10px] font-extrabold px-1 rounded"
-                style={{ background: "hsl(45 96% 53%)", color: "#fff" }}
-                title="Vidas extra da Loja"
-              >
-                +{saldo.vidasExtra}
-              </span>
-            )}
           </div>
 
         </div>
