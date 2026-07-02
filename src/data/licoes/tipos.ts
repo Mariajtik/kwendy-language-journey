@@ -16,6 +16,8 @@ export type Personagem =
   | "kapo"
   | "laura"
   | "cile"
+  | "chac"
+  | "kapit"
   | "narrador";
 
 export type Fala = {

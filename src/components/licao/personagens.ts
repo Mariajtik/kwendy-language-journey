@@ -25,5 +25,7 @@ export const PERSONAGENS: Record<
   kapo: { nome: "Kapo", avatar: null },
   laura: { nome: "Laura", avatar: null },
   cile: { nome: "Cile", avatar: null },
+  chac: { nome: "Chac", avatar: kwendi.url },
+  kapit: { nome: "Kapit", avatar: otchali.url },
   narrador: { nome: "Narrador", avatar: null },
 };
