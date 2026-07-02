@@ -141,6 +141,13 @@ CONQUISTAS.push(
   { id: "fr7", titulo: "Maratonista Cultural",     descricao: "Acumule 10 minutos de jogo no quiz.",            icone: Sparkles, categoria: "fronteiras", meta: 1,   recompensa: { xp: 150, diamantes: 75 },                       badge: "rosa" },
 );
 
+// Passaporte de África — carimbos por país no jogo Para Além de Fronteiras.
+CONQUISTAS.push(
+  { id: "fr8",  titulo: "Passaporte PALOP",   descricao: "Carimbe os 5 países PALOP no seu passaporte.",  icone: MapPin, categoria: "fronteiras", meta: 5,  recompensa: { xp: 200, diamantes: 100, bau: "raro" },       badge: "verde" },
+  { id: "fr9",  titulo: "Volta a África",     descricao: "Carimbe 20 países no passaporte.",              icone: Plane,  categoria: "fronteiras", meta: 20, recompensa: { xp: 400, diamantes: 200, bau: "raro" },       badge: "azul" },
+  { id: "fr10", titulo: "Continente Inteiro", descricao: "Carimbe 54 países no passaporte.",              icone: Globe,  categoria: "fronteiras", meta: 54, recompensa: { xp: 1200, diamantes: 600, bau: "lendario" },  badge: "vermelha" },
+);
+
 // Exploração — usar as 4 pills do app (Dicionário, Caderno, Fala & Escuta, Alfabeto)
 import { Bookmark, NotebookPen, AudioLines } from "lucide-react";
 CONQUISTAS.push(
