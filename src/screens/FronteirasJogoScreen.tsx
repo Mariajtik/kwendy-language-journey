@@ -7,7 +7,7 @@
  * - Conquistas locais por tempo, constância e respostas certas.
  * - Música de fundo (Perola-Omboio.mp3) em loop, com botão dourado de play/pause.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Play, Pause, Check, X, Trophy } from "lucide-react";
@@ -17,10 +17,24 @@ import musicAsset from "@/assets/perola-omboio.mp3.asset.json";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useMissoes } from "@/hooks/useMissoes";
 import { CONQUISTAS, type ConquistaDef } from "@/data/conquistas";
+import {
+  CURIOSIDADES,
+  PAISES,
+  PAISES_PALOP,
+  paisPorId,
+} from "@/data/paisesAfrica";
+import { sons, setMudo } from "@/data/sonsFronteiras";
+import { usePassaporte } from "@/hooks/usePassaporte";
+import MapaAfricaViva from "@/components/fronteiras/MapaAfricaViva";
+import Confetes from "@/components/fronteiras/Confetes";
+import Cronometro from "@/components/fronteiras/Cronometro";
+import CartaoCuriosidade from "@/components/fronteiras/CartaoCuriosidade";
+import CartaoResultado from "@/components/fronteiras/CartaoResultado";
 
 const TRACK_URL = musicAsset.url;
 const TOTAL_POR_PARTIDA = 10;
 const STATS_KEY = "kwendi:fronteiras:stats";
+const TEMPO_PERGUNTA_MS = 12000;
 
 interface FronteirasStats {
   partidas: number;
@@ -79,6 +93,7 @@ const FronteirasJogoScreen = () => {
   const navigate = useNavigate();
   const { update } = useSaldo();
   const { desbloquearConquista } = useMissoes();
+  const { carimbados, carimbar } = usePassaporte();
 
   /* ---------- Música de fundo ---------- */
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -98,8 +113,10 @@ const FronteirasJogoScreen = () => {
     if (isPlaying) {
       a.pause();
       setIsPlaying(false);
+      setMudo(true);
     } else {
       a.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      setMudo(false);
     }
   };
 
@@ -117,14 +134,30 @@ const FronteirasJogoScreen = () => {
   const [diaGanho, setDiaGanho] = useState(0);
   const [novasConquistas, setNovasConquistas] = useState<ConquistaDef[]>([]);
   const startRef = useRef<number>(performance.now());
+  const [confetesOn, setConfetesOn] = useState(false);
+  const [multiplicadores, setMultiplicadores] = useState<number[]>([]);
+  const [paisesAcertadosPartida, setPaisesAcertadosPartida] = useState<string[]>([]);
+  const respostaStart = useRef<number>(performance.now());
 
   const perguntaAtual = perguntas[indice];
+  const paisAtual = useMemo(
+    () => (perguntaAtual ? paisPorId(perguntaAtual.id) : PAISES.AFR),
+    [perguntaAtual],
+  );
   const progresso = ((indice + (escolha != null ? 1 : 0)) / TOTAL_POR_PARTIDA) * 100;
+
+  // Reinicia o cronómetro sempre que muda a pergunta
+  useEffect(() => {
+    respostaStart.current = performance.now();
+  }, [indice]);
 
   const handleEscolher = (i: number) => {
     if (escolha != null) return;
     setEscolha(i);
     const certo = i === perguntaAtual.respostaCorreta;
+    const tempoResposta = performance.now() - respostaStart.current;
+    const mult =
+      tempoResposta < 4000 ? 2 : tempoResposta < 8000 ? 1.5 : 1;
     if (certo) {
       setAcertos((a) => a + 1);
       setStreak((s) => {
@@ -132,12 +165,33 @@ const FronteirasJogoScreen = () => {
         setMelhorStreak((m) => Math.max(m, ns));
         return ns;
       });
+      setConfetesOn(true);
+      sons.acerto();
+      setMultiplicadores((prev) => [...prev, mult]);
+      if (paisAtual.iso !== "AFR") {
+        carimbar(paisAtual.iso);
+        setPaisesAcertadosPartida((prev) =>
+          prev.includes(paisAtual.iso) ? prev : [...prev, paisAtual.iso],
+        );
+      }
     } else {
       setStreak(0);
+      sons.erro();
+      setMultiplicadores((prev) => [...prev, 1]);
     }
   };
 
+  const handleTimeout = useCallback(() => {
+    if (escolha != null) return;
+    // Marca como errado, sem selecionar opção
+    setEscolha(-1);
+    setStreak(0);
+    sons.erro();
+    setMultiplicadores((prev) => [...prev, 1]);
+  }, [escolha]);
+
   const proxima = () => {
+    setConfetesOn(false);
     if (indice + 1 >= perguntas.length) {
       finalizar();
     } else {
@@ -153,6 +207,12 @@ const FronteirasJogoScreen = () => {
     // calcula XP e diamantes
     let xp = acertos * 10 + 20; // 10 por acerto + 20 por completar
     let dia = acertos * 1;
+    // Multiplicador médio de rapidez
+    const multMedio =
+      multiplicadores.length > 0
+        ? multiplicadores.reduce((a, b) => a + b, 0) / multiplicadores.length
+        : 1;
+    xp = Math.round(xp * multMedio);
     if (melhorStreak >= 3) {
       xp += 15;
       dia += 2;
@@ -206,6 +266,14 @@ const FronteirasJogoScreen = () => {
     tentar("fr6", diasJogados.length >= 3, diasJogados.length);
     tentar("fr7", next.tempoTotalMs >= 10 * 60 * 1000);
 
+    // Conquistas de passaporte (fr8..fr10)
+    const isoCarimbados = Object.keys(carimbados);
+    // Nota: acabámos de carimbar durante a partida — reflete-se em carimbados
+    const palopCount = PAISES_PALOP.filter((p) => isoCarimbados.includes(p.iso)).length;
+    tentar("fr8", palopCount >= 5, palopCount);
+    tentar("fr9", isoCarimbados.length >= 20, isoCarimbados.length);
+    tentar("fr10", isoCarimbados.length >= 54, isoCarimbados.length);
+
     saveStats(next);
     update((s) => ({ ...s, xp: s.xp + xp, diamantes: s.diamantes + dia }));
 
@@ -226,6 +294,9 @@ const FronteirasJogoScreen = () => {
     setDiaGanho(0);
     setNovasConquistas([]);
     setTerminou(false);
+    setMultiplicadores([]);
+    setPaisesAcertadosPartida([]);
+    setConfetesOn(false);
     startRef.current = performance.now();
   };
 
@@ -287,6 +358,13 @@ const FronteirasJogoScreen = () => {
               transition={{ duration: 0.4 }}
             />
           </div>
+          <div className="mt-2">
+            <Cronometro
+              active={escolha == null && !terminou}
+              durationMs={TEMPO_PERGUNTA_MS}
+              onTimeout={handleTimeout}
+            />
+          </div>
         </div>
       )}
 
@@ -301,6 +379,15 @@ const FronteirasJogoScreen = () => {
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.25 }}
             >
+              {/* Mapa vivo com pin do país da pergunta */}
+              <div className="relative mb-4">
+                <MapaAfricaViva pais={paisAtual} revelar={escolha != null} height={180} />
+                <Confetes
+                  active={confetesOn && escolha === perguntaAtual.respostaCorreta}
+                  colors={paisAtual.bandeira}
+                />
+              </div>
+
               <div
                 className="rounded-3xl px-5 py-5 mb-5 text-white shadow-[0_6px_0_hsl(var(--kwendi-blue-dark,210_70%_30%))]"
                 style={{ background: "hsl(var(--kwendi-blue))" }}
@@ -351,19 +438,17 @@ const FronteirasJogoScreen = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-5 rounded-2xl bg-muted px-4 py-4"
+                  className="mt-5"
                 >
-                  <p className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground mb-1">
-                    {escolha === perguntaAtual.respostaCorreta
-                      ? "Boa! Resposta certa"
-                      : "Quase! Resposta correta:"}
-                  </p>
-                  {escolha !== perguntaAtual.respostaCorreta && (
-                    <p className="font-bold text-foreground mb-1">
-                      {perguntaAtual.opcoes[perguntaAtual.respostaCorreta]}
-                    </p>
-                  )}
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <CartaoCuriosidade
+                    pais={paisAtual}
+                    acertou={escolha === perguntaAtual.respostaCorreta}
+                    respostaCorreta={perguntaAtual.opcoes[perguntaAtual.respostaCorreta]}
+                    curiosidade={
+                      CURIOSIDADES[paisAtual.iso] ?? perguntaAtual.explicacao
+                    }
+                  />
+                  <p className="mt-3 rounded-2xl bg-muted px-4 py-3 text-sm text-foreground leading-relaxed">
                     {perguntaAtual.explicacao}
                   </p>
                   <button
@@ -437,6 +522,45 @@ const FronteirasJogoScreen = () => {
                   </div>
                 </div>
               )}
+
+              {/* Passaporte: países visitados nesta partida */}
+              {paisesAcertadosPartida.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground mb-2">
+                    Passaporte carimbado
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {paisesAcertadosPartida.map((iso, idx) => {
+                      const p = PAISES[iso];
+                      if (!p) return null;
+                      return (
+                        <motion.div
+                          key={iso}
+                          initial={{ scale: 0, rotate: 30 }}
+                          animate={{ scale: 1, rotate: -6 }}
+                          transition={{ delay: idx * 0.12, type: "spring", stiffness: 320, damping: 12 }}
+                          onAnimationStart={() => sons.carimbo()}
+                          className="flex items-center gap-1 rounded-full border-2 border-dashed border-foreground/40 px-3 py-1 text-sm font-black text-foreground bg-background/60"
+                        >
+                          <span>{p.emoji}</span>
+                          <span>{p.nome}</span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                    Total no passaporte: {Object.keys(carimbados).length}/54
+                  </p>
+                </div>
+              )}
+
+              {/* Cartão partilhável */}
+              <CartaoResultado
+                acertos={acertos}
+                total={TOTAL_POR_PARTIDA}
+                streak={melhorStreak}
+                paisesAcertados={Object.keys(carimbados)}
+              />
 
               <div className="mt-8 flex flex-col gap-3">
                 <button onClick={jogarNovamente} className="btn-duo btn-duo-blue w-full">
