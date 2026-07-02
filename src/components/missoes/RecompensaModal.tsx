@@ -4,8 +4,8 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Zap, Package } from "lucide-react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import type { Recompensa } from "@/data/missoes";
 
 interface Props {
@@ -56,7 +56,7 @@ const RecompensaModal = ({ recompensa, titulo = "Missão concluída!", onClose }
 
             <div className="mt-4 flex justify-center gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
-                <Zap className="w-5 h-5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />
+                <KwendiIcon name="raioxp" className="w-5 h-5" />
                 <span className="font-extrabold">+{recompensa.xp} XP</span>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
@@ -65,7 +65,7 @@ const RecompensaModal = ({ recompensa, titulo = "Missão concluída!", onClose }
               </div>
               {recompensa.bau && (
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted">
-                  <Package className="w-5 h-5" style={{ color: "hsl(var(--kwendi-brown))" }} />
+                  <KwendiIcon name="bau" className="w-5 h-5" />
                   <span className="font-extrabold capitalize">Baú {recompensa.bau}</span>
                 </div>
               )}
