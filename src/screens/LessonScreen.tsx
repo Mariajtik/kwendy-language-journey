@@ -342,7 +342,7 @@ const LessonScreen = () => {
           <FalarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
         )}
         {passo.tipo === "conversa_escolha" && (
-          <ConversaEscolhaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+          <ConversaEscolhaPasso key={`conv-${index}`} passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
         )}
         {passo.tipo === "emparelhar" && (
           <EmparelharPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
