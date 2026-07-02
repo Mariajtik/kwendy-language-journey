@@ -6,15 +6,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { BAUS, emojiDrop, rotuloDrop, type DropItem } from "@/data/recompensas";
 import type { Raridade } from "@/data/missoes";
-import { Zap, Puzzle } from "lucide-react";
+import { Puzzle } from "lucide-react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 
 const IconeDrop = ({ d }: { d: DropItem }) => {
   switch (d.tipo) {
     case "diamantes":
       return <DiamanteNegro className="w-5 h-5" />;
     case "xp":
-      return <Zap className="w-5 h-5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />;
+      return <KwendiIcon name="raioxp" className="w-5 h-5" />;
     case "fragmento":
       return <Puzzle className="w-5 h-5" style={{ color: "hsl(var(--kwendi-purple))" }} />;
   }
