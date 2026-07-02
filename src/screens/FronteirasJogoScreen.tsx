@@ -447,10 +447,8 @@ const FronteirasJogoScreen = () => {
                     curiosidade={
                       CURIOSIDADES[paisAtual.iso] ?? perguntaAtual.explicacao
                     }
+                    explicacao={perguntaAtual.explicacao}
                   />
-                  <p className="mt-3 rounded-2xl bg-muted px-4 py-3 text-sm text-foreground leading-relaxed">
-                    {perguntaAtual.explicacao}
-                  </p>
                   <button
                     onClick={proxima}
                     className="btn-duo btn-duo-blue mt-4 w-full"
