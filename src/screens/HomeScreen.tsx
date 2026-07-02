@@ -569,7 +569,7 @@ const HomeScreen = () => {
         <DialogContent className="max-w-xs rounded-3xl text-center">
           <DialogHeader>
             <div className="mx-auto w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2">
-              <Heart className="w-8 h-8 text-gray-400" strokeWidth={3} />
+              <KwendiIcon name="coracao" className="w-8 h-8" style={{ filter: "grayscale(1)", opacity: 0.45 }} />
             </div>
             <DialogTitle className="text-center text-xl font-extrabold">
               Sem vidas
