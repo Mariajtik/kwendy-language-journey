@@ -4,7 +4,7 @@
  * que a LessonScreen usa para avançar / debitar vidas / contar XP.
  */
 import { useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, Mic, Square, Check, X as XIcon } from "lucide-react";
 import type { Passo, Fala } from "@/data/licoes/tipos";
 import type { Personagem } from "@/data/licoes/tipos";
@@ -666,7 +666,49 @@ export const ConversaEscolhaPasso = ({
       <div className="flex-1 px-4 pt-4 pb-2">
         <div className="flex items-end justify-between gap-3">
           <AvatarCena personagem={passo.npc} lado="esq" falando={!checked} />
-          <AvatarCena personagem={passo.eu} lado="dir" />
+          <div className="relative">
+            <AnimatePresence>
+              {sel === null && !checked && (
+                <motion.div
+                  key="pensa"
+                  initial={{ opacity: 0, scale: 0.6, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  className="absolute -top-14 -left-16 pointer-events-none"
+                >
+                  <svg viewBox="0 0 120 80" style={{ width: 110, height: 74 }}>
+                    {/* bolhinhas ligando à cabeça */}
+                    <circle cx="96" cy="70" r="4" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
+                    <circle cx="86" cy="62" r="6" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
+                    {/* nuvem */}
+                    <path
+                      d="M 30 50 C 15 50, 12 34, 28 30 C 26 16, 46 12, 55 24 C 62 12, 88 16, 90 32 C 106 34, 108 52, 92 54 C 92 66, 70 68, 60 60 C 52 68, 32 64, 30 50 Z"
+                      fill="#fff"
+                      stroke="#1a1a1a"
+                      strokeWidth="2.5"
+                    />
+                    {[0, 1, 2].map((i) => (
+                      <motion.circle
+                        key={i}
+                        cx={42 + i * 14}
+                        cy={38}
+                        r="4"
+                        fill="hsl(5 84% 42%)"
+                        animate={{ cy: [38, 30, 38] }}
+                        transition={{
+                          duration: 1.1,
+                          repeat: Infinity,
+                          delay: i * 0.18,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    ))}
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <AvatarCena personagem={passo.eu} lado="dir" />
+          </div>
         </div>
 
         <motion.div
