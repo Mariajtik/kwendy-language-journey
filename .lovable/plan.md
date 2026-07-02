@@ -1,106 +1,66 @@
+# Refinar experiência visual do "Para Além de Fronteiras"
 
-## Objetivo
+Três problemas a resolver, mantendo tudo em código de apresentação (sem alterar lógica de jogo).
 
-Transformar a resolução de cada pergunta num pequeno momento cinematográfico e criar uma sensação clara de "viajar por África". Tudo mantém-se front-end, sem servidor.
+---
 
-## 1. Fundação de dados — país por pergunta
+## 1. Cartão da curiosidade — um só cartão, sem réplicas
 
-Ficheiro: `src/data/fronteirasPerguntas.ts`
+**Problema:** Existe um cartão branco "frente" que aparece brevemente antes do flip 3D — o utilizador vê duas versões da mesma informação.
 
-Adicionar a cada `Pergunta`:
-- `pais: string` — código ISO-2 (ex.: `"AO"`, `"CV"`, `"NG"`, `"ET"`).
-- Opcional `paisSecundario` para perguntas continentais.
+**Solução:** Eliminar o flip 3D e a face frontal. Passa a existir **um único cartão**, já com as cores da bandeira do país, que entra com uma animação sóbria (fade + slide-up + leve escala, ~400 ms). Conteúdo coerente numa hierarquia clara:
 
-Criar `src/data/paisesAfrica.ts` com, por país:
-- nome PT, ISO-2, coordenadas normalizadas `x,y` (0-1) sobre a imagem `africa.png`, cores da bandeira (2-3 HSL) e emoji da bandeira.
-- Uma lista de 54 países é finita — preencho os que aparecem nas perguntas existentes e deixo helper `paisPorCodigo(code)` com fallback para Angola.
+- Chip de estado no topo: `✓ Acertaste` (verde translúcido) **ou** `Resposta correta` (branco translúcido) — usa a cor da bandeira como fundo do cartão em ambos os casos.
+- Título grande: a resposta correta.
+- Parágrafo: `explicacao` da pergunta.
+- Divisória fina + rodapé: `Curiosidade · 🇦🇴 Angola` + texto da curiosidade.
 
-## 2. Mapa de África vivo (a tua ideia base + upgrade)
+Ficheiro afetado: `src/components/fronteiras/CartaoCuriosidade.tsx` (reescrito, sem `perspective`/`rotateY`, sem face absoluta).
 
-Novo componente: `src/components/fronteiras/MapaAfricaViva.tsx`
+---
 
-- Renderiza `africa.png` num `<div>` com `overflow:hidden` e um wrapper com `motion` para `scale` e `translate` (framer-motion, já em uso).
-- Estados: `idle`, `perguntar`, `revelar`.
-  - `perguntar`: pin do país da pergunta pulsa suavemente no local certo.
-  - `revelar`: `scale` de 1 → 2.2 e `translate` para centrar o país, `duration: 0.9s, ease: [0.22, 1, 0.36, 1]`. Alfinete aparece com um `spring` (bounce), sombra a crescer para simular "queda".
-- Balão junto ao alfinete com bandeira em emoji, nome do país e a `explicacao` da pergunta como curiosidade.
-- No `FronteirasJogoScreen.tsx`, o mapa passa a viver no topo do ecrã (altura ~180px). O bloco de explicação atual é substituído pelo balão do mapa.
+## 2. Mapa de África — nitidez no zoom e enquadramento
 
-## 3. Card da pergunta 3D com bandeira (flip)
+**Problema:** A `africa-bandeiras.jpg` (37 KB) fica pixelizada ao aplicar `scale: 2.4`, e como o `<img>` usa `object-contain`, ao deslocar por `%` para centrar o país, partes do mapa saem do cartão.
 
-- Envolver o cartão da pergunta num wrapper com `perspective: 1200px` e um `motion.div` com `rotateY: 0 → 180` ao responder.
-- Face frontal: enunciado atual. Face traseira: bandeira do país como fundo em gradiente (`from cores.bandeira[0] to cores.bandeira[1]`), com a curiosidade em cima.
-- Duração ~0.8s. Uma vez virado, o botão "Continuar" aparece por baixo.
+**Solução dupla:**
 
-## 4. Feedback sensorial: confetes + som
+**a) Substituir por versão de alta resolução.** Gerar um novo asset `africa-bandeiras@2x.jpg` (~1600 px de largura, mesma composição visual do mapa com bandeiras) e servi-lo via `srcSet` para que no zoom o browser use a imagem nítida. Usar `image-rendering: auto` e `will-change: transform` para suavizar.
 
-- Confetes: pequena implementação com `canvas` num `useRef` (sem dependência nova). 60 partículas com cores da bandeira do país, `requestAnimationFrame`, ~1.2s.
-- SFX curtos (base64 embutido, ~5 kB cada) em `src/data/sonsFronteiras.ts`:
-  - `acerto.mp3` — "ding" alegre.
-  - `erro.mp3` — som seco.
-  - `carimbo.mp3` — usado no passaporte.
-- Respeita o botão de música existente: SFX só tocam se o utilizador não silenciou tudo (adiciono estado `sfxOn` a partir do mesmo `isPlaying`).
+**b) Corrigir o enquadramento no zoom.** Em vez do atual "deslocar por percentagem da imagem", passar a usar `transform-origin` dinâmico: `transformOrigin: \`${pais.x * 100}% ${pais.y * 100}%\`` e apenas `scale`. Isto mantém o país sempre visível dentro do cartão, sem cortes nas bordas, e é matematicamente estável para qualquer coordenada.
 
-## 5. Cronómetro dramático + multiplicador XP
+**c) Bónus visual:** Adicionar um leve `filter: saturate(1.1)` durante o zoom e um halo dourado à volta do alfinete (`box-shadow: 0 0 24px hsl(45 90% 55% / 0.6)`) para reforçar o "wow".
 
-- Barra fina por baixo da pergunta, 12s por defeito, `linear` de 100% → 0%.
-- Cor muda: `>60%` verde `hsl(142 70% 45%)` → `30-60%` laranja `hsl(35 90% 55%)` → `<30%` vermelho `hsl(0 75% 55%)` com `scale` pulsante nos últimos 3s.
-- Ao esgotar sem resposta: conta como errado, tremor no cartão.
-- Multiplicador XP na função `finalizar`:
-  - resposta em <4s → x2, 4-8s → x1.5, 8-12s → x1.
-  - Média da partida decide o bonus final; já hoje há `xp += 15/30/50`, apenas somo `x mult`.
+Ficheiros afetados: `src/components/fronteiras/MapaAfricaViva.tsx`, novo asset `src/assets/africa-bandeiras-hd.jpg.asset.json`.
 
-## 6. Passaporte carimbado
+---
 
-- Novo hook `src/hooks/usePassaporte.ts` com persistência em `localStorage` (`kwendi:fronteiras:passaporte`):
-  - `carimbados: Record<isoCode, { data: string; acertos: number }>`.
-  - `carimbar(iso)` chamado ao acertar uma pergunta desse país.
-- No ecrã de resultados, aparece uma secção "Passaporte" com uma grelha de bandeiras. Os países acertados nesta partida entram com `scale-in` + som `carimbo`. Rotação de -6° e opacidade 0.9 para parecer tinta.
-- Conquistas novas em `src/data/conquistas.ts` (categoria fronteiras):
-  - `fr8` — Passaporte PALOP (5 países PALOP carimbados).
-  - `fr9` — Volta a África (20 países).
-  - `fr10` — Continente inteiro (54).
+## 3. Cartão de resultado partilhável — mapa dourado com alfinetes reais
 
-## 7. Cartão de resultado partilhável
+**Problema:** O mini-mapa é apenas um círculo com pontos soltos — não parece África nem valoriza os países visitados.
 
-Substitui a ideia genérica de "share": três ações claras.
+**Solução:** Redesenhar o cartão (720 × 1000 canvas) com três camadas:
 
-- Componente `CartaoResultado.tsx` desenha num `<canvas>` (não precisa lib nova):
-  - fundo com gradiente crimson→azul, mini-mapa de África com pontos nos países visitados, pontuação grande, streak, frase da Kwendi em umbundu, wordmark "Kwendi".
-- Três botões, todos front-end puros:
-  - **Baixar imagem** → `canvas.toBlob` + `URL.createObjectURL` → `<a download="kwendi-fronteiras.png">`.
-  - **Partilhar** → `navigator.share({ files: [...] })` quando disponível (móvel); fallback abre WhatsApp Web com texto.
-  - **Comunidade** → `navigator.share` sem `files` para partilhar link do site.
+**a) Fundo cinemático.** Gradiente radial crimson → azul-noite + textura sutil de pontos dourados (ruído procedural leve no canvas).
 
-## 8. Ajustes visuais menores
+**b) Mapa dourado com alfinetes precisos.** Carregar `africa-bandeiras-hd.jpg` (o mesmo asset novo) no canvas com `globalCompositeOperation = "luminosity"` + camada dourada por cima (`hsl(45 90% 55%)` com `multiply`) para obter silhueta dourada de África. Sobre esse mapa, desenhar alfinetes reais nas coordenadas `(pais.x, pais.y)` de cada país acertado — mesmo sistema já usado no `MapaAfricaViva`, garantindo posições coerentes entre jogo e cartão. Cada alfinete: círculo dourado + estrela pequena + sombra.
 
-- Cabeçalho `Para Além de Fronteiras` ganha um pequeno avião a orbitar o mini-mapa quando idle (aproveita `plane.png` já usado no `HomeScreen`).
-- Barra de progresso passa a ter divisões (10 segmentos), preenchidas por passo — leitura mais clara.
-- Botão dourado de música muda de ícone para nota musical quando toca; adiciono controlo separado para SFX no menu long-press desse botão.
+**c) Tipografia refinada.** Título em `letter-spacing` largo, pontuação com sublinhado dourado, streak como "selo carimbado" rodado -6°, nome do país destaque (top 1 acerto), frase da Kwendi em itálico com aspas tipográficas «...».
 
-## Ficheiros novos
+**d) Botões de partilha.** Mantêm-se (Baixar / WhatsApp / Comunidade) mas ganham ícone dourado e sombra 3D coerente com o resto da app.
 
-- `src/components/fronteiras/MapaAfricaViva.tsx`
-- `src/components/fronteiras/CartaoDeCurioidade.tsx` (o balão flip)
-- `src/components/fronteiras/Confetes.tsx`
-- `src/components/fronteiras/Cronometro.tsx`
-- `src/components/fronteiras/CartaoResultado.tsx`
-- `src/data/paisesAfrica.ts`
-- `src/data/sonsFronteiras.ts`
-- `src/hooks/usePassaporte.ts`
+Ficheiro afetado: `src/components/fronteiras/CartaoResultado.tsx` (reescrito, com helper para desenhar silhueta dourada e pins).
 
-## Ficheiros editados
+---
 
-- `src/screens/FronteirasJogoScreen.tsx` — orquestra mapa + card 3D + confetes + cronómetro + passaporte + cartão de resultado.
-- `src/data/fronteirasPerguntas.ts` — adiciona campo `pais`.
-- `src/data/conquistas.ts` — 3 conquistas novas + progressos.
+## Detalhes técnicos
 
-## O que fica de fora (proposto pelo user mas com nota)
+- Sem mudanças em `FronteirasJogoScreen.tsx` além de remover a prop `explicacao` (agora integrada no cartão único — a prop passa a ser opcional para não partir a assinatura).
+- Sem mudanças em `paisesAfrica.ts`, `fronteirasPerguntas.ts`, `usePassaporte.ts`, `conquistas.ts`, `sonsFronteiras.ts`.
+- O novo asset de alta resolução vai ser gerado com `imagegen` e enviado para o CDN via `lovable-assets`.
+- Verificação: `tsgo --noEmit` + inspeção visual via Playwright do estado "revelar" e do cartão de resultado.
 
-- Modo Griot com voz e música por região e streak épico com frases em umbundu ficam de fora desta ronda — posso adicionar num passo seguinte para não sobrecarregar as animações já pesadas do mapa + flip + confetes na mesma tela.
+## Fora do âmbito
 
-## Notas técnicas
-
-- Nada requer novas dependências: framer-motion, canvas nativo e `navigator.share` já existem.
-- Todas as cores usam tokens semânticos (`hsl(var(--kwendi-*))`) ou HSL calculado a partir da bandeira; nenhum hex em componentes.
-- Todo o estado persistente (passaporte, stats) fica em `localStorage`, sem backend.
+- Não altero o timer, XP, sons, confetes nem as achievements.
+- Não introduzo Griot mode nem música regional (adiado como combinado).
