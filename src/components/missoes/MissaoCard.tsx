@@ -2,8 +2,9 @@
  * MissaoCard — card individual de missão com barra de progresso e botão de resgate.
  */
 import { motion } from "framer-motion";
-import { Check, Gift, Zap } from "lucide-react";
+import { Check, Gift } from "lucide-react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import type { MissaoView } from "@/hooks/useMissoes";
 
 interface Props {
@@ -45,12 +46,12 @@ const MissaoCard = ({ missao, onResgatar }: Props) => {
             </div>
             <div className="flex items-center gap-2 shrink-0 text-xs font-bold">
               <span className="inline-flex items-center gap-0.5" style={{ color: "hsl(var(--kwendi-yellow))" }}>
-                <Zap className="w-3.5 h-3.5 fill-current" />{recompensa.xp}
+                <KwendiIcon name="raioxp" className="w-3.5 h-3.5" />{recompensa.xp}
               </span>
               <span className="inline-flex items-center gap-0.5 text-foreground">
                 <DiamanteNegro className="w-3.5 h-3.5" />{recompensa.diamantes}
               </span>
-              {recompensa.bau && <span>📦</span>}
+              {recompensa.bau && <KwendiIcon name="bau" className="w-3.5 h-3.5" />}
             </div>
           </div>
 
