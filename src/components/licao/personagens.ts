@@ -17,24 +17,31 @@ import hossyCutout from "@/assets/characters/hossy-cutout.png";
 import suzanaCutout from "@/assets/characters/suzana-cutout.png";
 import kiameCutout from "@/assets/characters/kiame-cutout.png";
 import kekehanCutout from "@/assets/characters/kekehan-cutout.png";
+import kwendiBlink from "@/assets/characters/kwendi-cutout-blink.png";
+import otchaliBlink from "@/assets/characters/otchali-cutout-blink.png";
+import yellenBlink from "@/assets/characters/yellen-cutout-blink.png";
+import hossyBlink from "@/assets/characters/hossy-cutout-blink.png";
+import suzanaBlink from "@/assets/characters/suzana-cutout-blink.png";
+import kiameBlink from "@/assets/characters/kiame-cutout-blink.png";
+import kekehanBlink from "@/assets/characters/kekehan-cutout-blink.png";
 
 export const PERSONAGENS: Record<
   Personagem,
-  { nome: string; avatar: string | null; cutout: string | null }
+  { nome: string; avatar: string | null; cutout: string | null; cutoutBlink: string | null }
 > = {
-  kwendi: { nome: "Kwendi", avatar: kwendi.url, cutout: kwendiCutout },
-  otchali: { nome: "Otchali", avatar: otchali.url, cutout: otchaliCutout },
-  yellen: { nome: "Yellen", avatar: yellen.url, cutout: yellenCutout },
-  hossy: { nome: "Hossy", avatar: hossy.url, cutout: hossyCutout },
-  suzana: { nome: "Vovó Suzana", avatar: suzana.url, cutout: suzanaCutout },
-  kiame: { nome: "Kiame", avatar: kiame.url, cutout: kiameCutout },
-  kekehan: { nome: "Keke & Han", avatar: kekehan.url, cutout: kekehanCutout },
-  kapt: { nome: "Kapt", avatar: null, cutout: null },
-  kapo: { nome: "Kapo", avatar: null, cutout: null },
-  laura: { nome: "Laura", avatar: null, cutout: null },
-  cile: { nome: "Cile", avatar: null, cutout: null },
+  kwendi: { nome: "Kwendi", avatar: kwendi.url, cutout: kwendiCutout, cutoutBlink: kwendiBlink },
+  otchali: { nome: "Otchali", avatar: otchali.url, cutout: otchaliCutout, cutoutBlink: otchaliBlink },
+  yellen: { nome: "Yellen", avatar: yellen.url, cutout: yellenCutout, cutoutBlink: yellenBlink },
+  hossy: { nome: "Hossy", avatar: hossy.url, cutout: hossyCutout, cutoutBlink: hossyBlink },
+  suzana: { nome: "Vovó Suzana", avatar: suzana.url, cutout: suzanaCutout, cutoutBlink: suzanaBlink },
+  kiame: { nome: "Kiame", avatar: kiame.url, cutout: kiameCutout, cutoutBlink: kiameBlink },
+  kekehan: { nome: "Keke & Han", avatar: kekehan.url, cutout: kekehanCutout, cutoutBlink: kekehanBlink },
+  kapt: { nome: "Kapt", avatar: null, cutout: null, cutoutBlink: null },
+  kapo: { nome: "Kapo", avatar: null, cutout: null, cutoutBlink: null },
+  laura: { nome: "Laura", avatar: null, cutout: null, cutoutBlink: null },
+  cile: { nome: "Cile", avatar: null, cutout: null, cutoutBlink: null },
   // chac/kapit ficam como aliases de Kwendi/Otchali (sem arte própria).
-  chac: { nome: "Kwendi", avatar: kwendi.url, cutout: kwendiCutout },
-  kapit: { nome: "Otchali", avatar: otchali.url, cutout: otchaliCutout },
-  narrador: { nome: "Narrador", avatar: null, cutout: null },
+  chac: { nome: "Kwendi", avatar: kwendi.url, cutout: kwendiCutout, cutoutBlink: kwendiBlink },
+  kapit: { nome: "Otchali", avatar: otchali.url, cutout: otchaliCutout, cutoutBlink: otchaliBlink },
+  narrador: { nome: "Narrador", avatar: null, cutout: null, cutoutBlink: null },
 };
