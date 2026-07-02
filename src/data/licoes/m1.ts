@@ -391,6 +391,29 @@ const U2: Licao[] = [
       F("Twenda kosikola?", "Vamos à escola?"),
     ],
   },
+  {
+    id: "m1u2s8",
+    titulo: "Família em casa",
+    personagens: ["kwendi", "otchali"],
+    passos: [
+      A("Ise", "Pai"),
+      A("Ina", "Mãe"),
+      A("Ocimumba", "Sobrinho"),
+      A("Ise yange", "O meu pai"),
+      A("Ina yange", "A minha mãe"),
+      A("Ocimumba cange", "O meu sobrinho"),
+      D([
+        { p: "kwendi", u: "Ise yange Mbatolomeu.", t: "O meu pai é o Bartolomeu." },
+        { p: "otchali", u: "Ina yange Salomé.", t: "A minha mãe é a Salomé." },
+        { p: "kwendi", u: "Eci ocimumba cange.", t: "Este é o meu sobrinho." },
+      ]),
+      E("Ina yange", "A minha mãe", ["O meu pai", "A minha mãe", "O meu sobrinho"], 1),
+      TPU("O meu pai", ["Ise yange", "Ina yange", "Ocimumba cange"], 0),
+      TUP("Ocimumba cange", ["O meu sobrinho", "A minha sobrinha", "Meu pai"], 0),
+      M("Monta: “A minha mãe é a Salomé”", "Ina yange Salomé"),
+      F("Ise yange Mbatolomeu", "O meu pai é o Bartolomeu"),
+    ],
+  },
 ];
 
 // -------- U3 · Na rua (Vokololo) ------------------------------------------
