@@ -100,51 +100,75 @@ export default SecaoScreen;
    Reaproveita conhecimento do livro de referência (Wambu Kalunga, etc.)
    ===================================================================== */
 
-const LETRAS = [
-  "a","e","i","o","u",
-  "b","c","d","f","h","j","k","l","m","n","ng","ñ","p","s","t","v","w","y",
+/** Alfabeto umbundu (24 letras) na ordem apresentada no material de referência.
+ *  Cada entrada tem a letra/dígrafo e a sua leitura em português. */
+const LETRAS: { letra: string; leitura: string }[] = [
+  { letra: "A",  leitura: "a"    },
+  { letra: "MB", leitura: "mbê"  },
+  { letra: "C",  leitura: "tchê" },
+  { letra: "ND", leitura: "ndê"  },
+  { letra: "E",  leitura: "ê"    },
+  { letra: "F",  leitura: "fê"   },
+  { letra: "H",  leitura: "hê"   },
+  { letra: "I",  leitura: "i"    },
+  { letra: "NJ", leitura: "njê"  },
+  { letra: "K",  leitura: "kê"   },
+  { letra: "L",  leitura: "lê"   },
+  { letra: "M",  leitura: "mê"   },
+  { letra: "N",  leitura: "nê"   },
+  { letra: "NY", leitura: "nhê"  },
+  { letra: "NG", leitura: "nguê" },
+  { letra: "ÑG", leitura: "ñg"   },
+  { letra: "O",  leitura: "o"    },
+  { letra: "P",  leitura: "pê"   },
+  { letra: "S",  leitura: "sê"   },
+  { letra: "T",  leitura: "tê"   },
+  { letra: "U",  leitura: "uê"   },
+  { letra: "V",  leitura: "vê"   },
+  { letra: "Y",  leitura: "iê"   },
+  { letra: "W",  leitura: "uê"   },
 ];
 
 const CARDS: { titulo: string; texto: string; cor: string; Icon: LucideIcon }[] = [
   {
-    titulo: "Estrutura C-V-C",
+    titulo: "24 letras no total",
     texto:
-      "Os radicais umbundu são tipicamente consoante-vogal-consoante: kala (ser), kwata (agarrar). K = inicial, a = vogal, l = final.",
+      "O alfabeto umbundu é composto por 24 letras: 16 consoantes (MB, C, ND, F, H, K, L, M, N, NY, NG, ÑG, P, S, T, V), 5 vogais (A, E, I, O, U) e 2 semivogais (y, w).",
     cor: "5 84% 42%",
     Icon: Puzzle,
   },
   {
-    titulo: 'Prefixo "ku" / "oku"',
+    titulo: "Dígrafos são uma só letra",
     texto:
-      "Prefixo nominal da classe 15 que marca o infinitivo verbal. Ex.: kukala / okukala = ser/estar. A vogal (o,u) entre prefixo e radical é a vogal de extensão.",
+      "MB, ND, NJ, NY, NG e ÑG são consoantes. Cada dígrafo corresponde a uma só letra, igual a si mesma e inseparável — não se separam na translineação.",
     cor: "25 90% 55%",
     Icon: Languages,
   },
   {
-    titulo: "A tonalidade muda o sentido",
+    titulo: "Vogais orais e nasais",
     texto:
-      "Umbundu é língua musical: a mesma palavra muda de significado conforme a tonalidade, o movimento dos lábios e os pontos de articulação.",
+      "As vogais dividem-se em orais e nasais. As nasais levam o til (~) e as orais não. Apenas as vogais (a) e (o) são acentuadas com til. Ex.: mãyi (mãe).",
     cor: "265 60% 55%",
     Icon: Music2,
   },
   {
-    titulo: "Aglutinação",
+    titulo: 'Prefixo "oku" no infinitivo',
     texto:
-      "As palavras formam-se por aglutinação: a um radical antepõe-se um prefixo que muda o significado, e pospõem-se sufixos para tempos verbais.",
+      "Todo verbo umbundu no infinitivo tem o prefixo oku. Ex.: okukala = ser/estar — oku indica o infinitivo, kal é o radical, e (a) é a desinência que muda conforme o tempo e o modo.",
     cor: "150 55% 38%",
     Icon: Link2,
   },
   {
-    titulo: "Palavra · Gesto · Som · Sentimento",
+    titulo: "Exemplos do dia-a-dia",
     texto:
-      "Na cultura umbundu, comunicar usa ondaka (palavra), ondimbu (gesto), ocileñgi (som) e ovisimilo (sentimentos). Tudo conta.",
+      "Mãyi = mãe · Tate = pai · Ecelãla = oito · Ukwetu = companheiro. Repara como o til distingue as vogais nasais das orais.",
     cor: "330 75% 55%",
     Icon: HandHelping,
   },
   {
-    titulo: "Provérbio: a voz mais condensada",
+    titulo: "Sem alfabeto simples/composto",
     texto:
-      "Na sabedoria ovimbundu o provérbio é a forma mais densa da linguagem — atinge o ouvinte em profundidade e provoca resposta.",
+      "Um estudo filológico do próprio alfabeto conclui que não devemos analisá-lo em simples e composto tendo em conta o processo de translineação em português — cada letra é inseparável de si mesma.",
     cor: "28 55% 45%",
     Icon: Quote,
   },
