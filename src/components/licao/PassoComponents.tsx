@@ -3,7 +3,7 @@
  * Cada componente recebe o passo já tipado e um callback onResolved(certo?)
  * que a LessonScreen usa para avançar / debitar vidas / contar XP.
  */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, Mic, Square, Check, X as XIcon } from "lucide-react";
 import type { Passo, Fala } from "@/data/licoes/tipos";
@@ -597,36 +597,55 @@ export const FalarPasso = ({
 const AvatarCena = ({
   personagem,
   lado,
-  falando,
 }: {
   personagem: Personagem;
   lado: "esq" | "dir";
-  falando?: boolean;
 }) => {
   const info = PERSONAGENS[personagem];
   const espelhar = lado === "dir";
+  // Delay diferente por lado — evita piscar em sincronia.
+  const blinkDelay = lado === "esq" ? 0.4 : 1.9;
   return (
     <div className="flex flex-col items-center">
       {info.cutout ? (
-        <motion.img
-          src={info.cutout}
-          alt={info.nome}
-          className="w-auto object-contain"
+        <div
+          className="relative"
           style={{
             height: 220,
             transform: espelhar ? "scaleX(-1)" : undefined,
           }}
-          animate={falando ? { y: [0, -6, 0] } : { y: 0 }}
-          transition={falando ? { duration: 1.4, repeat: Infinity } : undefined}
-        />
+        >
+          <img
+            src={info.cutout}
+            alt={info.nome}
+            className="h-full w-auto object-contain select-none"
+            draggable={false}
+          />
+          {info.cutoutBlink && (
+            <motion.img
+              src={info.cutoutBlink}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 h-full w-auto object-contain pointer-events-none select-none"
+              draggable={false}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0, 1, 1, 0, 0] }}
+              transition={{
+                duration: 3.6,
+                times: [0, 0.92, 0.94, 0.98, 1, 1],
+                repeat: Infinity,
+                delay: blinkDelay,
+                ease: "linear",
+              }}
+            />
+          )}
+        </div>
       ) : info.avatar ? (
-        <motion.img
+        <img
           src={info.avatar}
           alt={info.nome}
           className="w-24 h-24 rounded-full object-cover border-[3px] border-white shadow-lg"
           style={{ transform: espelhar ? "scaleX(-1)" : undefined }}
-          animate={falando ? { y: [0, -4, 0] } : { y: 0 }}
-          transition={falando ? { duration: 1.4, repeat: Infinity } : undefined}
         />
       ) : (
         <div className="w-24 h-24 rounded-full bg-muted grid place-items-center text-lg font-extrabold">
@@ -650,6 +669,13 @@ export const ConversaEscolhaPasso = ({
   const [sel, setSel] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
 
+  // Cinto-e-suspensórios: se o pai reutilizar a instância entre passos,
+  // ainda assim reseta o estado quando o passo muda.
+  useEffect(() => {
+    setSel(null);
+    setChecked(false);
+  }, [passo]);
+
   return (
     <div
       className="flex flex-col flex-1 -mx-5 -mb-4 overflow-hidden"
@@ -662,9 +688,11 @@ export const ConversaEscolhaPasso = ({
       </p>
 
       {/* Palco: NPC à esquerda, eu à direita, balão da NPC entre elas */}
-      <div className="flex-1 px-4 pt-4 pb-2">
-        <div className="flex items-end justify-between gap-3">
-          <AvatarCena personagem={passo.npc} lado="esq" falando={!checked} />
+      <div className="flex-1 px-4 pt-20 pb-2">
+        <div className="flex items-end justify-center gap-6">
+          <div className="relative">
+            <AvatarCena personagem={passo.npc} lado="esq" />
+          </div>
           <div className="relative">
             <AnimatePresence>
               {sel === null && !checked && (
@@ -673,12 +701,12 @@ export const ConversaEscolhaPasso = ({
                   initial={{ opacity: 0, scale: 0.6, y: 6 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.6 }}
-                  className="absolute -top-14 -left-16 pointer-events-none"
+                  className="absolute -top-16 -right-4 pointer-events-none z-10"
                 >
-                  <svg viewBox="0 0 120 80" style={{ width: 110, height: 74 }}>
-                    {/* bolhinhas ligando à cabeça */}
-                    <circle cx="96" cy="70" r="4" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
-                    <circle cx="86" cy="62" r="6" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
+                  <svg viewBox="0 0 120 80" style={{ width: 100, height: 66 }}>
+                    {/* bolhinhas descendo para a cabeça (canto inf-esquerdo) */}
+                    <circle cx="24" cy="72" r="3.5" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
+                    <circle cx="32" cy="64" r="5" fill="#fff" stroke="#1a1a1a" strokeWidth="2" />
                     {/* nuvem */}
                     <path
                       d="M 30 50 C 15 50, 12 34, 28 30 C 26 16, 46 12, 55 24 C 62 12, 88 16, 90 32 C 106 34, 108 52, 92 54 C 92 66, 70 68, 60 60 C 52 68, 32 64, 30 50 Z"
