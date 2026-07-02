@@ -15,7 +15,8 @@ import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 import { toast } from "@/hooks/use-toast";
-import { getLicao } from "@/data/licoes/m1";
+import { getLicao as getLicaoM1 } from "@/data/licoes/m1";
+import { LICOES_BAU } from "@/data/licoes/baus";
 import {
   AprenderPasso,
   DialogoPasso,
@@ -25,6 +26,11 @@ import {
   MontarFrasePasso,
   EscreverPasso,
   FalarPasso,
+  ConversaEscolhaPasso,
+  EmparelharPasso,
+  PreencherLacunaPasso,
+  EscutaEscreverPasso,
+  EscutaMontarPasso,
 } from "@/components/licao/PassoComponents";
 
 /** Controlo de dicas grátis diárias (5/dia). Persiste em localStorage. */
@@ -85,7 +91,10 @@ const LessonScreen = () => {
   const { concluirSeccao } = useProgresso();
   const { tempoRestante } = useInventario();
 
-  const licao = useMemo(() => (id ? getLicao(id) : undefined), [id]);
+  const licao = useMemo(
+    () => (id ? LICOES_BAU[id] ?? getLicaoM1(id) : undefined),
+    [id],
+  );
   const usaScript = !!licao;
   const totalScript = licao?.passos.length ?? 0;
   const total = usaScript ? totalScript : QUESTIONS.length;
@@ -331,6 +340,21 @@ const LessonScreen = () => {
         )}
         {passo.tipo === "falar" && (
           <FalarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "conversa_escolha" && (
+          <ConversaEscolhaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "emparelhar" && (
+          <EmparelharPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "preencher_lacuna" && (
+          <PreencherLacunaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "escuta_escrever" && (
+          <EscutaEscreverPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "escuta_montar" && (
+          <EscutaMontarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
         )}
       </motion.div>
     );

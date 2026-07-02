@@ -7,6 +7,7 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Volume2, Mic, Square, Check, X as XIcon } from "lucide-react";
 import type { Passo, Fala } from "@/data/licoes/tipos";
+import type { Personagem } from "@/data/licoes/tipos";
 import { normalizar } from "@/data/licoes/tipos";
 import { PERSONAGENS } from "./personagens";
 import PalavraTocavel from "./PalavraTocavel";
@@ -586,6 +587,571 @@ export const FalarPasso = ({
         className="btn-duo btn-duo-primary w-full mt-6 disabled:opacity-50"
       >
         Continuar
+      </button>
+    </div>
+  );
+};
+
+/* -------------------- Conversa Escolha (Báu) -------------------- */
+
+const AvatarCena = ({
+  personagem,
+  lado,
+  falando,
+}: {
+  personagem: Personagem;
+  lado: "esq" | "dir";
+  falando?: boolean;
+}) => {
+  const info = PERSONAGENS[personagem];
+  return (
+    <div className="flex flex-col items-center">
+      {info.avatar ? (
+        <motion.img
+          src={info.avatar}
+          alt={info.nome}
+          className="w-24 h-24 rounded-full object-cover border-[3px] border-white shadow-lg"
+          style={{
+            transform: lado === "dir" ? "scaleX(-1)" : undefined,
+            boxShadow: falando
+              ? "0 0 0 4px hsl(45 95% 55% / .9), 0 8px 16px rgba(0,0,0,.15)"
+              : "0 8px 16px rgba(0,0,0,.15)",
+          }}
+          animate={falando ? { y: [0, -4, 0] } : { y: 0 }}
+          transition={falando ? { duration: 1.4, repeat: Infinity } : undefined}
+        />
+      ) : (
+        <div className="w-24 h-24 rounded-full bg-muted grid place-items-center text-lg font-extrabold">
+          {info.nome.slice(0, 2)}
+        </div>
+      )}
+      <span className="mt-2 text-[11px] font-extrabold tracking-wider text-muted-foreground">
+        {info.nome.toUpperCase()}
+      </span>
+    </div>
+  );
+};
+
+export const ConversaEscolhaPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "conversa_escolha" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  const [sel, setSel] = useState<number | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  const bg =
+    passo.cenario === "noite"
+      ? "linear-gradient(180deg,#1b2447 0%,#2b3d6b 100%)"
+      : passo.cenario === "tarde"
+      ? "linear-gradient(180deg,#ffd7a8 0%,#ffb27a 100%)"
+      : "linear-gradient(180deg,#cfeaff 0%,#eaf7ff 100%)";
+  const textoLegenda = passo.cenario === "noite" ? "#f0f2ff" : "#5E5C5C";
+
+  return (
+    <div
+      className="flex flex-col flex-1 -mx-5 -mb-4 rounded-t-3xl overflow-hidden"
+      style={{ background: bg }}
+    >
+      <p
+        className="text-[11px] font-extrabold tracking-widest text-center pt-4"
+        style={{ color: textoLegenda, opacity: 0.7 }}
+      >
+        CENA · RESPONDE COMO {PERSONAGENS[passo.eu].nome.toUpperCase()}
+      </p>
+
+      {/* Palco: NPC à esquerda, eu à direita, balão da NPC entre elas */}
+      <div className="flex-1 px-4 pt-4 pb-2">
+        <div className="flex items-end justify-between gap-3">
+          <AvatarCena personagem={passo.npc} lado="esq" falando={!checked} />
+          <AvatarCena personagem={passo.eu} lado="dir" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 relative rounded-2xl bg-white border-2 border-border p-3"
+          style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
+        >
+          <p className="text-lg font-extrabold text-foreground leading-snug">
+            {passo.pergunta.umbundu
+              .split(/(\s+)/)
+              .map((tok, i) =>
+                tok.trim() ? (
+                  <PalavraTocavel
+                    key={i}
+                    umbundu={tok.replace(/[.,;:!?]/g, "")}
+                    texto={tok}
+                  />
+                ) : (
+                  <span key={i}>{tok}</span>
+                ),
+              )}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">{passo.pergunta.pt}</p>
+          <button
+            type="button"
+            onClick={() => falar(passo.pergunta.umbundu)}
+            className="mt-1 inline-flex items-center gap-1 text-[11px] font-extrabold"
+            style={{ color: "hsl(202 80% 45%)" }}
+          >
+            <Volume2 className="w-3 h-3" /> Ouvir
+          </button>
+          <div
+            className="absolute -bottom-2 left-8 w-4 h-4 bg-white rotate-45 border-b-2 border-r-2 border-border"
+          />
+        </motion.div>
+      </div>
+
+      {/* Opções */}
+      <div className="bg-white/95 backdrop-blur px-4 pt-3 pb-4 flex flex-col gap-2">
+        <p
+          className="text-[11px] font-extrabold tracking-widest text-muted-foreground"
+        >
+          A TUA RESPOSTA
+        </p>
+        {passo.opcoes.map((op, i) => {
+          const isSel = sel === i;
+          const showCerto = checked && i === passo.correta;
+          const showErrado = checked && isSel && i !== passo.correta;
+          return (
+            <button
+              key={i}
+              disabled={checked}
+              onClick={() => setSel(i)}
+              className="rounded-2xl border-2 px-4 py-3 text-left transition-colors"
+              style={{
+                borderColor: showCerto
+                  ? "#86D05D"
+                  : showErrado
+                  ? "hsl(var(--primary))"
+                  : isSel
+                  ? "hsl(var(--primary))"
+                  : "#e5e5e5",
+                background: showCerto
+                  ? "#eaf7e0"
+                  : showErrado
+                  ? "#fdecec"
+                  : isSel
+                  ? "#fff5f5"
+                  : "#fff",
+                boxShadow: `0 3px 0 ${
+                  showCerto
+                    ? "#5fae3a"
+                    : showErrado
+                    ? "hsl(var(--kwendi-red-dark))"
+                    : isSel
+                    ? "hsl(var(--kwendi-red-dark))"
+                    : "#d4d4d4"
+                }`,
+              }}
+            >
+              <p className="font-extrabold text-foreground">{op.umbundu}</p>
+              <p className="text-xs text-muted-foreground">{op.pt}</p>
+            </button>
+          );
+        })}
+        <button
+          disabled={sel === null}
+          onClick={() =>
+            checked ? onResolved(sel === passo.correta) : setChecked(true)
+          }
+          className="btn-duo btn-duo-primary w-full mt-2 disabled:opacity-50"
+        >
+          {checked ? "Continuar" : "Responder"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* -------------------- Emparelhar pares -------------------- */
+
+export const EmparelharPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "emparelhar" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  // Baralha cada coluna independentemente.
+  const colA = useMemo(
+    () =>
+      passo.pares
+        .map((p, i) => ({ id: i, texto: p.umbundu, lado: "u" as const }))
+        .sort(() => Math.random() - 0.5),
+    [passo.pares],
+  );
+  const colB = useMemo(
+    () =>
+      passo.pares
+        .map((p, i) => ({ id: i, texto: p.pt, lado: "p" as const }))
+        .sort(() => Math.random() - 0.5),
+    [passo.pares],
+  );
+
+  const [selA, setSelA] = useState<number | null>(null);
+  const [selB, setSelB] = useState<number | null>(null);
+  const [feitos, setFeitos] = useState<Set<number>>(new Set());
+  const [errosLocais, setErros] = useState(0);
+  const [flashErro, setFlashErro] = useState(false);
+
+  const tentar = (a: number, b: number) => {
+    if (a === b) {
+      setFeitos((s) => new Set(s).add(a));
+      setSelA(null);
+      setSelB(null);
+      if (feitos.size + 1 === passo.pares.length) {
+        setTimeout(() => onResolved(errosLocais === 0), 400);
+      }
+    } else {
+      setErros((n) => n + 1);
+      setFlashErro(true);
+      setTimeout(() => {
+        setSelA(null);
+        setSelB(null);
+        setFlashErro(false);
+      }, 500);
+    }
+  };
+
+  const clicar = (lado: "u" | "p", id: number) => {
+    if (feitos.has(id) && (lado === "u" ? selA : selB) === id) return;
+    if (lado === "u") {
+      setSelA(id);
+      if (selB !== null) tentar(id, selB);
+    } else {
+      setSelB(id);
+      if (selA !== null) tentar(selA, id);
+    }
+  };
+
+  type ColItem = { id: number; texto: string; lado: "u" | "p" };
+  const renderCol = (col: ColItem[], sel: number | null, lado: "u" | "p") => (
+    <div className="flex-1 flex flex-col gap-2">
+      {col.map((it) => {
+        const done = feitos.has(it.id);
+        const isSel = sel === it.id && !done;
+        return (
+          <button
+            key={it.id}
+            disabled={done}
+            onClick={() => clicar(lado, it.id)}
+            className="rounded-2xl border-2 px-3 py-3 text-center font-extrabold text-sm transition-colors"
+            style={{
+              borderColor: done
+                ? "#86D05D"
+                : isSel && flashErro
+                ? "hsl(var(--primary))"
+                : isSel
+                ? "hsl(var(--primary))"
+                : "#e5e5e5",
+              background: done
+                ? "#eaf7e0"
+                : isSel && flashErro
+                ? "#fdecec"
+                : isSel
+                ? "#fff5f5"
+                : "#fff",
+              color: "#5E5C5C",
+              opacity: done ? 0.55 : 1,
+              boxShadow: done
+                ? "0 2px 0 #5fae3a"
+                : isSel
+                ? "0 3px 0 hsl(var(--kwendi-red-dark))"
+                : "0 3px 0 #d4d4d4",
+            }}
+          >
+            {it.texto}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col flex-1">
+      <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-3">
+        EMPARELHA OS PARES
+      </p>
+      <p className="text-base font-bold text-foreground mb-4">
+        Toca em cada palavra e no seu significado.
+      </p>
+      <div className="flex gap-3 flex-1">
+        {renderCol(colA, selA, "u")}
+        {renderCol(colB, selB, "p")}
+      </div>
+      {feitos.size === passo.pares.length && (
+        <p className="text-sm font-bold mt-3" style={{ color: "#5fae3a" }}>
+          Tudo certo! {errosLocais > 0 && `(${errosLocais} tentativas erradas)`}
+        </p>
+      )}
+    </div>
+  );
+};
+
+/* -------------------- Preencher lacuna -------------------- */
+
+export const PreencherLacunaPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "preencher_lacuna" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  const [sel, setSel] = useState<number | null>(null);
+  const [checked, setChecked] = useState(false);
+  const partes = passo.frase.split("___");
+
+  const preview = (i: number) => (
+    <span className="inline-block px-2 rounded-md bg-primary/10 border-2 border-primary/40 mx-1 font-extrabold text-foreground">
+      {passo.opcoes[i]}
+    </span>
+  );
+
+  return (
+    <div className="flex flex-col flex-1">
+      <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-3">
+        PREENCHE A LACUNA
+      </p>
+      <div className="mb-5 text-center">
+        <p className="text-2xl font-extrabold text-foreground leading-snug">
+          {partes[0]}
+          {sel === null ? (
+            <span className="inline-block px-4 py-0.5 rounded-md bg-muted border-2 border-dashed border-border mx-1">
+              &nbsp;&nbsp;&nbsp;
+            </span>
+          ) : (
+            preview(sel)
+          )}
+          {partes[1]}
+        </p>
+        <p className="text-sm text-muted-foreground mt-2">{passo.pt}</p>
+      </div>
+      <div className="flex flex-col gap-2 mb-4">
+        {passo.opcoes.map((o, i) => {
+          const isSel = sel === i;
+          const showCerto = checked && i === passo.correta;
+          const showErrado = checked && isSel && i !== passo.correta;
+          return (
+            <button
+              key={i}
+              disabled={checked}
+              onClick={() => setSel(i)}
+              className="rounded-2xl border-2 px-4 py-3 text-left font-bold"
+              style={{
+                borderColor: showCerto
+                  ? "#86D05D"
+                  : showErrado
+                  ? "hsl(var(--primary))"
+                  : isSel
+                  ? "hsl(var(--primary))"
+                  : "#e5e5e5",
+                background: showCerto
+                  ? "#eaf7e0"
+                  : showErrado
+                  ? "#fdecec"
+                  : isSel
+                  ? "#fff5f5"
+                  : "#fff",
+                color: "#5E5C5C",
+                boxShadow: `0 3px 0 ${
+                  showCerto
+                    ? "#5fae3a"
+                    : showErrado
+                    ? "hsl(var(--kwendi-red-dark))"
+                    : isSel
+                    ? "hsl(var(--kwendi-red-dark))"
+                    : "#d4d4d4"
+                }`,
+              }}
+            >
+              {o}
+            </button>
+          );
+        })}
+      </div>
+      <button
+        disabled={sel === null}
+        onClick={() =>
+          checked ? onResolved(sel === passo.correta) : setChecked(true)
+        }
+        className="btn-duo btn-duo-primary w-full mt-auto disabled:opacity-50"
+      >
+        {checked ? "Continuar" : "Verificar"}
+      </button>
+    </div>
+  );
+};
+
+/* -------------------- Escuta + escrever livre -------------------- */
+
+export const EscutaEscreverPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "escuta_escrever" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  const [valor, setValor] = useState("");
+  const [checked, setChecked] = useState(false);
+  const certo = normalizar(valor) === normalizar(passo.audio);
+
+  return (
+    <div className="flex flex-col flex-1">
+      <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-3">
+        OUVE E ESCREVE EM UMBUNDU
+      </p>
+      <button
+        type="button"
+        onClick={() => falar(passo.audio)}
+        className="self-center w-20 h-20 rounded-full grid place-items-center text-white mb-5"
+        style={{
+          background: "hsl(202 80% 50%)",
+          boxShadow: "0 5px 0 hsl(202 80% 35%)",
+        }}
+      >
+        <Volume2 className="w-10 h-10" />
+      </button>
+      <input
+        type="text"
+        value={valor}
+        disabled={checked}
+        onChange={(e) => setValor(e.target.value)}
+        placeholder="Escreve o que ouviste…"
+        className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 font-bold text-lg outline-none focus:border-primary"
+        style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
+      />
+      {checked && (
+        <p
+          className="text-sm font-bold mt-3"
+          style={{ color: certo ? "#5fae3a" : "hsl(var(--primary))" }}
+        >
+          {certo ? `Certo! “${passo.pt}”` : `Era: ${passo.audio}`}
+        </p>
+      )}
+      <button
+        disabled={valor.trim().length === 0}
+        onClick={() => (checked ? onResolved(certo) : setChecked(true))}
+        className="btn-duo btn-duo-primary w-full mt-auto disabled:opacity-50"
+      >
+        {checked ? "Continuar" : "Verificar"}
+      </button>
+    </div>
+  );
+};
+
+/* -------------------- Escuta + montar (tap what you hear) -------------------- */
+
+export const EscutaMontarPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "escuta_montar" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  const alvoPalavras = passo.alvo.split(" ");
+  const banco = useMemo(() => {
+    const arr = [...alvoPalavras, ...(passo.distratores ?? [])];
+    return arr
+      .map((p, i) => ({ id: i, palavra: p }))
+      .sort(() => Math.random() - 0.5);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passo.alvo]);
+
+  const [escolhidos, setEscolhidos] = useState<number[]>([]);
+  const [checked, setChecked] = useState(false);
+  const construido = escolhidos
+    .map((id) => banco.find((b) => b.id === id)!.palavra)
+    .join(" ");
+  const certo = normalizar(construido) === normalizar(passo.alvo);
+
+  const toggle = (id: number) => {
+    if (checked) return;
+    setEscolhidos((atual) =>
+      atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id],
+    );
+  };
+
+  return (
+    <div className="flex flex-col flex-1">
+      <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-3">
+        OUVE E MONTA A FRASE
+      </p>
+      <button
+        type="button"
+        onClick={() => falar(passo.audio)}
+        className="self-center w-20 h-20 rounded-full grid place-items-center text-white mb-4"
+        style={{
+          background: "hsl(202 80% 50%)",
+          boxShadow: "0 5px 0 hsl(202 80% 35%)",
+        }}
+      >
+        <Volume2 className="w-10 h-10" />
+      </button>
+      <div
+        className="min-h-[64px] rounded-2xl border-2 border-dashed border-border p-3 mb-3 flex flex-wrap gap-2"
+        style={{
+          background: checked
+            ? certo
+              ? "#eaf7e0"
+              : "#fdecec"
+            : "hsl(var(--muted))",
+        }}
+      >
+        {escolhidos.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Toca nas palavras para montar…
+          </p>
+        )}
+        {escolhidos.map((id) => (
+          <button
+            key={id}
+            onClick={() => toggle(id)}
+            className="rounded-xl bg-card border-2 border-border px-3 py-1.5 font-extrabold text-sm"
+            style={{ boxShadow: "0 2px 0 hsl(var(--border))" }}
+          >
+            {banco.find((b) => b.id === id)!.palavra}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 mb-4">
+        {banco.map((b) => {
+          const usado = escolhidos.includes(b.id);
+          return (
+            <button
+              key={b.id}
+              disabled={usado || checked}
+              onClick={() => toggle(b.id)}
+              className="rounded-xl px-3 py-1.5 font-extrabold text-sm"
+              style={{
+                background: usado ? "hsl(var(--muted))" : "hsl(var(--card))",
+                border: "2px solid hsl(var(--border))",
+                boxShadow: usado ? "none" : "0 2px 0 hsl(var(--border))",
+                color: usado
+                  ? "hsl(var(--muted-foreground))"
+                  : "hsl(var(--foreground))",
+                opacity: usado ? 0.4 : 1,
+              }}
+            >
+              {b.palavra}
+            </button>
+          );
+        })}
+      </div>
+      {checked && !certo && (
+        <p className="text-sm font-bold text-primary mb-3">
+          Era: {passo.alvo} — “{passo.pt}”
+        </p>
+      )}
+      <button
+        disabled={escolhidos.length === 0}
+        onClick={() => (checked ? onResolved(certo) : setChecked(true))}
+        className="btn-duo btn-duo-primary w-full mt-auto disabled:opacity-50"
+      >
+        {checked ? "Continuar" : "Verificar"}
       </button>
     </div>
   );
