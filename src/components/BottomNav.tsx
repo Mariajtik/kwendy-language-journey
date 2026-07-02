@@ -113,14 +113,23 @@ const BottomNav = ({ active }: BottomNavProps) => {
           {navItems.map((item) => {
             const isActive = active === item.key;
             const iconName = isActive && item.activeIcon ? item.activeIcon : item.icon;
+            const isUser = item.key === "user";
             return (
               <button
                 key={item.key}
                 onClick={() => navigate(item.route)}
-                className="relative p-1 flex flex-col items-center"
+                className="relative p-1 flex flex-col items-center justify-end"
+                style={{ height: 40 }}
                 aria-label={item.label}
               >
-                <KwendiIcon name={iconName} className="w-7 h-7" />
+                <KwendiIcon
+                  name={iconName}
+                  style={{
+                    height: isUser ? (isActive ? 40 : 32) : 28,
+                    width: "auto",
+                    marginTop: isUser && isActive ? -8 : 0,
+                  }}
+                />
                 {isActive && item.key !== "user" && (
                   <span
                     className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
@@ -139,7 +148,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
             aria-label="Mais opções"
             aria-expanded={moreOpen}
           >
-            <KwendiIcon name="maisop" className="w-5 h-5" />
+            <KwendiIcon name="maisop" style={{ height: 20, width: "auto" }} />
           </button>
         </div>
       </div>
