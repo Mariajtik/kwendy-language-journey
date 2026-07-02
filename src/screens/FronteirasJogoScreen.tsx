@@ -275,7 +275,7 @@ const FronteirasJogoScreen = () => {
                 <Check className="w-3.5 h-3.5 text-green-500" /> {acertos}
               </span>
               <span className="flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-orange-500" /> {streak}
+                <KwendiIcon name="chamaAcesa" className="w-4 h-4" /> {streak}
               </span>
             </span>
           </div>
