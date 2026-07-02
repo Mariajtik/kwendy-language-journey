@@ -24,6 +24,7 @@ import avatar from "@/assets/avatar.jpg";
 import BottomNav from "@/components/BottomNav";
 import CommunityFeed from "@/components/CommunityFeed";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useMissoes } from "@/hooks/useMissoes";
 import BadgeStar from "@/components/missoes/BadgeStar";
