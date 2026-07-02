@@ -146,7 +146,7 @@ import { Bookmark, NotebookPen, AudioLines } from "lucide-react";
 CONQUISTAS.push(
   { id: "e1", titulo: "Curioso",         descricao: "Faça a sua primeira pesquisa no Dicionário.",      icone: Bookmark,    categoria: "exploracao", meta: 1,  recompensa: { xp: 30,  diamantes: 15 },                badge: "azul" },
   { id: "e2", titulo: "Coleccionador",   descricao: "Guarde 10 palavras no Caderno.",                   icone: NotebookPen, categoria: "exploracao", meta: 10, recompensa: { xp: 120, diamantes: 60 },                badge: "verde" },
-  { id: "e3", titulo: "Boca de Ouro",    descricao: "Pratique 5 frases em Fala & Escuta.",              icone: Mic,         categoria: "exploracao", meta: 5,  recompensa: { xp: 120, diamantes: 60 },                badge: "rosa" },
+  { id: "e3", titulo: "Boca de Ouro",    descricao: "Pratique 5 frases de pronúncia nas lições.",       icone: Mic,         categoria: "exploracao", meta: 5,  recompensa: { xp: 120, diamantes: 60 },                badge: "rosa" },
   { id: "e4", titulo: "Som das Letras",  descricao: "Ouça 15 letras do Alfabeto.",                      icone: AudioLines,  categoria: "exploracao", meta: 15, recompensa: { xp: 150, diamantes: 75, bau: "raro" },   badge: "roxa" },
 );
 

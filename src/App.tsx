@@ -37,7 +37,6 @@ import CuriosidadesScreen from "./screens/CuriosidadesScreen";
 import SecaoScreen from "./screens/SecaoScreen";
 import LojaScreen from "./screens/LojaScreen";
 import DicionarioScreen from "./screens/DicionarioScreen";
-import FalaEscutaScreen from "./screens/FalaEscutaScreen";
 import CadernoScreen from "./screens/CadernoScreen";
 import ContaScreen from "./screens/definicoes/ContaScreen";
 import NotificacoesScreen from "./screens/definicoes/NotificacoesScreen";
@@ -79,7 +78,6 @@ const AnimatedRoutes = () => {
         <Route path="/secao/:tipo" element={<SecaoScreen />} />
         <Route path="/loja" element={<LojaScreen />} />
         <Route path="/dicionario" element={<DicionarioScreen />} />
-        <Route path="/secao/fala-escuta" element={<FalaEscutaScreen />} />
         <Route path="/secao/caderno" element={<CadernoScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
