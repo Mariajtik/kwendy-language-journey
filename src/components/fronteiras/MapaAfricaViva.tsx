@@ -5,7 +5,7 @@
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin } from "lucide-react";
-import africaAsset from "@/assets/africa-bandeiras.jpg.asset.json";
+import africaAsset from "@/assets/africa-bandeiras-hd.jpg.asset.json";
 import type { PaisAfrica } from "@/data/paisesAfrica";
 
 interface Props {
@@ -15,11 +15,11 @@ interface Props {
 }
 
 const MapaAfricaViva = ({ pais, revelar, height = 200 }: Props) => {
-  // Zoom que centra o país sobre o viewport quando `revelar` é true.
-  const zoom = revelar ? 2.4 : 1;
-  // Desloca a imagem para que (pais.x, pais.y) fique no centro (0.5, 0.5).
-  const tx = revelar ? (0.5 - pais.x) * 100 : 0;
-  const ty = revelar ? (0.5 - pais.y) * 100 : 0;
+  // Zoom centra-se no país usando transform-origin dinâmico, o que
+  // mantém o país sempre dentro do enquadramento sem cortes nas bordas.
+  const zoom = revelar ? 2.1 : 1;
+  const originX = `${pais.x * 100}%`;
+  const originY = `${pais.y * 100}%`;
 
   return (
     <div
@@ -28,15 +28,16 @@ const MapaAfricaViva = ({ pais, revelar, height = 200 }: Props) => {
     >
       <motion.div
         className="absolute inset-0"
-        animate={{ scale: zoom, x: `${tx}%`, y: `${ty}%` }}
+        animate={{ scale: zoom, filter: revelar ? "saturate(1.15)" : "saturate(1)" }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        style={{ transformOrigin: "center center" }}
+        style={{ transformOrigin: `${originX} ${originY}`, willChange: "transform" }}
       >
         <img
           src={africaAsset.url}
           alt="Mapa de África"
           className="h-full w-full object-contain select-none pointer-events-none"
           draggable={false}
+          style={{ imageRendering: "auto" }}
         />
 
         {/* Alfinete posicionado sobre o país */}
@@ -62,7 +63,8 @@ const MapaAfricaViva = ({ pais, revelar, height = 200 }: Props) => {
                   className="flex h-9 w-9 items-center justify-center rounded-full text-white"
                   style={{
                     background: `hsl(${pais.bandeira[1]})`,
-                    boxShadow: "0 4px 8px hsl(0 0% 0% / 0.35)",
+                    boxShadow:
+                      "0 4px 8px hsl(0 0% 0% / 0.35), 0 0 24px hsl(45 90% 55% / 0.65)",
                   }}
                 >
                   <MapPin className="h-5 w-5" fill="currentColor" />
