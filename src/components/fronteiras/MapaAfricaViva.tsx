@@ -5,7 +5,7 @@
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin } from "lucide-react";
-import africaAsset from "@/assets/africa.png.asset.json";
+import africaAsset from "@/assets/africa-bandeiras.jpg.asset.json";
 import type { PaisAfrica } from "@/data/paisesAfrica";
 
 interface Props {
