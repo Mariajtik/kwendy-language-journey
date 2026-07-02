@@ -10,7 +10,8 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Flame, Heart, Play, Lock, BookOpen, Check } from "lucide-react";
+import { Play, Lock, BookOpen, Check } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import avatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
@@ -131,14 +132,12 @@ const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; c
   </svg>
 );
 
-/** Campfire = lucide Flame + two crossed logs underneath */
+/** Campfire = ícone oficial de chama do Kwendi */
 const Campfire = ({ ativo = true }: { ativo?: boolean }) => (
   <div className="relative w-7 h-7 flex items-center justify-center">
-    <Flame
-      className="w-5 h-5"
-      fill={ativo ? "#FF7A2E" : "#D6D6D6"}
-      color={ativo ? "#FF4D4D" : "#B5B5B5"}
-      strokeWidth={1.5}
+    <KwendiIcon
+      name={ativo ? "chamaAcesa" : "chamaApagada"}
+      className="w-6 h-6"
     />
   </div>
 );
@@ -445,10 +444,10 @@ const HomeScreen = () => {
 
           {/* Hearts */}
           <div className="flex items-center gap-1">
-            <Heart
+            <KwendiIcon
+              name="coracao"
               className="w-5 h-5"
-              fill={semVidas ? "#D6D6D6" : "hsl(var(--primary))"}
-              color={semVidas ? "#B5B5B5" : "hsl(var(--primary))"}
+              style={{ opacity: semVidas ? 0.35 : 1, filter: semVidas ? "grayscale(1)" : undefined }}
             />
             <span
               className="font-extrabold text-sm"
