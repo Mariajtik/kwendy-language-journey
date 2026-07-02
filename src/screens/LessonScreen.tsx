@@ -8,7 +8,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, Check, X as XIcon, Lightbulb, Zap } from "lucide-react";
+import { X, Check, X as XIcon, Lightbulb } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
@@ -264,11 +265,7 @@ const LessonScreen = () => {
           />
         </div>
         <div className="flex items-center gap-1">
-          <Heart
-            className="w-5 h-5"
-            fill="hsl(var(--primary))"
-            color="hsl(var(--primary))"
-          />
+          <KwendiIcon name="coracao" className="w-5 h-5" />
           <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
             {hearts}
           </span>
@@ -290,7 +287,7 @@ const LessonScreen = () => {
                 className="flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white"
                 style={{ background: "hsl(45 95% 50%)" }}
               >
-                <Zap className="w-3 h-3 fill-current" />
+                <KwendiIcon name="raioxp" className="w-3 h-3" />
                 XP×2 · {dobradorMin}min
               </span>
             )}

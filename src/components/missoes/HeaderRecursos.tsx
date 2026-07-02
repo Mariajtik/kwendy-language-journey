@@ -1,10 +1,9 @@
 /**
  * HeaderRecursos — pílula com XP, Kindeles, baús e streak.
  */
-import { Flame, Zap, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 
 interface Props {
   xp: number;
@@ -64,16 +63,16 @@ const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => {
     className="flex items-center justify-between gap-1.5 px-3 py-2.5 rounded-2xl bg-card border-2 border-border"
     style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
   >
-    <Item icon={<Zap className="w-4 h-4 fill-current" />} value={xp} color="var(--kwendi-yellow)" />
+    <Item icon={<KwendiIcon name="raioxp" className="w-5 h-5" />} value={xp} color="var(--kwendi-yellow)" />
     <Item
-      icon={<DiamanteNegro className="w-4 h-4" />}
+      icon={<KwendiIcon name="diamante" className="w-5 h-5" />}
       value={diamantes}
       color="0 0% 12%"
       onClick={() => navigate("/loja")}
       ariaLabel="Abrir loja"
     />
-    <Item icon={<Package className="w-4 h-4" />} value={baus} color="var(--kwendi-brown)" />
-    <Item icon={<Flame className="w-4 h-4" />} value={streak} color="var(--kwendi-red)" />
+    <Item icon={<KwendiIcon name="bau" className="w-5 h-5" />} value={baus} color="var(--kwendi-brown)" />
+    <Item icon={<KwendiIcon name={streak > 0 ? "chamaAcesa" : "chamaApagada"} className="w-5 h-5" />} value={streak} color="var(--kwendi-red)" />
   </motion.div>
   );
 };

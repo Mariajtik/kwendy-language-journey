@@ -10,54 +10,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Crown } from "lucide-react";
-
-/* ---------- Inline icons (copied/shared with HomeScreen) ---------- */
-
-const HouseIcon = ({ className = "", color = "#FBBD12" }: { className?: string; color?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <path d="M3 11l9-7 9 7v1H3z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
-    <rect x="5" y="11" width="14" height="9" rx="1.2" fill={color} stroke={color} strokeWidth="1.4" />
-    <rect x="10.5" y="14" width="3" height="6" rx="0.4" fill="#fff" />
-    <rect x="6.5" y="13" width="2.5" height="2.5" rx="0.3" fill="#fff" />
-  </svg>
-);
-
-const Chest = ({ className = "", color = "#B87656" }: { className?: string; color?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <path d="M3 10c0-3 4-5 9-5s9 2 9 5v1H3v-1z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
-    <rect x="3" y="11" width="18" height="9" rx="1.5" fill={color} stroke={color} strokeWidth="1.4" />
-    <rect x="3" y="13.5" width="18" height="1.2" fill="#FBBD12" />
-    <rect x="10.5" y="10.5" width="3" height="4" rx="0.4" fill="#FBBD12" />
-    <circle cx="12" cy="12.5" r="0.6" fill={color} />
-  </svg>
-);
-
-const BookIcon = ({ className = "", color = "#FFA767" }: { className?: string; color?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
-    <rect x="6" y="6" width="11" height="10" rx="0.6" fill="#fff" />
-    <rect x="7.5" y="8" width="8" height="1" rx="0.3" fill={color} />
-    <rect x="7.5" y="10.2" width="6" height="1" rx="0.3" fill={color} />
-    <rect x="7.5" y="12.4" width="7" height="1" rx="0.3" fill={color} />
-  </svg>
-);
-
-const SearchIcon = ({ className = "", color = "#78D0FF" }: { className?: string; color?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <rect x="14.5" y="14.5" width="7" height="2.6" rx="1.3" fill={color} transform="rotate(45 14.5 14.5)" />
-    <circle cx="10.5" cy="10.5" r="6.5" fill={color} stroke={color} strokeWidth="1.4" />
-    <circle cx="10.5" cy="10.5" r="4" fill="#fff" />
-  </svg>
-);
-
-const UserIcon = ({ className = "", color = "#FF7BBF" }: { className?: string; color?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden>
-    <circle cx="12" cy="8" r="4.2" fill={color} stroke={color} strokeWidth="1.4" />
-    <path d="M3.5 21c0-4.5 3.8-8 8.5-8s8.5 3.5 8.5 8z" fill={color} stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
-    <circle cx="12" cy="8" r="1.6" fill="#fff" opacity="0.35" />
-  </svg>
-);
+import KwendiIcon, { type KwendiIconName } from "@/components/icons/KwendiIcon";
 
 export type BottomNavKey =
   | "home"
@@ -70,17 +23,18 @@ export type BottomNavKey =
 type NavItem = {
   key: BottomNavKey;
   label: string;
-  Comp: (props: { className?: string; color?: string }) => JSX.Element;
+  icon: KwendiIconName;
+  activeIcon?: KwendiIconName;
   color: string;
   route: string;
 };
 
 const navItems: NavItem[] = [
-  { key: "home", label: "Início", Comp: HouseIcon, color: "#FBBD12", route: "/home" },
-  { key: "chest", label: "Missões", Comp: Chest, color: "#B87656", route: "/missoes" },
-  { key: "book", label: "Histórias", Comp: BookIcon, color: "#FFA767", route: "/historias" },
-  { key: "search", label: "Curiosidades", Comp: SearchIcon, color: "#78D0FF", route: "/curiosidades" },
-  { key: "user", label: "Perfil", Comp: UserIcon, color: "#FF7BBF", route: "/profile" },
+  { key: "home", label: "Início", icon: "home", color: "#FBBD12", route: "/home" },
+  { key: "chest", label: "Missões", icon: "bau", color: "#B87656", route: "/missoes" },
+  { key: "book", label: "Histórias", icon: "livro", color: "#FFA767", route: "/historias" },
+  { key: "search", label: "Curiosidades", icon: "lupa", color: "#78D0FF", route: "/curiosidades" },
+  { key: "user", label: "Perfil", icon: "perfilSemCoroa", activeIcon: "perfilComCoroa", color: "#FF7BBF", route: "/profile" },
 ];
 
 const moreOptions = [
@@ -158,6 +112,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
         >
           {navItems.map((item) => {
             const isActive = active === item.key;
+            const iconName = isActive && item.activeIcon ? item.activeIcon : item.icon;
             return (
               <button
                 key={item.key}
@@ -165,19 +120,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
                 className="relative p-1 flex flex-col items-center"
                 aria-label={item.label}
               >
-                <item.Comp className="w-7 h-7" color={item.color} />
-                {isActive && item.key === "user" && (
-                  <motion.span
-                    layoutId="bottom-nav-active-crown"
-                    className="absolute -top-3"
-                  >
-                    <Crown
-                      className="w-4 h-4"
-                      style={{ color: "#FBBD12" }}
-                      fill="#FBBD12"
-                    />
-                  </motion.span>
-                )}
+                <KwendiIcon name={iconName} className="w-7 h-7" />
                 {isActive && item.key !== "user" && (
                   <span
                     className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
@@ -191,14 +134,12 @@ const BottomNav = ({ active }: BottomNavProps) => {
           {/* "..." */}
           <button
             onClick={() => setMoreOpen((v) => !v)}
-            className="w-11 h-9 rounded-xl flex items-center justify-center gap-0.5"
+            className="w-11 h-9 rounded-xl flex items-center justify-center"
             style={{ background: moreOpen ? "#E5A60E" : "#FBBD12" }}
             aria-label="Mais opções"
             aria-expanded={moreOpen}
           >
-            <span className="w-1 h-1 rounded-full bg-white" />
-            <span className="w-1 h-1 rounded-full bg-white" />
-            <span className="w-1 h-1 rounded-full bg-white" />
+            <KwendiIcon name="maisop" className="w-5 h-5" />
           </button>
         </div>
       </div>
