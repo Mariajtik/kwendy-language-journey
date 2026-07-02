@@ -18,14 +18,6 @@ interface Props {
 const W = 720;
 const H = 1000;
 
-// Bounding box do continente dentro da imagem hd (normalizado 0-1).
-// Os pontos em `paisesAfrica.ts` estão calibrados para este mesmo espaço,
-// portanto reutilizamo-lo aqui para posicionar os alfinetes.
-const MAP_BOX_X = 0.05;
-const MAP_BOX_Y = 0.02;
-const MAP_BOX_W = 0.9;
-const MAP_BOX_H = 0.95;
-
 /**
  * Desenha a silhueta dourada do continente e o rectângulo devolvido
  * é usado como referência para posicionar os alfinetes.
