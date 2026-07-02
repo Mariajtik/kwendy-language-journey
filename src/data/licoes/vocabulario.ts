@@ -228,7 +228,7 @@ export const VOCAB_M1: Record<string, EntradaVocab> = {
   onembele: { umbundu: "Onembele", pt: "Igreja" },
   omilu: { umbundu: "Omilu", pt: "Negócio" },
   yimbo: { umbundu: "Yimbo", pt: "Aldeia" },
-  osanjala: { umbundu: "Osanjala", pt: "Bairro" },
+  osanjala2: { umbundu: "Osanjala", pt: "Bairro" },
   vokati: { umbundu: "Vokati kolupale", pt: "Dentro da cidade" },
   ombala2: { umbundu: "Ombala", pt: "Capital" },
   uti: { umbundu: "Uti", pt: "Árvore" },
