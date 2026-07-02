@@ -18,16 +18,16 @@ const SplashScreen = () => {
   const [showWordmark, setShowWordmark] = useState(false);
 
   useEffect(() => {
-    /* Fase 1 → Fase 2 após 5 segundos: aparece a wordmark "Kwendi" */
-    const wordmarkTimer = setTimeout(() => setShowWordmark(true), 5000);
+    /* Fase 1 (1s vermelho puro) → Fase 2 (1s com wordmark). */
+    const wordmarkTimer = setTimeout(() => setShowWordmark(true), 1000);
 
-    /* Após mais 3s, segue para a próxima tela.
+    /* Após mais 1s, segue para a próxima tela.
        Primeira visita → /apresentation; depois → /welcome. */
     const navTimer = setTimeout(() => {
       const seenApresentation = localStorage.getItem("kwendi_seen_apresentation");
       const next = seenApresentation ? "/welcome" : "/apresentation";
       navigate(next, { replace: true });
-    }, 8000);
+    }, 2000);
 
     return () => {
       clearTimeout(wordmarkTimer);
