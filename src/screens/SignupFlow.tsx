@@ -183,6 +183,8 @@ const SignupFlow = () => {
   /** Move to next step, or finish */
   const next = () => {
     if (step < totalSteps - 1) setStep(step + 1);
+    else if (level === "Iniciante")
+      navigate("/home", { state: { welcome: true, username } });
     else navigate("/processing", { state: { level, username } });
   };
 
