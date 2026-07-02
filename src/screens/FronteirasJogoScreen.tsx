@@ -10,7 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Play, Pause, Check, X, Trophy, Flame } from "lucide-react";
+import { ChevronLeft, Play, Pause, Check, X, Trophy } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import { PERGUNTAS, type Pergunta } from "@/data/fronteirasPerguntas";
 import musicAsset from "@/assets/perola-omboio.mp3.asset.json";
 import { useSaldo } from "@/hooks/useSaldo";
