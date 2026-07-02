@@ -224,25 +224,35 @@ const AlfabetoView = ({ onVoltar }: { onVoltar: () => void }) => {
         </div>
 
         <div className="grid grid-cols-5 gap-2 mt-5">
-          {LETRAS.map((l) => (
-            <button
-              key={l}
-              onClick={() => tocarLetra(l)}
-              className="aspect-square rounded-2xl border-2 font-extrabold text-xl active:translate-y-0.5 transition"
-              style={{
-                background: letraAtiva === l ? "hsl(202 80% 50%)" : "hsl(var(--card))",
-                color: letraAtiva === l ? "#fff" : "hsl(var(--foreground))",
-                borderColor: letraAtiva === l ? "hsl(202 80% 50%)" : "hsl(var(--border))",
-                boxShadow: letraAtiva === l
-                  ? "0 3px 0 hsl(202 80% 35%)"
-                  : escutadas.has(l)
-                  ? "0 3px 0 hsl(160 60% 30% / 0.5)"
-                  : "0 3px 0 hsl(var(--border))",
-              }}
-            >
-              {l}
-            </button>
-          ))}
+          {LETRAS.map(({ letra, leitura }) => {
+            const l = letra;
+            const activa = letraAtiva === l;
+            return (
+              <button
+                key={l}
+                onClick={() => tocarLetra(l)}
+                className="aspect-square rounded-2xl border-2 font-extrabold active:translate-y-0.5 transition flex flex-col items-center justify-center leading-none"
+                style={{
+                  background: activa ? "hsl(202 80% 50%)" : "hsl(var(--card))",
+                  color: activa ? "#fff" : "hsl(var(--foreground))",
+                  borderColor: activa ? "hsl(202 80% 50%)" : "hsl(var(--border))",
+                  boxShadow: activa
+                    ? "0 3px 0 hsl(202 80% 35%)"
+                    : escutadas.has(l)
+                    ? "0 3px 0 hsl(160 60% 30% / 0.5)"
+                    : "0 3px 0 hsl(var(--border))",
+                }}
+              >
+                <span className="text-lg">{letra}</span>
+                <span
+                  className="text-[9px] font-bold mt-0.5 opacity-70"
+                  style={{ color: activa ? "#fff" : "hsl(var(--muted-foreground))" }}
+                >
+                  {leitura}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {letraAtiva && (() => {
