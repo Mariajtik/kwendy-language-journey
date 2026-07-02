@@ -5,7 +5,7 @@
  * feedback verde/vermelho, tela de conclusão com XP.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, X as XIcon, Lightbulb } from "lucide-react";
@@ -15,6 +15,17 @@ import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 import { toast } from "@/hooks/use-toast";
+import { getLicao } from "@/data/licoes/m1";
+import {
+  AprenderPasso,
+  DialogoPasso,
+  EscutaPasso,
+  TraduzirPUPasso,
+  TraduzirUPPasso,
+  MontarFrasePasso,
+  EscreverPasso,
+  FalarPasso,
+} from "@/components/licao/PassoComponents";
 
 /** Controlo de dicas grátis diárias (5/dia). Persiste em localStorage. */
 const DICAS_KEY = "kwendi_dicas_diarias_v1";
@@ -70,10 +81,14 @@ const QUESTIONS: Question[] = [
 const LessonScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const total = QUESTIONS.length;
   const { registrarAcao } = useMissoes();
   const { concluirSeccao } = useProgresso();
-  const { temPowerUp, usarPowerUp, tempoRestante } = useInventario();
+  const { tempoRestante } = useInventario();
+
+  const licao = useMemo(() => (id ? getLicao(id) : undefined), [id]);
+  const usaScript = !!licao;
+  const totalScript = licao?.passos.length ?? 0;
+  const total = usaScript ? totalScript : QUESTIONS.length;
 
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -100,7 +115,8 @@ const LessonScreen = () => {
   const dobradorMin = tempoRestante("dobrador-xp");
   const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
-  const q = QUESTIONS[index];
+  const passo = usaScript ? licao!.passos[index] : null;
+  const q = usaScript ? null : QUESTIONS[index];
   const isCorrect = selected === q?.correct;
   const progress = ((index + (checked ? 1 : 0)) / total) * 100;
 
@@ -165,6 +181,24 @@ const LessonScreen = () => {
     if (id) concluirSeccao(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
+
+  /* Avança para o próximo passo do script (usa Script). */
+  const avancarScript = (certo: boolean, contaComoAcerto: boolean) => {
+    if (contaComoAcerto) {
+      if (certo) {
+        setCorrectCount((c) => c + 1);
+        registrarAcao("resposta_correta_seguida", 1);
+        registrarAcao("palavra_traduzida", 1);
+      } else {
+        perderVida();
+      }
+    }
+    if (index + 1 >= totalScript) {
+      setDone(true);
+      return;
+    }
+    setIndex((i) => i + 1);
+  };
 
   const handleContinue = () => {
     if (index + 1 >= total) {
@@ -238,6 +272,74 @@ const LessonScreen = () => {
         </button>
       </motion.div>
     );
+  }
+
+  // ------------------ Render (modo script) ------------------
+  if (usaScript && passo) {
+    const contaComoAcerto = passo.tipo !== "aprender" && passo.tipo !== "dialogo";
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="app-shell flex flex-col px-5 py-4"
+        style={{ minHeight: "100dvh", background: "#fff" }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => navigate("/home")}
+            aria-label="Sair da lição"
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-6 h-6" strokeWidth={3} />
+          </button>
+          <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: "#86D05D" }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4 }}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <KwendiIcon name="coracao" className="w-5 h-5" />
+            <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
+              {hearts}
+            </span>
+          </div>
+        </div>
+
+        {passo.tipo === "aprender" && (
+          <AprenderPasso passo={passo} onContinuar={() => avancarScript(true, false)} />
+        )}
+        {passo.tipo === "dialogo" && (
+          <DialogoPasso passo={passo} onContinuar={() => avancarScript(true, false)} />
+        )}
+        {passo.tipo === "escuta_escolha" && (
+          <EscutaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "traduzir_pt_umbundu" && (
+          <TraduzirPUPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "traduzir_umbundu_pt" && (
+          <TraduzirUPPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "montar_frase" && (
+          <MontarFrasePasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "escrever" && (
+          <EscreverPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "falar" && (
+          <FalarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+      </motion.div>
+    );
+  }
+
+  // ------------------ Render (modo antigo, fallback) ------------------
+  if (!q) {
+    // Segurança: nenhum script e nenhuma pergunta legada.
+    return null;
   }
 
   return (
