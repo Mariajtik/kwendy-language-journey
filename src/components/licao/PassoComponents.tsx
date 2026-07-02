@@ -828,7 +828,8 @@ export const EmparelharPasso = ({
     }
   };
 
-  const renderCol = (col: typeof colA, sel: number | null, lado: "u" | "p") => (
+  type ColItem = { id: number; texto: string; lado: "u" | "p" };
+  const renderCol = (col: ColItem[], sel: number | null, lado: "u" | "p") => (
     <div className="flex-1 flex flex-col gap-2">
       {col.map((it) => {
         const done = feitos.has(it.id);
