@@ -53,7 +53,7 @@ export const CURRICULO: Modulo[] = [
       {
         id: "m1u1",
         numero: 1,
-        titulo: "Identificação pessoal",
+        titulo: "Saúda a tua comunidade",
         cor: "5 84% 42%",
         seccoes: mk("m1u1", [
           "Como te chamas?",
@@ -120,7 +120,7 @@ export const CURRICULO: Modulo[] = [
       {
         id: "m1u5",
         numero: 5,
-        titulo: "Palavras Novas + revisão",
+        titulo: "Palavras + Revisão",
         cor: "330 75% 55%",
         seccoes: mk("m1u5", [
           "Pi (onde) — advérbio antes do verbo",
