@@ -7,6 +7,7 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Volume2, Mic, Square, Check, X as XIcon } from "lucide-react";
 import type { Passo, Fala } from "@/data/licoes/tipos";
+import type { Personagem } from "@/data/licoes/tipos";
 import { normalizar } from "@/data/licoes/tipos";
 import { PERSONAGENS } from "./personagens";
 import PalavraTocavel from "./PalavraTocavel";
