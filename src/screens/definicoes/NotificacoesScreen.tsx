@@ -4,7 +4,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import DefHeader from "@/screens/definicoes/_DefHeader";
-import { Bell, Flame, Users, Mail, Clock } from "lucide-react";
+import { Bell, Users, Mail, Clock } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 
 const KEY = "kwendi.def.notif";
 
@@ -39,9 +40,9 @@ const NotificacoesScreen = () => {
     localStorage.setItem(KEY, JSON.stringify(n));
   }, [n]);
 
-  const items: { key: keyof Notif; label: string; desc: string; Icon: typeof Bell }[] = [
+  const items: { key: keyof Notif; label: string; desc: string; Icon?: typeof Bell; kwendiIcon?: "chamaAcesa" }[] = [
     { key: "lembretes", label: "Lembretes diários", desc: "Empurra-te a praticar todos os dias.", Icon: Bell },
-    { key: "ofensiva",  label: "Ofensiva em risco", desc: "Avisa-te antes da chama apagar.", Icon: Flame },
+    { key: "ofensiva",  label: "Ofensiva em risco", desc: "Avisa-te antes da chama apagar.", kwendiIcon: "chamaAcesa" },
     { key: "comunidade",label: "Comunidade", desc: "Comentários e respostas no teu feed.", Icon: Users },
     { key: "marketing", label: "E-mail marketing", desc: "Novidades e promoções por e-mail.", Icon: Mail },
   ];
@@ -55,7 +56,7 @@ const NotificacoesScreen = () => {
     >
       <DefHeader titulo="Notificações" subtitulo="Como queres que te avisemos" />
       <div className="px-4 py-5 pb-32 space-y-3">
-        {items.map(({ key, label, desc, Icon }) => (
+        {items.map(({ key, label, desc, Icon, kwendiIcon }) => (
           <label
             key={key}
             className="flex items-start gap-3 rounded-2xl border-2 border-border bg-card p-4 cursor-pointer"
@@ -65,7 +66,11 @@ const NotificacoesScreen = () => {
               className="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0"
               style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}
             >
-              <Icon className="w-5 h-5" />
+              {kwendiIcon ? (
+                <KwendiIcon name={kwendiIcon} className="w-6 h-6" />
+              ) : Icon ? (
+                <Icon className="w-5 h-5" />
+              ) : null}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-extrabold text-foreground leading-tight">{label}</p>
