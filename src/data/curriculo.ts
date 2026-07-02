@@ -63,6 +63,8 @@ export const CURRICULO: Modulo[] = [
           "Como passaste o dia?",
           "Reencontro depois de tempo",
           "Diálogo: Kwendi e Otchali",
+          "Conversação I — Ohango I",
+          "Conversação II — Ohango II",
         ]),
       },
       {
@@ -78,6 +80,7 @@ export const CURRICULO: Modulo[] = [
           "Temos fome, não temos comida",
           "Buscar água na fonte",
           "Diálogo: Yellen e Hossy",
+          "Família em casa",
         ]),
       },
       {
@@ -93,6 +96,8 @@ export const CURRICULO: Modulo[] = [
           "Quantos professores tens?",
           "Quantos anos tens?",
           "Diálogo: Kwendi e Otchali",
+          "Meses do ano",
+          "Onde nasceste?",
         ]),
       },
       {
@@ -108,6 +113,8 @@ export const CURRICULO: Modulo[] = [
           "Comprar batata-doce",
           "Não compro mais",
           "Diálogo: Yellen e Hossy",
+          "Comida no mercado",
+          "Bebida e cozinha",
         ]),
       },
       {
@@ -122,6 +129,9 @@ export const CURRICULO: Modulo[] = [
           "Ndikakala kupi — aonde estarei",
           "Vocabulário do dia-a-dia",
           "Revisão do módulo",
+          "Casa e família alargada",
+          "Corpo humano",
+          "Cidade e natureza",
         ]),
       },
     ],
