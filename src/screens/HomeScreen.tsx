@@ -7,7 +7,7 @@
  * floating scroll-to-top button, and colorful rounded bottom navigation.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Play, Lock, BookOpen, Check } from "lucide-react";
@@ -145,6 +145,7 @@ const Campfire = ({ ativo = true }: { ativo?: boolean }) => (
 const HomeScreen = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const atualBannerRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
   const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
   const atual = unidadeAtualInfo();
@@ -157,6 +158,21 @@ const HomeScreen = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
+
+  /** Ao entrar (ou quando a unidade atual muda por conclusão da anterior),
+   *  rola até ao banner da unidade actual, para que o utilizador veja
+   *  imediatamente a unidade recém-desbloqueada em vez do topo. */
+  useEffect(() => {
+    // Espera o layout assentar antes de medir posições.
+    const t = window.setTimeout(() => {
+      const container = scrollRef.current;
+      const target = atualBannerRef.current;
+      if (!container || !target) return;
+      const top = target.offsetTop - 12;
+      container.scrollTo({ top, behavior: "smooth" });
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [atual.unidade.id]);
 
   const toggleExpandida = (id: string) =>
     setExpandedUnidades((prev) => {
@@ -480,7 +496,7 @@ const HomeScreen = () => {
               const animacao = ANIMACOES_MODULO[mod.id];
               if (u.id === atual.unidade.id) {
                 return (
-                  <div key={u.id} className="mt-3 mb-8">
+                  <div key={u.id} ref={atualBannerRef} className="mt-3 mb-8">
                     <div className="relative overflow-hidden rounded-2xl">
                       {renderBannerAtual(mod, u)}
                       {animacao && <BannerAnimacao tipo={animacao} />}
