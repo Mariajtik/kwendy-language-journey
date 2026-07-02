@@ -3,7 +3,8 @@
  */
 import { motion } from "framer-motion";
 import DefHeader from "@/screens/definicoes/_DefHeader";
-import { Heart, MessageCircle, Mail, FileText, Shield, ExternalLink } from "lucide-react";
+import { MessageCircle, Mail, FileText, Shield, ExternalLink } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 
 const SobreScreen = () => (
   <motion.div
@@ -27,7 +28,7 @@ const SobreScreen = () => (
         </p>
         <h2 className="text-2xl font-extrabold mt-1">Aprende Umbundu, vive Angola</h2>
         <p className="text-sm font-semibold opacity-95 mt-2">
-          Feito com <Heart className="w-4 h-4 inline -mt-1" fill="#fff" /> para preservar e
+          Feito com <KwendiIcon name="coracao" className="w-4 h-4 inline -mt-1" /> para preservar e
           partilhar a língua e a cultura ovimbundu.
         </p>
       </div>

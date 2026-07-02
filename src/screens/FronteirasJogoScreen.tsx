@@ -10,7 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Play, Pause, Check, X, Trophy, Flame } from "lucide-react";
+import { ChevronLeft, Play, Pause, Check, X, Trophy } from "lucide-react";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import { PERGUNTAS, type Pergunta } from "@/data/fronteirasPerguntas";
 import musicAsset from "@/assets/perola-omboio.mp3.asset.json";
 import { useSaldo } from "@/hooks/useSaldo";
@@ -274,7 +275,7 @@ const FronteirasJogoScreen = () => {
                 <Check className="w-3.5 h-3.5 text-green-500" /> {acertos}
               </span>
               <span className="flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-orange-500" /> {streak}
+                <KwendiIcon name="chamaAcesa" className="w-4 h-4" /> {streak}
               </span>
             </span>
           </div>

@@ -2,9 +2,10 @@
  * ConquistaModal — detalhe da conquista com progresso e resgate.
  */
 import { AnimatePresence, motion } from "framer-motion";
-import { Zap, Package, X } from "lucide-react";
+import { X } from "lucide-react";
 import { CATEGORIA_INFO } from "@/data/conquistas";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
+import KwendiIcon from "@/components/icons/KwendiIcon";
 import BadgeStar from "./BadgeStar";
 import type { ConquistaView } from "@/hooks/useMissoes";
 
@@ -91,7 +92,7 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
 
                 <div className="mt-4 flex justify-center gap-2 flex-wrap text-xs font-extrabold">
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted">
-                    <Zap className="w-3.5 h-3.5 fill-current" style={{ color: "hsl(var(--kwendi-yellow))" }} />
+                    <KwendiIcon name="raioxp" className="w-3.5 h-3.5" />
                     {conquista.recompensa.xp}
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted">
@@ -100,7 +101,7 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
                   </span>
                   {conquista.recompensa.bau && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-muted capitalize">
-                      <Package className="w-3.5 h-3.5" style={{ color: "hsl(var(--kwendi-brown))" }} />
+                      <KwendiIcon name="bau" className="w-3.5 h-3.5" />
                       {conquista.recompensa.bau}
                     </span>
                   )}
