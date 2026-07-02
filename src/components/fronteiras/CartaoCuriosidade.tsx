@@ -11,9 +11,10 @@ interface Props {
   acertou: boolean;
   respostaCorreta: string;
   curiosidade: string;
+  explicacao?: string;
 }
 
-const CartaoCuriosidade = ({ pais, acertou, respostaCorreta, curiosidade }: Props) => {
+const CartaoCuriosidade = ({ pais, acertou, respostaCorreta, curiosidade, explicacao }: Props) => {
   return (
     <div
       className="relative w-full"
@@ -48,16 +49,26 @@ const CartaoCuriosidade = ({ pais, acertou, respostaCorreta, curiosidade }: Prop
           }}
         >
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-widest opacity-90">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest opacity-90">
+              {acertou ? "✓ Acertaste" : "Resposta correta"}
+            </p>
+            <p className="mt-0.5 text-base font-black leading-snug drop-shadow">
+              {respostaCorreta}
+            </p>
+            {explicacao && (
+              <p className="mt-2 text-[13px] font-semibold leading-relaxed drop-shadow opacity-95">
+                {explicacao}
+              </p>
+            )}
+          </div>
+          <div className="mt-3 border-t border-white/25 pt-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest opacity-90">
               Curiosidade · {pais.emoji} {pais.nome}
             </p>
-            <p className="mt-1 font-bold text-sm leading-relaxed drop-shadow">
+            <p className="mt-1 text-[13px] font-semibold leading-relaxed drop-shadow">
               {curiosidade}
             </p>
           </div>
-          <p className="mt-3 text-[10px] font-extrabold uppercase tracking-widest opacity-80">
-            {acertou ? "✓ Acertaste" : `Resposta correta: ${respostaCorreta}`}
-          </p>
         </div>
       </motion.div>
     </div>
