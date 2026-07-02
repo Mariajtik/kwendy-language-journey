@@ -604,19 +604,27 @@ const AvatarCena = ({
   falando?: boolean;
 }) => {
   const info = PERSONAGENS[personagem];
+  const espelhar = lado === "dir";
   return (
     <div className="flex flex-col items-center">
-      {info.avatar ? (
+      {info.cutout ? (
+        <motion.img
+          src={info.cutout}
+          alt={info.nome}
+          className="w-auto object-contain"
+          style={{
+            height: 220,
+            transform: espelhar ? "scaleX(-1)" : undefined,
+          }}
+          animate={falando ? { y: [0, -6, 0] } : { y: 0 }}
+          transition={falando ? { duration: 1.4, repeat: Infinity } : undefined}
+        />
+      ) : info.avatar ? (
         <motion.img
           src={info.avatar}
           alt={info.nome}
           className="w-24 h-24 rounded-full object-cover border-[3px] border-white shadow-lg"
-          style={{
-            transform: lado === "dir" ? "scaleX(-1)" : undefined,
-            boxShadow: falando
-              ? "0 0 0 4px hsl(45 95% 55% / .9), 0 8px 16px rgba(0,0,0,.15)"
-              : "0 8px 16px rgba(0,0,0,.15)",
-          }}
+          style={{ transform: espelhar ? "scaleX(-1)" : undefined }}
           animate={falando ? { y: [0, -4, 0] } : { y: 0 }}
           transition={falando ? { duration: 1.4, repeat: Infinity } : undefined}
         />
@@ -642,22 +650,13 @@ export const ConversaEscolhaPasso = ({
   const [sel, setSel] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
 
-  const bg =
-    passo.cenario === "noite"
-      ? "linear-gradient(180deg,#1b2447 0%,#2b3d6b 100%)"
-      : passo.cenario === "tarde"
-      ? "linear-gradient(180deg,#ffd7a8 0%,#ffb27a 100%)"
-      : "linear-gradient(180deg,#cfeaff 0%,#eaf7ff 100%)";
-  const textoLegenda = passo.cenario === "noite" ? "#f0f2ff" : "#5E5C5C";
-
   return (
     <div
-      className="flex flex-col flex-1 -mx-5 -mb-4 rounded-t-3xl overflow-hidden"
-      style={{ background: bg }}
+      className="flex flex-col flex-1 -mx-5 -mb-4 overflow-hidden"
+      style={{ background: "#ffffff" }}
     >
       <p
-        className="text-[11px] font-extrabold tracking-widest text-center pt-4"
-        style={{ color: textoLegenda, opacity: 0.7 }}
+        className="text-[11px] font-extrabold tracking-widest text-center pt-4 text-muted-foreground"
       >
         CENA · RESPONDE COMO {PERSONAGENS[passo.eu].nome.toUpperCase()}
       </p>
