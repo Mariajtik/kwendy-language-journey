@@ -341,6 +341,21 @@ const LessonScreen = () => {
         {passo.tipo === "falar" && (
           <FalarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
         )}
+        {passo.tipo === "conversa_escolha" && (
+          <ConversaEscolhaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "emparelhar" && (
+          <EmparelharPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "preencher_lacuna" && (
+          <PreencherLacunaPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "escuta_escrever" && (
+          <EscutaEscreverPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "escuta_montar" && (
+          <EscutaMontarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
       </motion.div>
     );
   }
