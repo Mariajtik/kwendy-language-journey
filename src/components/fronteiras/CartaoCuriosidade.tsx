@@ -27,9 +27,9 @@ const CartaoCuriosidade = ({ pais, acertou, respostaCorreta, curiosidade, explic
         className="relative w-full"
         style={{ transformStyle: "preserve-3d" }}
       >
-        {/* Frente */}
+        {/* Frente (absolute) — mostra brevemente antes do flip */}
         <div
-          className="rounded-2xl bg-muted px-4 py-4"
+          className="absolute inset-0 rounded-2xl bg-muted px-4 py-4"
           style={{ backfaceVisibility: "hidden" }}
         >
           <p className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground mb-1">
@@ -38,9 +38,9 @@ const CartaoCuriosidade = ({ pais, acertou, respostaCorreta, curiosidade, explic
           <p className="font-bold text-foreground">{respostaCorreta}</p>
         </div>
 
-        {/* Trás */}
+        {/* Trás (fluxo — define a altura do cartão) */}
         <div
-          className="absolute inset-0 flex flex-col justify-between rounded-2xl px-4 py-4 text-white"
+          className="relative flex flex-col justify-between rounded-2xl px-4 py-4 text-white"
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
