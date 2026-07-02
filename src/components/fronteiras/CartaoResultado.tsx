@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, Share2, Users } from "lucide-react";
 import { PAISES } from "@/data/paisesAfrica";
+import africaAsset from "@/assets/africa-bandeiras-hd.jpg.asset.json";
 
 interface Props {
   acertos: number;
@@ -15,7 +16,110 @@ interface Props {
 }
 
 const W = 720;
-const H = 900;
+const H = 1000;
+
+// Bounding box do continente dentro da imagem hd (normalizado 0-1).
+// Os pontos em `paisesAfrica.ts` estão calibrados para este mesmo espaço,
+// portanto reutilizamo-lo aqui para posicionar os alfinetes.
+const MAP_BOX_X = 0.05;
+const MAP_BOX_Y = 0.02;
+const MAP_BOX_W = 0.9;
+const MAP_BOX_H = 0.95;
+
+/**
+ * Desenha a silhueta dourada do continente e o rectângulo devolvido
+ * é usado como referência para posicionar os alfinetes.
+ */
+function drawGoldenMap(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  cx: number,
+  cy: number,
+  maxW: number,
+  maxH: number,
+) {
+  const ratio = img.width / img.height;
+  let dw = maxW;
+  let dh = maxW / ratio;
+  if (dh > maxH) {
+    dh = maxH;
+    dw = maxH * ratio;
+  }
+  const dx = cx - dw / 2;
+  const dy = cy - dh / 2;
+
+  ctx.save();
+  // Camada 1: silhueta base — desenha imagem em modo "source-over" e
+  // depois pinta por cima com composição "source-in" para colorir a
+  // silhueta a dourado. O branco de fundo é neutralizado por um filtro
+  // de contraste antes de compor.
+  const off = document.createElement("canvas");
+  off.width = dw;
+  off.height = dh;
+  const octx = off.getContext("2d")!;
+  octx.drawImage(img, 0, 0, dw, dh);
+
+  // Remove o fundo branco: qualquer pixel com luminosidade > 0.9 vira transparente.
+  const imgData = octx.getImageData(0, 0, dw, dh);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    const l = (r + g + b) / 3;
+    if (l > 230) d[i + 3] = 0;
+  }
+  octx.putImageData(imgData, 0, 0);
+
+  // Pinta a silhueta a dourado usando source-in.
+  octx.globalCompositeOperation = "source-in";
+  const grad = octx.createLinearGradient(0, 0, dw, dh);
+  grad.addColorStop(0, "hsl(45 95% 65%)");
+  grad.addColorStop(0.5, "hsl(42 90% 55%)");
+  grad.addColorStop(1, "hsl(38 80% 42%)");
+  octx.fillStyle = grad;
+  octx.fillRect(0, 0, dw, dh);
+
+  // Contorno subtil
+  octx.globalCompositeOperation = "source-over";
+  // (nada — o dourado já sugere o contorno)
+
+  // Coloca no canvas principal com sombra suave
+  ctx.shadowColor = "hsl(45 90% 40% / 0.5)";
+  ctx.shadowBlur = 24;
+  ctx.drawImage(off, dx, dy, dw, dh);
+  ctx.restore();
+
+  return { dx, dy, dw, dh };
+}
+
+function drawPin(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size = 10,
+) {
+  ctx.save();
+  // Sombra sob o pin
+  ctx.fillStyle = "hsl(0 0% 0% / 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(x, y + size * 0.9, size * 0.6, size * 0.25, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Corpo do pin (gota) branco com borda crimson
+  ctx.fillStyle = "hsl(5 84% 48%)";
+  ctx.strokeStyle = "hsl(0 0% 100%)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Centro branco
+  ctx.fillStyle = "hsl(0 0% 100%)";
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
 
 const CartaoResultado = ({ acertos, total, streak, paisesAcertados }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -29,81 +133,160 @@ const CartaoResultado = ({ acertos, total, streak, paisesAcertados }: Props) => 
     canvas.width = W;
     canvas.height = H;
 
-    // Fundo gradiente crimson → azul profundo
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, "hsl(5, 84%, 42%)");
-    grad.addColorStop(1, "hsl(215, 65%, 22%)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    let cancelled = false;
 
-    // Título
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.font = "700 22px system-ui, -apple-system, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("PARA ALÉM DE FRONTEIRAS", W / 2, 70);
+    const render = (mapImg: HTMLImageElement | null) => {
+      if (cancelled) return;
 
-    // Pontuação grande
-    ctx.fillStyle = "#fff";
-    ctx.font = "900 160px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`${acertos}/${total}`, W / 2, 250);
+      // ---------- Fundo cinemático ----------
+      const bg = ctx.createRadialGradient(W / 2, H * 0.35, 60, W / 2, H * 0.5, H * 0.9);
+      bg.addColorStop(0, "hsl(5 84% 45%)");
+      bg.addColorStop(0.55, "hsl(350 65% 28%)");
+      bg.addColorStop(1, "hsl(215 65% 14%)");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
 
-    ctx.font = "700 26px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.fillText("respostas certas", W / 2, 290);
+      // Textura de pontos dourados (ruído procedural leve, determinístico)
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = "hsl(45 90% 65%)";
+      let seed = 42;
+      const rnd = () => {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+      };
+      for (let i = 0; i < 220; i++) {
+        const x = rnd() * W;
+        const y = rnd() * H;
+        const r = rnd() * 1.4 + 0.3;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
 
-    // Streak badge
-    ctx.fillStyle = "hsl(45, 90%, 55%)";
-    ctx.beginPath();
-    ctx.roundRect(W / 2 - 130, 330, 260, 60, 30);
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = "900 26px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`🔥 Melhor streak: ${streak}`, W / 2, 370);
+      // Vinheta
+      const vignette = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.75);
+      vignette.addColorStop(0, "hsl(0 0% 0% / 0)");
+      vignette.addColorStop(1, "hsl(0 0% 0% / 0.55)");
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, W, H);
 
-    // Mini-mapa: círculo com pontos nos países acertados
-    const cx = W / 2, cy = 570, r = 150;
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.fill();
-    // Pontos
-    paisesAcertados.forEach((iso) => {
-      const p = PAISES[iso];
-      if (!p || p.iso === "AFR") return;
-      const dx = cx + (p.x - 0.5) * 2 * r * 0.85;
-      const dy = cy + (p.y - 0.5) * 2 * r * 0.85;
-      ctx.fillStyle = "hsl(45, 90%, 60%)";
+      // ---------- Cabeçalho ----------
+      ctx.textAlign = "center";
+      ctx.fillStyle = "hsl(45 90% 65%)";
+      ctx.font = "900 14px system-ui, -apple-system, sans-serif";
+      ctx.fillText("K W E N D I", W / 2, 62);
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.font = "800 22px system-ui, -apple-system, sans-serif";
+      ctx.fillText("PARA ALÉM DE FRONTEIRAS", W / 2, 94);
+
+      // Divisor dourado
+      ctx.strokeStyle = "hsl(45 90% 55%)";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(dx, dy, 6, 0, Math.PI * 2);
-      ctx.fill();
-    });
+      ctx.moveTo(W / 2 - 40, 108);
+      ctx.lineTo(W / 2 + 40, 108);
+      ctx.stroke();
 
-    // Contagem de países
-    ctx.font = "700 22px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.fillText(
-      `${paisesAcertados.length} ${paisesAcertados.length === 1 ? "país visitado" : "países visitados"}`,
-      W / 2,
-      760,
-    );
+      // ---------- Pontuação ----------
+      ctx.fillStyle = "#fff";
+      ctx.font = "900 140px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`${acertos}/${total}`, W / 2, 240);
 
-    // Frase da Kwendi
-    ctx.font = "italic 700 24px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.fillText("« Kwenda ciwa! »", W / 2, 810);
-    ctx.font = "600 16px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.fillText("Vai bem — em umbundu", W / 2, 835);
+      // Sublinhado dourado
+      ctx.fillStyle = "hsl(45 90% 55%)";
+      ctx.fillRect(W / 2 - 90, 255, 180, 4);
 
-    // Wordmark
-    ctx.font = "900 28px system-ui, -apple-system, sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.fillText("Kwendi", W / 2, 875);
+      ctx.font = "700 22px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.fillText("respostas certas", W / 2, 290);
 
-    setDataUrl(canvas.toDataURL("image/png"));
+      // Selo carimbado de streak (rodado)
+      ctx.save();
+      ctx.translate(W / 2, 340);
+      ctx.rotate((-6 * Math.PI) / 180);
+      ctx.strokeStyle = "hsl(45 90% 55%)";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.roundRect(-140, -26, 280, 52, 26);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "hsl(45 90% 55%)";
+      ctx.font = "900 22px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`MELHOR STREAK · ${streak}`, 0, 8);
+      ctx.restore();
+
+      // ---------- Mapa dourado com alfinetes ----------
+      const mapCX = W / 2;
+      const mapCY = 560;
+      const mapMaxW = 360;
+      const mapMaxH = 340;
+
+      if (mapImg) {
+        const { dx, dy, dw, dh } = drawGoldenMap(ctx, mapImg, mapCX, mapCY, mapMaxW, mapMaxH);
+        // Alfinetes nas coordenadas reais dos países
+        paisesAcertados.forEach((iso) => {
+          const p = PAISES[iso];
+          if (!p || p.iso === "AFR") return;
+          // As coords (p.x, p.y) estão normalizadas sobre a imagem inteira,
+          // que ocupa o rect (dx, dy, dw, dh).
+          const px = dx + p.x * dw;
+          const py = dy + p.y * dh;
+          drawPin(ctx, px, py, 9);
+        });
+      } else {
+        // Fallback: aro dourado
+        ctx.strokeStyle = "hsl(45 90% 55%)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(mapCX, mapCY, 140, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // ---------- Contagem ----------
+      ctx.font = "800 20px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "hsl(45 90% 65%)";
+      const nP = paisesAcertados.length;
+      ctx.fillText(
+        `${nP} ${nP === 1 ? "país visitado" : "países visitados"}`,
+        W / 2,
+        780,
+      );
+
+      // ---------- Frase da Kwendi ----------
+      ctx.font = "italic 700 24px 'Georgia', serif";
+      ctx.fillStyle = "#fff";
+      ctx.fillText("« Kwenda ciwa! »", W / 2, 830);
+      ctx.font = "600 14px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.fillText("Vai bem — em umbundu", W / 2, 855);
+
+      // ---------- Wordmark ----------
+      ctx.font = "900 30px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#fff";
+      ctx.fillText("Kwendi", W / 2, 920);
+      ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.fillText("kwendi.xyz", W / 2, 942);
+
+      setDataUrl(canvas.toDataURL("image/png"));
+    };
+
+    // Carrega o mapa e desenha
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => render(img);
+    img.onerror = () => render(null);
+    img.src = africaAsset.url;
+
+    return () => {
+      cancelled = true;
+    };
+    // Silencia o eslint sobre a MAP_BOX_* (usadas via posição p.x/p.y)
+    // Nada mais depende dessas constantes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [acertos, total, streak, paisesAcertados]);
 
   const filename = `kwendi-fronteiras-${acertos}-${total}.png`;
