@@ -1,50 +1,44 @@
+## Personagens em corpo inteiro, sem avatar e sem fundo
 
-## O que vai mudar
+No Teste de Nivelamento, a Kwendi aparece como um recorte em corpo inteiro (PNG transparente `kwendi-cutout.png`) sobre fundo branco — sem círculo de avatar e sem cenário. Vou fazer o mesmo nas conversas do báu.
 
-### 1) Lições especiais do Báu — conversa pessoal com o utilizador como personagem
+### 1) Gerar recortes transparentes para cada personagem
 
-Hoje o báu abre apenas um popup de recompensa. Vou transformar cada báu numa **mini‑cena de conversação interactiva** em que:
+Hoje só existe `src/assets/characters/kwendi-cutout.png`. Vou gerar PNGs equivalentes (fundo transparente, corpo inteiro, mesmo estilo do da Kwendi) para as personagens usadas nos báus, a partir dos avatares atuais:
 
-- Duas personagens (ex.: Kwendi & Otchali, Yellen & Hossy, Chac & Kapit) aparecem em avatares recortados (PNG cutout, sem background), viradas uma para a outra num palco em ecrã cheio.
-- O utilizador **encarna uma das personagens** (a que “fica do lado dele”). A outra fala primeiro.
-- A cada turno da NPC surge um balão em Umbundu (+ tradução PT + botão Ouvir + palavras tocáveis já existentes). O utilizador escolhe **1 de 2–3 respostas** possíveis para prosseguir.
-- Só uma resposta é apropriada; erradas custam vida (como qualquer exercício). Feedback verde/vermelho e a resposta certa é revelada.
-- No fim da conversa, o báu abre normalmente e concede a recompensa que já existe hoje.
+- `otchali-cutout.png`
+- `yellen-cutout.png`
+- `hossy-cutout.png`
+- `suzana-cutout.png` (Vovó Suzana)
+- `kiame-cutout.png`
+- `kekehan-cutout.png`
 
-Tecnicamente:
-- Novo tipo de passo `conversa_escolha` em `tipos.ts`: `{ tipo: "conversa_escolha", eu: Personagem, npc: Personagem, pergunta: Fala, opcoes: Fala[], correta: number }`.
-- Novo componente `ConversaEscolhaPasso` em `PassoComponents.tsx` com layout de “palco”: fundo neutro/gradiente do tema, avatares grandes recortados nas laterais (mirror horizontal na do utilizador), balão da NPC em cima, cartões de resposta em baixo.
-- Novo ficheiro `src/data/licoes/baus.ts` com 5 diálogos (1 por unidade do M1) reutilizando o vocabulário já introduzido nessa unidade.
-- `LessonScreen`: quando `id` termina em `bau`, carrega da tabela dos báus em vez de `getLicao` normal; ao concluir, mantém a lógica actual de conclusão + recompensa.
+Para `chac` e `kapit, não existe, tudo é Kwendi e Otchali`, substituir esses nomes, pelos delas.
 
-### 2) Tipos de exercício ao estilo Duolingo em falta
+### 2) `src/components/licao/personagens.ts`
 
-Hoje temos: `aprender`, `dialogo`, `escuta_escolha`, `traduzir_pt_umbundu`, `traduzir_umbundu_pt`, `montar_frase`, `escrever`, `falar`.
+Adicionar um campo `cutout: string | null` ao lado do `avatar`. Quem tem cutout usa-o na cena do báu; onde faltar, cai de volta ao avatar redondo.
 
-Faltam quatro clássicos do Duolingo que vou adicionar:
+### 3) `AvatarCena` em `PassoComponents.tsx`
 
-| Novo tipo | O que faz |
-|---|---|
-| `emparelhar` | Grelha 2×N de pares Umbundu ↔ PT; utilizador toca em pares até esgotar. |
-| `preencher_lacuna` | Frase Umbundu com `___`; escolhe a palavra certa entre 3–4 opções. |
-| `escuta_escrever` | Ouve a frase (TTS) e digita em Umbundu. |
-| `escuta_montar` | Ouve a frase e monta com banco de palavras (tap what you hear). |
+Reescrever o avatar da cena para:
 
-Para cada um:
-- Adicionar variante ao `Passo` union em `tipos.ts`.
-- Adicionar componente correspondente em `PassoComponents.tsx` (reutilizando `EscolhaBase` / lógica de `MontarFrasePasso` / `EscreverPasso`).
-- Adicionar branch em `LessonScreen.tsx` no render por `tipo`.
-- Semear 2–3 exemplos em lições existentes de `m1.ts` para o utilizador ver os novos formatos em uso (sem mexer no total de lições nem no currículo).
+- Renderizar o `cutout` como `<img>` grande (~200–240px de altura), sem `rounded-full`, sem borda branca, sem sombra de anel dourado.
+- Manter a leve animação de “falando” (subir/descer ~4px em loop) só na personagem que está a falar.
+- Manter o espelho horizontal na personagem do utilizador (para as duas ficarem viradas uma para a outra).
+- Nome da personagem por baixo em minúsculas caps, como está.
+- Fallback: quando não há `cutout`, continua a mostrar o avatar redondo atual.
 
-### 3) Fora de âmbito (não mexer)
+### 4) Palco sem cenário
 
-- Sem alterações a vidas, XP, missões, loja, HomeScreen (para além do click do báu já usar `LessonScreen`).
-- Sem novo vocabulário — reutilizar `VOCAB_M1`.
-- Sem alterações visuais globais.
+No `ConversaEscolhaPasso`, remover o gradiente de fundo (`cenario: dia/tarde/noite`) e usar fundo branco liso, igual ao ecrã do Nivelamento. A prop `cenario` do tipo `Passo` fica marcada como opcional/ignorada por agora (não mexo em `baus.ts`, apenas paro de usar). O balão de pensamento com “…” em ondas mantém-se sobre o personagem do utilizador.
 
 ### Verificação
 
 - `tsgo` para type-check.
-- Playwright: abrir a app, navegar até um báu do M1U1, jogar a conversa, verificar screenshots dos avatares sem fundo e o feedback certo/errado. Fazer também uma lição normal para ver `emparelhar` e `preencher_lacuna` renderizando.
+- Playwright: entrar em `/lesson/m1u1bau`, tirar screenshot da cena — confirmar que ambas as personagens aparecem em corpo inteiro sem círculo, sobre fundo branco, com o balão de pensamento sobre o utilizador.
 
-Confirmas que avanço?
+### Fora de âmbito
+
+- Não mexer em vidas, XP, recompensas, currículo ou textos das conversas.
+- Não gerar arte nova para personagens sem avatar (kapt, kapo, laura, cile, narrador) — continuam com fallback.
