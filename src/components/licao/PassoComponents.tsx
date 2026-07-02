@@ -718,10 +718,9 @@ export const ConversaEscolhaPasso = ({
                       <motion.circle
                         key={i}
                         cx={42 + i * 14}
-                        cy={38}
                         r="4"
                         fill="hsl(5 84% 42%)"
-                        animate={{ y: [0, -8, 0] }}
+                        animate={{ cy: [38, 30, 38] }}
                         transition={{
                           duration: 1.1,
                           repeat: Infinity,

@@ -8,8 +8,9 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Play, Lock, BookOpen, Check } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import avatar from "@/assets/avatar.jpg";
@@ -144,6 +145,7 @@ const Campfire = ({ ativo = true }: { ativo?: boolean }) => (
 
 const HomeScreen = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const atualBannerRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
@@ -158,6 +160,22 @@ const HomeScreen = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
+
+  /** Mensagem de boas-vindas quando o utilizador Iniciante chega direto
+   *  do onboarding sem passar pelo teste de nivelamento. */
+  useEffect(() => {
+    const state = location.state as { welcome?: boolean; username?: string } | null;
+    if (state?.welcome) {
+      const nome = state.username?.trim();
+      toast.success(
+        nome ? `Bem-vindo(a), ${nome}! Vamos começar do início.` : "Bem-vindo(a) ao Kwendi! Vamos começar do início.",
+        { duration: 4000 },
+      );
+      // Limpa o state para não repetir ao voltar.
+      window.history.replaceState({}, "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** Ao entrar (ou quando a unidade atual muda por conclusão da anterior),
    *  rola até ao banner da unidade actual, para que o utilizador veja
