@@ -14,12 +14,7 @@ import SaldoInsuficienteModal from "@/components/loja/SaldoInsuficienteModal";
 import MochilaSheet from "@/components/inventario/MochilaSheet";
 import { CATEGORIAS, ITENS_LOJA, type CategoriaLoja, type ItemLoja } from "@/data/loja";
 import { useLoja } from "@/hooks/useLoja";
-import PremiumPackCard from "@/components/loja/PremiumPackCard";
-import PremiumInteresseModal from "@/components/loja/PremiumInteresseModal";
-import { toast } from "sonner";
-
-const PREMIUM_KEY = "kwendi.premium.interessados";
-const PREMIUM_EU_KEY = "kwendi.premium.eu";
+import PremiumSwitchCard from "@/components/loja/PremiumSwitchCard";
 
 const LojaScreen = () => {
   const nav = useNavigate();
@@ -29,35 +24,12 @@ const LojaScreen = () => {
   const [sucesso, setSucesso] = useState<ItemLoja | null>(null);
   const [faltam, setFaltam] = useState<number | null>(null);
   const [mochilaAberta, setMochilaAberta] = useState(false);
-  const [premiumPos, setPremiumPos] = useState<number | null>(null);
-  const [jaInteressado, setJaInteressado] = useState<boolean>(
-    () => localStorage.getItem(PREMIUM_EU_KEY) === "1"
-  );
   const totalMochila =
     inventario.powerUps.reduce((s, p) => s + p.quantidade, 0) +
     inventario.desbloqueios.length +
     saldo.vidasExtra;
 
   const itens = useMemo(() => ITENS_LOJA.filter((i) => i.categoria === tab), [tab]);
-
-  const togglePremiumInteresse = () => {
-    const atual = Number(localStorage.getItem(PREMIUM_KEY) ?? "0");
-    if (jaInteressado) {
-      const novo = Math.max(0, atual - 1);
-      localStorage.setItem(PREMIUM_KEY, String(novo));
-      localStorage.removeItem(PREMIUM_EU_KEY);
-      setJaInteressado(false);
-      toast("Interesse retirado", {
-        description: "Já não estás na fila do Pacote Premium.",
-      });
-    } else {
-      const pos = atual + 1;
-      localStorage.setItem(PREMIUM_KEY, String(pos));
-      localStorage.setItem(PREMIUM_EU_KEY, "1");
-      setJaInteressado(true);
-      setPremiumPos(pos);
-    }
-  };
 
   const handleComprar = () => {
     if (!confirmar) return;
@@ -161,10 +133,7 @@ const LojaScreen = () => {
             className="grid grid-cols-2 gap-3"
           >
             {tab === "premium" ? (
-              <PremiumPackCard
-                onInteresse={togglePremiumInteresse}
-                jaInteressado={jaInteressado}
-              />
+              <PremiumSwitchCard />
             ) : (
               itens.map((it) => (
                 <ItemLojaCard
@@ -194,7 +163,6 @@ const LojaScreen = () => {
         onFechar={() => setFaltam(null)}
       />
       <MochilaSheet aberto={mochilaAberta} onFechar={() => setMochilaAberta(false)} />
-      <PremiumInteresseModal posicao={premiumPos} onFechar={() => setPremiumPos(null)} />
     </motion.div>
   );
 };
