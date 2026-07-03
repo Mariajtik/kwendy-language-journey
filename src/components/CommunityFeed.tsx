@@ -7,19 +7,22 @@
  * UI only — backend later.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Crown,
   Flame,
+  ImagePlus,
   MessageCircle,
   Send,
   ShieldCheck,
   Trophy,
+  X,
   Zap,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import avatar from "@/assets/avatar.jpg";
+import { usePremium } from "@/contexts/PremiumContext";
 
 /* ----- Mocked data ----- */
 const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
@@ -189,6 +192,9 @@ const CommunityFeed = () => {
   const [tab, setTab] = useState<SubTab>("feed");
   const [lang, setLang] = useState<LangKey>("pt");
   const [draft, setDraft] = useState("");
+  const { ativo: premium } = usePremium();
+  const [foto, setFoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [state, setState] = useState<Record<number, PostState>>(() =>
     Object.fromEntries(
       posts.map((p) => [
@@ -246,13 +252,24 @@ const CommunityFeed = () => {
   );
 
   const handlePublish = () => {
-    if (!draft.trim()) return;
+    if (!draft.trim() && !foto) return;
     toast({
       title: "Publicação enviada para revisão",
       description:
         "A IA Kwendi irá rever a tua publicação antes de aparecer na comunidade.",
     });
     setDraft("");
+    setFoto(null);
+  };
+
+  const handleFotoEscolhida = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setFoto(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+    // Permite escolher a mesma foto novamente depois de remover
+    e.target.value = "";
   };
 
   const visiblePosts = useMemo(
