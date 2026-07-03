@@ -14,6 +14,7 @@ import {
   type Modulo,
   type Unidade,
 } from "@/data/curriculo";
+import { todosDesbloqueadosStatic } from "@/hooks/useNivelamento";
 
 const STORAGE_KEY = "kwendi:progresso";
 
@@ -46,6 +47,17 @@ function carregar(): Estado {
 
 export function useProgresso() {
   const [estado, setEstado] = useState<Estado>(() => carregar());
+  const [todosDesbloqueados, setTodosDesbloqueados] = useState<boolean>(() => todosDesbloqueadosStatic());
+
+  useEffect(() => {
+    const sync = () => setTodosDesbloqueados(todosDesbloqueadosStatic());
+    window.addEventListener("kwendi:nivelamento-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("kwendi:nivelamento-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -87,16 +99,48 @@ export function useProgresso() {
 
   const proximaUnidadeInfo = useCallback(() => getProximaUnidade(estado.unidadeAtual), [estado.unidadeAtual]);
 
+  /** Define a unidade atual manualmente (usado após teste de nivelamento). */
+  const setUnidadeAtual = useCallback((unidadeId: string) => {
+    setEstado((s) => (s.unidadeAtual === unidadeId ? s : { ...s, unidadeAtual: unidadeId }));
+  }, []);
+
+  /**
+   * Marca todas as secções das unidades ANTERIORES à `unidadeId` como
+   * concluídas (posicionamento pós-nivelamento).
+   */
+  const completarAteUnidade = useCallback((unidadeId: string) => {
+    setEstado((s) => {
+      const secsCompletas = new Set(s.seccoesCompletas);
+      for (const m of CURRICULO) {
+        for (const u of m.unidades) {
+          if (u.id === unidadeId) {
+            return { seccoesCompletas: Array.from(secsCompletas), unidadeAtual: unidadeId };
+          }
+          for (const sec of u.seccoes) secsCompletas.add(sec.id);
+        }
+      }
+      return { seccoesCompletas: Array.from(secsCompletas), unidadeAtual: unidadeId };
+    });
+  }, []);
+
   /** Status de uma secção dentro da unidade visível. ativa = primeira não-completa. */
   const statusSeccaoNa = useCallback(
     (unidade: Unidade, seccaoId: string): "concluida" | "ativa" | "bloqueada" => {
       if (isCompleta(seccaoId)) return "concluida";
       // Só a unidade atual tem secção "ativa"; outras unidades ficam bloqueadas.
-      if (unidade.id !== estado.unidadeAtual) return "bloqueada";
+      // Exceção: se o nivelamento marcou "todosDesbloqueados" (ancião), a
+      // primeira secção não-concluída de qualquer unidade fica "ativa".
+      if (unidade.id !== estado.unidadeAtual) {
+        if (todosDesbloqueados) {
+          const proxima = unidade.seccoes.find((s) => !isCompleta(s.id));
+          return proxima?.id === seccaoId ? "ativa" : "bloqueada";
+        }
+        return "bloqueada";
+      }
       const proxima = unidade.seccoes.find((s) => !isCompleta(s.id));
       return proxima?.id === seccaoId ? "ativa" : "bloqueada";
     },
-    [isCompleta, estado.unidadeAtual],
+    [isCompleta, estado.unidadeAtual, todosDesbloqueados],
   );
 
   return {
@@ -106,5 +150,8 @@ export function useProgresso() {
     unidadeAtualInfo,
     proximaUnidadeInfo,
     statusSeccaoNa,
+    setUnidadeAtual,
+    completarAteUnidade,
+    todosDesbloqueados,
   };
 }

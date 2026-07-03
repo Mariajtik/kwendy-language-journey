@@ -9,12 +9,28 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import kwendiImg from "@/assets/characters/kwendi-cutout.png";
+import { setNivelamento } from "@/hooks/useNivelamento";
+import { setSaldo } from "@/hooks/useSaldo";
+import { rotularUnidade } from "@/data/nivelamento";
 
 const ProcessingResultsScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = (location.state as { level?: string; username?: string }) || {};
+  const state =
+    (location.state as {
+      level?: string;
+      username?: string;
+      acertos?: number;
+      total?: number;
+      percentagem?: number;
+      unidadeSugerida?: string | null;
+    }) || {};
   const level = state.level || "Iniciante";
+  const acertos = state.acertos;
+  const total = state.total;
+  const percentagem = state.percentagem;
+  const unidadeSugerida = state.unidadeSugerida ?? null;
+  const temResultado = typeof acertos === "number" && typeof total === "number";
 
   const [phase, setPhase] = useState<"thinking" | "done">("thinking");
 
@@ -22,6 +38,27 @@ const ProcessingResultsScreen = () => {
     const t = setTimeout(() => setPhase("done"), 4000);
     return () => clearTimeout(t);
   }, []);
+
+  const aoContinuar = () => {
+    if (temResultado) {
+      const ancao = percentagem === 100;
+      if (ancao) {
+        // Credita recompensa do marco Ancião: +500 diamantes e +250 XP.
+        setSaldo((s) => ({ ...s, xp: s.xp + 250, diamantes: s.diamantes + 500 }));
+      }
+      setNivelamento(() => ({
+        fez: true,
+        ancao,
+        percentagem: percentagem ?? 0,
+        acertos: acertos ?? 0,
+        total: total ?? 0,
+        unidadeSugerida: ancao ? null : unidadeSugerida,
+        todosDesbloqueados: ancao,
+        popupPendente: ancao ? "ancao" : "posicionado",
+      }));
+    }
+    navigate("/home");
+  };
 
   /* Rabisco animado: path com strokeDasharray "desenhando e apagando" */
   const Scribble = ({
@@ -151,11 +188,24 @@ const ProcessingResultsScreen = () => {
               }}
               className="flex flex-col items-center gap-4 w-full"
             >
-              {[
-                <>A sua pontuação: <strong>78/100</strong></>,
-                <>O seu nível: <strong>{level}</strong></>,
-                <>Você acertou a maioria das saudações e cumprimentos, mas ainda há espaço para melhorar a pronúncia.</>,
-              ].map((content, i) => (
+              {(temResultado
+                ? [
+                    <>A sua pontuação: <strong>{acertos}/{total} ({percentagem}%)</strong></>,
+                    <>O seu nível declarado: <strong>{level}</strong></>,
+                    percentagem === 100 ? (
+                      <>Acertou tudo! Você executou uma proeza de poucos. 🏆</>
+                    ) : unidadeSugerida ? (
+                      <>Com base no teste, começaremos aqui: <strong>{rotularUnidade(unidadeSugerida)}</strong>.</>
+                    ) : (
+                      <>Bom desempenho — vamos começar pelo início do Módulo 1.</>
+                    ),
+                  ]
+                : [
+                    <>A sua pontuação: <strong>78/100</strong></>,
+                    <>O seu nível: <strong>{level}</strong></>,
+                    <>Você acertou a maioria das saudações e cumprimentos, mas ainda há espaço para melhorar a pronúncia.</>,
+                  ]
+              ).map((content, i) => (
                 <motion.p
                   key={i}
                   variants={{
@@ -172,7 +222,7 @@ const ProcessingResultsScreen = () => {
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
                 }}
-                onClick={() => navigate("/home")}
+                onClick={aoContinuar}
                 className="btn-duo btn-duo-primary w-full mt-4"
               >
                 Continuar
