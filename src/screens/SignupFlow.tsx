@@ -11,7 +11,7 @@
  * After step 5 → success message.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Check, Upload } from "lucide-react";
@@ -22,6 +22,7 @@ import PasswordInput from "@/components/PasswordInput";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
 import { registerLocalUser } from "@/lib/adminRegistry";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Select,
   SelectContent,
@@ -149,6 +150,8 @@ const slideVariants = {
 
 const SignupFlow = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const isAuthed = !!session;
 
   /* Current step index (0-based) */
   const [step, setStep] = useState(0);
@@ -182,43 +185,89 @@ const SignupFlow = () => {
   /* Whether the flow is complete */
   const [done, setDone] = useState(false);
 
+  /* --- Persistência do wizard para sobreviver ao redirect OAuth ---- */
+  const PENDING_KEY = "kwendi.signup.pending";
+
+  // Restaurar estado após regresso de OAuth
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(PENDING_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.username) setUsername(s.username);
+      if (s.email) setEmail(s.email);
+      if (s.origin) setOrigin(s.origin);
+      if (s.originCountry) setOriginCountry(s.originCountry);
+      if (s.motivation) setMotivation(s.motivation);
+      if (s.level) setLevel(s.level);
+      if (s.source) setSource(s.source);
+      if (s.sourceOther) setSourceOther(s.sourceOther);
+      if (s.chokwe) setChokwe(s.chokwe);
+      if (s.dailyGoal) setDailyGoal(s.dailyGoal);
+      if (typeof s.step === "number") setStep(s.step);
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  // Se, ao chegar aqui, já existe sessão OAuth e ainda estamos no step 1
+  // (email/senha), saltar para o próximo — a conta já foi criada pelo Google.
+  useEffect(() => {
+    if (isAuthed && step === 1) setStep(2);
+  }, [isAuthed, step]);
+
   /** Move to next step, or finish */
   const next = async () => {
     if (step < totalSteps - 1) {
       setStep(step + 1);
       return;
     }
-    // Fim do fluxo — cria conta real no Supabase.
+    // Fim do fluxo — cria conta real no Supabase (ou apenas grava metadados
+    // se o utilizador já entrou via OAuth).
     const provincia = origin && origin !== "Outro" ? origin : null;
     const pais = origin === "Outro" ? originCountry : "Angola";
+    const metadata = {
+      nome: username,
+      provincia,
+      pais,
+      motivacao: motivation || null,
+      fonte_kwendi: source === "Outro" ? sourceOther : source || null,
+      chokwe: chokwe || null,
+      objetivo_diario: dailyGoal || null,
+      nivel_declarado: level || null,
+      tipo: "signup" as const,
+    };
     try {
-      const redirect = `${window.location.origin}/home`;
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirect,
-          data: {
-            nome: username,
-            provincia,
-            pais,
-            motivacao: motivation || null,
-            fonte_kwendi: source === "Outro" ? sourceOther : source || null,
-            chokwe: chokwe || null,
-            objetivo_diario: dailyGoal || null,
-            nivel_declarado: level || null,
-            tipo: "signup",
-          },
-        },
-      });
-      if (error && !`${error.message}`.toLowerCase().includes("already")) {
-        toast.error(error.message || "Não foi possível criar a conta.");
-        return;
+      if (isAuthed) {
+        // Regresso de OAuth: só actualizar metadados
+        const { error } = await supabase.auth.updateUser({ data: metadata });
+        if (error) {
+          toast.error(error.message || "Não foi possível guardar o perfil.");
+          return;
+        }
+      } else {
+        // Guarda defensiva contra o bug do 422 anonymous_provider_disabled
+        if (!/\S+@\S+\.\S+/.test(email) || password.length < 6) {
+          toast.error("Preencha um email válido e senha (mín. 6).");
+          setStep(1);
+          return;
+        }
+        const redirect = `${window.location.origin}/home`;
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: redirect, data: metadata },
+        });
+        if (error && !`${error.message}`.toLowerCase().includes("already")) {
+          toast.error(error.message || "Não foi possível criar a conta.");
+          return;
+        }
       }
     } catch (e: any) {
       toast.error(e?.message || "Erro ao criar a conta.");
       return;
     }
+    try { sessionStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
     // Mantém também o registo local (back-compat com painel local).
     try {
       registerLocalUser({
@@ -247,19 +296,44 @@ const SignupFlow = () => {
   /* Total number of steps for the progress bar */
   const totalSteps = 8;
 
-  /** Pula a etapa de email/senha após autenticação social bem-sucedida */
-  const handleSocialAuth = (provider: "google" | "apple") => {
-    toast.success(
-      `Conectado com ${provider === "google" ? "Google" : "Apple"}!`,
-    );
-    setStep(2);
+  /** Inicia OAuth guardando o estado do wizard para restaurar após regresso. */
+  const handleSocialAuth = async (provider: "google" | "apple") => {
+    try {
+      sessionStorage.setItem(
+        PENDING_KEY,
+        JSON.stringify({
+          step: 2,
+          username,
+          email,
+          origin,
+          originCountry,
+          motivation,
+          level,
+          source,
+          sourceOther,
+          chokwe,
+          dailyGoal,
+        }),
+      );
+    } catch {
+      /* noop */
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/signup` },
+    });
+    if (error) {
+      toast.error(
+        `Provedor não configurado. Ative ${provider} no Supabase → Authentication → Providers.`,
+      );
+    }
   };
 
   /* Validação simples para habilitar o botão Continuar */
   const isEmailValid = /\S+@\S+\.\S+/.test(email);
   const canAdvance = (() => {
     if (step === 0) return username.trim().length > 0;
-    if (step === 1) return isEmailValid && password.length >= 6;
+    if (step === 1) return isAuthed || (isEmailValid && password.length >= 6);
     if (step === 2)
       return origin !== "" && (origin !== "Outro" || originCountry !== "");
     if (step === 3) return motivation !== "";

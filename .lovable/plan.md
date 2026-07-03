@@ -1,144 +1,77 @@
-## Backend real — Supabase Auth + persistência + admin
+## Diagnóstico
 
-Migrar o app do localStorage para Supabase como fonte da verdade em auth, perfis, progresso, sessões e modo furtivo. O painel admin passa a ler dados de todos os utilizadores. Sem migração dos dados locais existentes — recomeçar em produção.
+Três problemas independentes, um deles é bug no código, os outros são configuração no Supabase/Google Cloud.
 
-### 1. Schema (uma migração)
+### 1. Bug no SignupFlow (código) — causa raiz da falha "criar conta"
 
-```text
-enums:
-  app_role = ('admin', 'user')
+`SignupFlow.tsx > handleSocialAuth` faz apenas `setStep(2)` quando o utilizador escolhe Google no passo 1. O fluxo continua, chega ao passo final e executa:
 
-public.profiles
-  id uuid PK REFERENCES auth.users(id) ON DELETE CASCADE
-  nome text, email text, avatar_url text
-  provincia text, pais text, motivacao text
-  fonte_kwendi text, chokwe text, objetivo_diario text
-  nivel_declarado text
-  tipo text CHECK IN ('signup','stealth') DEFAULT 'signup'
-  stealth_expira_em timestamptz NULL
-  criado_em, atualizado_em
-
-public.user_roles
-  id, user_id → auth.users, role app_role, UNIQUE(user_id, role)
-
-public.progresso
-  user_id PK → auth.users
-  xp int, diamantes int, streak int
-  seccoes_completas text[]
-  unidade_atual text
-  premium bool, nivelamento_percentagem int NULL, ancao bool
-  atualizado_em
-
-public.sessoes
-  id, user_id → auth.users
-  iniciada_em, terminada_em timestamptz NULL
-  rota text, duracao_ms int GENERATED
-
-public.eventos          -- opcional para métricas ricas (missões, testes, etc.)
-  id, user_id, tipo text, payload jsonb, criado_em
+```
+supabase.auth.signUp({ email: "", password: "", data: {...} })
 ```
 
-**GRANTs em cada tabela pública:** `authenticated` SELECT/INSERT/UPDATE/DELETE (com RLS), `service_role` ALL. Sem `anon` — todos os dados exigem sessão.
+O servidor devolve `422 anonymous_provider_disabled` (visível nos network logs). Além disso, o `signInWithOAuth` do Google *já* redireciona para fora da app, portanto quando o utilizador volta perde o estado do wizard e cai no splash sem token.
 
-**RLS:**
+### 2. Google OAuth — retorno com erro
 
-- `profiles`, `progresso`, `sessoes`, `eventos`: utilizador só vê/escreve as suas linhas (`auth.uid() = user_id` / `id`). Admin lê tudo via `public.has_role(auth.uid(),'admin')`.
-- `user_roles`: `SELECT` só do próprio, escrita só por `service_role`.
+Nos auth logs o Supabase responde `302 Redirecting to external provider` (provider está ativo). O erro só aparece **depois** do consentimento no Google — típico de redirect URI não autorizada em Google Cloud, ou Site URL/Redirect URLs incompletas no Supabase.
 
-**Funções/triggers:**
+### 3. Login e-mail — "404 no login"
 
-- `has_role(_user_id uuid, _role app_role)` — SECURITY DEFINER, evita recursão em RLS.
-- `handle_new_user()` — trigger `AFTER INSERT ON auth.users` cria linha em `profiles` (com `raw_user_meta_data` → nome/tipo/província/…) e em `progresso` (zerados).
-- `update_atualizado_em()` trigger em `profiles`/`progresso`.
+O login no servidor tem `status 200` (ver auth logs). O 404 é do lado do cliente ao navegar. Provavelmente relacionado ao SPA fallback do domínio `kwendi.xyz` ou a `/home` a assumir dados que não existem porque a conta nunca ficou realmente criada (pelo bug #1).
 
-### 2. Auth flow
+---
 
-`src/contexts/AuthContext.tsx` — provider com `session/user/loading`. Registra `onAuthStateChange` primeiro, depois `getSession()`; expõe `signIn`, `signUp`, `signInWithProvider`, `signOut`, `resetPassword`.
+## Correções
 
-**Fluxos atualizados:**
+### A) Código — corrigir SignupFlow (frontend)
 
-- `SignupFlow.tsx` — no fim, chama `supabase.auth.signUp({ email, password, options: { emailRedirectTo: origin, data: { nome, provincia, pais, motivacao, fonte, chokwe, objetivo_diario, nivel_declarado, tipo:'signup' } } })`. Remove `registerLocalUser`. Trigger preenche `profiles`.
-- `LoginScreen.tsx` — `signInWithPassword`. Botões Google/Apple via `signInWithOAuth({ provider, options:{ redirectTo: origin }})`.
-- `ForgotPasswordScreen.tsx` — `resetPasswordForEmail(email, { redirectTo: origin + '/reset-password' })`.
-- **Nova página** `/reset-password` (`ResetPasswordScreen.tsx`) — detecta `type=recovery`, chama `updateUser({ password })`.
-- `StealthModeScreen.tsx` — usa `signUp` com email sintético `stealth-<uuid>@kwendi.local` e password aleatória, `data: { nome:username, tipo:'stealth', stealth_expira_em: now+7d }`; guarda a sessão normal. Remove `registerLocalUser`/`setStealthActive`.
-- `ProfileScreen`, `HomeScreen`, etc.: substituir leituras de `kwendi.auth.user` por `useAuth().user` + `profiles` via query.
+Duas escolhas mutuamente exclusivas para o botão Google/Apple **dentro do wizard**:
 
-### 3. Progresso e saldo persistidos
+- **Opção A (recomendada):** remover botões sociais **de dentro** do SignupFlow. Manter apenas em `LoginScreen`. O `SignupFlow` fica só para o fluxo email/senha completo. Quem quiser Google usa o LoginScreen (que já cria o utilizador automaticamente na primeira vez via OAuth).
+- **Opção B:** manter Google no SignupFlow, mas **antes** de chamar `signInWithOAuth` guardar o estado do wizard em `sessionStorage`, e após o callback (num `useEffect` que corre em `/home` ou aqui) chamar `supabase.auth.updateUser({ data: {...} })` para gravar os metadados. Nunca mais chamar `signUp` no final quando o utilizador entrou via OAuth.
 
-Novo `src/hooks/useProgresso.ts` — carrega `progresso` do utilizador, expõe update helpers (`addXp`, `addDiamantes`, `completeSeccao`, `setStreak`, `unlockAncao`). Persistência com upsert + optimistic UI.
+Também vou:
 
-Substituir em todos os pontos hoje escritos em `localStorage` (`kwendi:progresso`, `kwendi_saldo_v1`, `kwendi:nivelamento`, `kwendi.premium.ativo`, `kwendi_missoes_v1`, `kwendi:caderno`) — LessonScreen, SecaoScreen, NivelamentoScreen, LojaScreen, ProfileScreen, MissoesScreen, CadernoScreen. Missões e caderno viram tabelas `eventos` (ou tabelas próprias, se preferir; aqui uso `eventos` para conter escopo).
+- Impedir o `signUp` de disparar se `email` ou `password` estiverem vazios (guarda defensiva).
+- No `LoginScreen`, mostrar o ecrã de sucesso apenas depois de a `session` estar confirmada em `useAuth`, evitando a impressão de "sem token".
 
-Fallback offline: continua a escrever num "buffer" local que sincroniza ao voltar online.
+### B) Configuração — passos manuais no Supabase/Google (do utilizador)
 
-### 4. Sessões no backend
+Não posso executar isto pelas tools, mas listo o que **tem** de estar assim para o Google funcionar em `kwendi.xyz`:
 
-`installSessionTracker`:
+**No Google Cloud Console → OAuth Client ID → Web application:**
 
-- Se `isAdminTesting()` → não faz nada.
-- Se autenticado → cria uma linha em `sessoes` (`INSERT` com `iniciada_em=now()`) e mantém o `id`. A cada activity, `UPDATE terminada_em=now()`. `visibilitychange=hidden` ou 5 min idle fecham. `beforeunload` faz `UPDATE` best-effort com `keepalive` via `fetch`.
-- `sessions_local` deixa de ser lido pelo painel.
+- Authorized JavaScript origins:
+  - `https://kwendi.xyz`
+  - `https://www.kwendi.xyz`
+  - `https://kwendi.lovable.app`
+  - `https://hrbltonpknsxfwdyzykz.supabase.co`
+- Authorized redirect URIs (uma linha, exata):
+  - `https://hrbltonpknsxfwdyzykz.supabase.co/auth/v1/callback`
 
-### 5. Painel admin sobre o backend
+**No Supabase Dashboard → Authentication → URL Configuration:**
 
-- `useAdminAuth`:
-  - Mantém a rota secreta `/grupo16Kwendi` e o combo `Ctrl+Shift+A`.
-  - **Passo do login secreto** cria/valida sessão Supabase: se já existe um `auth.user` com role `admin`, aceita. Caso contrário faz `signInWithPassword({ email:'grupo16Kwendi@kwendi.admin', password:'Teremos19Valores!' })`. Este utilizador é criado uma vez (ver seed abaixo) e recebe `role='admin'` em `user_roles`.
-  - `RequireAdmin` valida `has_role` chamando `.rpc('has_role',{ _user_id:user.id,_role:'admin' })`.
-- `SupabaseDataSource` implementa `AdminDataSource` lendo:
-  - `listUsers` — `profiles` + join com `progresso` + info stealth (calcula `stealthAtivo` de `stealth_expira_em > now()`).
-  - `getOverview` — mesmas agregações mas SQL: uso duas RPCs (`admin_overview`, `admin_sessions_stats`) SECURITY DEFINER protegidas por `has_role`. Retornam JSON pronto (regiões, países, motivações, novos por dia, alertas).
-  - `getSessions` — `sessoes` agregadas por dia (RPC).
-  - `getProgress`, `getAchievements` — agregados sobre `progresso`/`eventos`.
-- `dataSource.ts` — `getAdminDataSource()` deteta se há user autenticado + role admin e devolve `SupabaseDataSource`; caso contrário fica em `LocalStorageDataSource` (permite ainda ver dados locais no dev antes do login backend concluído). Remove flag `VITE_ADMIN_USE_BACKEND`.
-- Modo "Abrir app (modo teste)" continua a funcionar: além de `startAdminTesting()`, o session tracker já ignora e `useProgresso` opcionalmente marca escritas com `?dry=true` — como o admin não tem `profiles`/`progresso` de utilizador comum, mesmo que grave não polui as métricas de outros. Para ficar simples: no modo teste, hooks de escrita ficam disabled (só leitura). Fica claro no banner.
+- Site URL: `https://kwendi.xyz`
+- Redirect URLs (add): `https://kwendi.xyz/**`, `https://www.kwendi.xyz/**`, `https://kwendi.lovable.app/**`, `http://localhost:8080/**`
 
-### 6. Seed inicial do admin
+**Authentication → Providers → Email:**
 
-Como não posso criar contas via SQL para `auth.users`, o setup do admin faz-se numa edge function `bootstrap-admin` (chamada uma vez pelo login secreto se `has_role` falhar) que:
+- Manter `Confirm email` **desligado** enquanto testa (senão o cadastro exige clicar em link antes de logar). Ligar depois quando os templates de e-mail estiverem prontos.
 
-1. Verifica que a password enviada bate com um segredo `ADMIN_BOOTSTRAP_PASSWORD`.
-2. Chama `supabase.auth.admin.createUser({ email:'grupo16Kwendi@kwendi.admin', password, email_confirm:true })` se ainda não existir.
-3. Insere `user_roles(user_id, 'admin')`.
-4. Devolve OK; cliente faz `signInWithPassword`.
+### C) SPA/404 em kwendi.xyz
 
-Segredo novo: `ADMIN_BOOTSTRAP_PASSWORD` (definido = `Teremos19Valores!` via `set_secret`).
+Depois de aplicar A) e testar, se o `/home` ainda der 404 ao fazer refresh no domínio custom, valido isto por Playwright no preview interno.
 
-### 7. Providers OAuth
+---
 
-Google + Apple: configurados no **dashboard Supabase → Authentication → Providers** pelo utilizador. Vou deixar instruções no chat e adaptar `SocialAuthButtons` para chamar `signInWithOAuth`. Sem edits em `supabase/config.toml` necessários.
+## Ordem de execução (após aprovar)
 
-### 8. Emails de auth
+1. Ajustar `src/screens/SignupFlow.tsx` (Opção A: remover `SocialAuthButtons` do wizard + guarda anti-empty `signUp`).
+2. Ajustar `src/screens/LoginScreen.tsx` para gate no `session` real antes de mostrar sucesso.
+3. Devolver-te a checklist de URL Configuration + Google Cloud (secção B) para completares no dashboard — sem isso o Google continua a falhar mesmo com código correto.
+4. Testar no preview: signup email/senha + login email/senha. Google só testável após passo 3.
 
-Manter os defaults Supabase por agora (confirmação de email, reset). Se quiser branding, corremos `scaffold_auth_email_templates` num passo separado.
+Confirma: **Opção A** (remover Google do wizard de signup, mantendo só no login) ou **Opção B** (manter e persistir metadados via `updateUser` no callback)? Opção B.
 
-### 9. Arquivos afetados
-
-**Novos:**
-
-- `src/contexts/AuthContext.tsx`
-- `src/hooks/useProgresso.ts`
-- `src/admin/SupabaseDataSource.ts`
-- `src/screens/ResetPasswordScreen.tsx`
-- `supabase/functions/bootstrap-admin/index.ts`
-
-**Editados:**
-
-- `src/App.tsx` — envolve com `AuthProvider`, adiciona `/reset-password`.
-- `src/screens/SignupFlow.tsx`, `LoginScreen.tsx`, `ForgotPasswordScreen.tsx`, `StealthModeScreen.tsx`, `ProfileScreen.tsx`, `LessonScreen.tsx`, `SecaoScreen.tsx`, `NivelamentoScreen.tsx`, `LojaScreen.tsx`, `MissoesScreen.tsx`, `CadernoScreen.tsx`, `HomeScreen.tsx`.
-- `src/hooks/useAdminAuth.ts` — usa Supabase + `bootstrap-admin`.
-- `src/components/admin/RequireAdmin.tsx` — checa `has_role`.
-- `src/admin/dataSource.ts` — factory decide local vs Supabase.
-- `src/lib/sessionTracker.ts` — escreve em `sessoes`.
-- `src/components/SocialAuthButtons.tsx` — usa `signInWithOAuth`.
-
-**Removidos (uso deixa de existir, ficheiros mantidos como fallback histórico enquanto não estabiliza):**
-
-- Continua a existir `src/lib/adminRegistry.ts` e `LocalStorageDataSource` como fallback dev; nova migração real vive na cloud.
-
-### Notas
-
-- Confirmar no dashboard Supabase → Authentication → URL Configuration que Site URL e Redirect URLs incluem `https://kwendi.lovable.app`, `https://kwendi.xyz`, `https://www.kwendi.xyz`, `http://localhost:8080`.
-- Depois da migração vou correr um scan de segurança e resolver quaisquer avisos gerados pelas novas tabelas.
-- Auth precisa de conta confirmada; enquanto os utilizadores confirmam email, `profiles` fica criado na mesma (trigger dispara no insert em `auth.users`).
+E tratar agora do template de e-mail.
