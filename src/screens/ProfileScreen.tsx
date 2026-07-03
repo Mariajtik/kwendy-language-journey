@@ -79,7 +79,7 @@ const ProfileScreen = () => {
       { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
       { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
       { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
-      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias.url },
+      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias },
       { label: "Caderno 50", unlocked: guardadas >= 50,    trophy: undefined },
       { label: "Alfabeto",   unlocked: alfabeto >= TOTAL_LETRAS, trophy: undefined },
     ];
