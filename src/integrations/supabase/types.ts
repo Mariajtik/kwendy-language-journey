@@ -14,16 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      eventos: {
+        Row: {
+          criado_em: string
+          id: string
+          payload: Json
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          payload?: Json
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          payload?: Json
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          atualizado_em: string
+          avatar_url: string | null
+          chokwe: string | null
+          criado_em: string
+          email: string | null
+          fonte_kwendi: string | null
+          id: string
+          motivacao: string | null
+          nivel_declarado: string | null
+          nome: string | null
+          objetivo_diario: string | null
+          pais: string | null
+          provincia: string | null
+          stealth_expira_em: string | null
+          tipo: string
+        }
+        Insert: {
+          atualizado_em?: string
+          avatar_url?: string | null
+          chokwe?: string | null
+          criado_em?: string
+          email?: string | null
+          fonte_kwendi?: string | null
+          id: string
+          motivacao?: string | null
+          nivel_declarado?: string | null
+          nome?: string | null
+          objetivo_diario?: string | null
+          pais?: string | null
+          provincia?: string | null
+          stealth_expira_em?: string | null
+          tipo?: string
+        }
+        Update: {
+          atualizado_em?: string
+          avatar_url?: string | null
+          chokwe?: string | null
+          criado_em?: string
+          email?: string | null
+          fonte_kwendi?: string | null
+          id?: string
+          motivacao?: string | null
+          nivel_declarado?: string | null
+          nome?: string | null
+          objetivo_diario?: string | null
+          pais?: string | null
+          provincia?: string | null
+          stealth_expira_em?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
+      progresso: {
+        Row: {
+          ancao: boolean
+          atualizado_em: string
+          diamantes: number
+          nivelamento_percentagem: number | null
+          premium: boolean
+          seccoes_completas: string[]
+          streak: number
+          unidade_atual: string | null
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          ancao?: boolean
+          atualizado_em?: string
+          diamantes?: number
+          nivelamento_percentagem?: number | null
+          premium?: boolean
+          seccoes_completas?: string[]
+          streak?: number
+          unidade_atual?: string | null
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          ancao?: boolean
+          atualizado_em?: string
+          diamantes?: number
+          nivelamento_percentagem?: number | null
+          premium?: boolean
+          seccoes_completas?: string[]
+          streak?: number
+          unidade_atual?: string | null
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      sessoes: {
+        Row: {
+          id: string
+          iniciada_em: string
+          rota: string | null
+          terminada_em: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          iniciada_em?: string
+          rota?: string | null
+          terminada_em?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          iniciada_em?: string
+          rota?: string | null
+          terminada_em?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          criado_em: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_overview: { Args: never; Returns: Json }
+      admin_sessions_stats: { Args: never; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +319,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
