@@ -9,12 +9,18 @@
  * Response: { allowed: boolean, reason?: string, field?: "username" | "photo" }
  */
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+/** Hard limits to prevent cost abuse. */
+const MAX_USERNAME_LEN = 60;
+const MAX_IMAGE_BASE64_BYTES = 2 * 1024 * 1024; // ~2 MB of base64 payload
 
 type ModerationResult = { allowed: boolean; reason?: string };
 
@@ -61,7 +67,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Require a valid Supabase JWT to prevent unauthenticated cost abuse.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supa = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const token = authHeader.slice("bearer ".length).trim();
+    const { data: claimsData, error: claimsError } = await supa.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { username, imageBase64, imageMime } = await req.json();
+
+    // Enforce input size limits before touching the AI gateway.
+    if (typeof username === "string" && username.length > MAX_USERNAME_LEN) {
+      return new Response(
+        JSON.stringify({ allowed: false, field: "username", reason: "Nome demasiado longo." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (typeof imageBase64 === "string" && imageBase64.length > MAX_IMAGE_BASE64_BYTES) {
+      return new Response(
+        JSON.stringify({ allowed: false, field: "photo", reason: "Imagem excede o limite de 2 MB." }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // Moderate username first if provided
     if (typeof username === "string" && username.trim().length > 0) {

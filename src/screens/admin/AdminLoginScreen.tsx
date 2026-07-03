@@ -4,7 +4,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
 const AdminLoginScreen = () => {
-  const [user, setUser] = useState("");
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -16,7 +16,7 @@ const AdminLoginScreen = () => {
     setErro(null);
     setBusy(true);
     try {
-      const ok = await login(user.trim(), pass);
+      const ok = await login(email.trim(), pass);
       if (ok) navigate("/grupo16Kwendi/dashboard", { replace: true });
       else setErro("Credenciais inválidas.");
     } finally {
@@ -45,10 +45,11 @@ const AdminLoginScreen = () => {
 
         <div className="space-y-3">
           <label className="block">
-            <span className="text-xs uppercase tracking-wider text-white/50">Utilizador</span>
+            <span className="text-xs uppercase tracking-wider text-white/50">Email</span>
             <input
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               autoComplete="off"
               className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-white/30"
             />

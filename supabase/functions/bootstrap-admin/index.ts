@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const ADMIN_EMAIL = "grupo16Kwendi@kwendi.admin";
+const DEFAULT_ADMIN_EMAIL = "grupo16Kwendi@kwendi.admin";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -9,14 +9,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { password } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({} as { email?: string; password?: string }));
+    const password: string | undefined = body?.password;
+    const providedEmail: string | undefined =
+      typeof body?.email === "string" ? body.email.trim().toLowerCase() : undefined;
     const expected = Deno.env.get("ADMIN_BOOTSTRAP_PASSWORD");
     if (!expected || password !== expected) {
+      // Silent no-op for the wrong password — do not leak whether an admin exists.
       return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const ADMIN_EMAIL = providedEmail || DEFAULT_ADMIN_EMAIL;
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
