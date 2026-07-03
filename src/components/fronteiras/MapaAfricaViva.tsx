@@ -1,9 +1,12 @@
 /**
  * Mini-mapa vivo de África usado no jogo Para Além de Fronteiras.
- * - Estado "perguntar": pin do país da pergunta a pulsar sobre o mapa completo.
- * - Estado "revelar":  faz zoom + centra o país + alfinete cai com bounce.
+ * - Estado "perguntar": mapa completo, sem marcador.
+ * - Estado "revelar":  faz zoom + centra o país. O marcador surge
+ *   1 s depois da resposta marcada e desaparece automaticamente,
+ *   ajudando o utilizador a localizar o país exato.
  */
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import africaAsset from "@/assets/africa-bandeiras-hd.jpg.asset.json";
 import type { PaisAfrica } from "@/data/paisesAfrica";
 
