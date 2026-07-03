@@ -468,7 +468,7 @@ const LessonScreen = () => {
           <div className="flex items-center gap-1">
             <KwendiIcon name="coracao" className="w-5 h-5" />
             <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-              {hearts}
+              {premium ? "∞" : hearts}
             </span>
           </div>
         </div>
@@ -605,7 +605,7 @@ const LessonScreen = () => {
         <div className="flex items-center gap-1">
           <KwendiIcon name="coracao" className="w-5 h-5" />
           <span className="font-extrabold text-sm" style={{ color: "hsl(var(--primary))" }}>
-            {hearts}
+            {premium ? "∞" : hearts}
           </span>
         </div>
       </div>
