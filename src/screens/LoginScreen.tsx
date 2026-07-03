@@ -25,13 +25,19 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       toast.error(error.message || "Credenciais inválidas.");
       return;
     }
+    if (!data.session) {
+      toast.error("Sessão não estabelecida. Tente novamente.");
+      return;
+    }
     setSuccess(true);
+    // Navegar automaticamente após breve feedback
+    setTimeout(() => navigate("/home", { replace: true }), 600);
   };
 
   /* ---- SUCCESS STATE ---- */
