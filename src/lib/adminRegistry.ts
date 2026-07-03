@@ -43,6 +43,11 @@ function write(arr: RegistryEntry[]) {
 }
 
 export function registerLocalUser(entry: Omit<RegistryEntry, "id" | "criadoEm"> & { id?: string; criadoEm?: string }) {
+  try {
+    if (sessionStorage.getItem("kwendi_admin_testing") === "1") return;
+  } catch {
+    /* noop */
+  }
   const list = read();
   const id = entry.id ?? `${entry.tipo}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const criadoEm = entry.criadoEm ?? new Date().toISOString();

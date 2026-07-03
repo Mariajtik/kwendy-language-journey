@@ -1,7 +1,8 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getAdminDataSource } from "@/admin/dataSource";
-import { LayoutDashboard, Users, TrendingUp, Clock, Trophy, LogOut, MapPin } from "lucide-react";
+import { LayoutDashboard, Users, TrendingUp, Clock, Trophy, LogOut, MapPin, ExternalLink } from "lucide-react";
+import { startAdminTesting } from "@/lib/adminTesting";
 
 const nav = [
   { to: "/grupo16Kwendi/dashboard", label: "Visão geral", icon: LayoutDashboard },
@@ -20,6 +21,11 @@ export const AdminLayout = () => {
   const handleLogout = () => {
     logout();
     navigate("/grupo16Kwendi/login", { replace: true });
+  };
+
+  const openAppAsTester = () => {
+    startAdminTesting();
+    navigate("/home");
   };
 
   return (
@@ -54,6 +60,13 @@ export const AdminLayout = () => {
             <div className="mb-3 rounded-md bg-white/5 px-3 py-2 text-[10px] uppercase tracking-wider text-white/50">
               Fonte: {ds.kind === "localStorage" ? "LocalStorage (dispositivo atual)" : "Backend"}
             </div>
+            <button
+              onClick={openAppAsTester}
+              className="mb-2 flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Abrir app (modo teste)
+            </button>
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/60 hover:bg-white/5 hover:text-white"

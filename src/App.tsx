@@ -58,6 +58,7 @@ import AdminAchievementsScreen from "./screens/admin/AdminAchievementsScreen";
 import AdminRegionsScreen from "./screens/admin/AdminRegionsScreen";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { RequireAdmin } from "./components/admin/RequireAdmin";
+import { AdminTestingBanner } from "./components/admin/AdminTestingBanner";
 import { useAdminShortcut } from "./hooks/useAdminShortcut";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
@@ -75,6 +76,7 @@ const AnimatedRoutes = () => {
 
   return (
     <AnimatePresence mode="wait">
+      <AdminTestingBanner />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<SplashScreen />} />
         <Route path="/apresentation" element={<ApresentationScreen />} />
