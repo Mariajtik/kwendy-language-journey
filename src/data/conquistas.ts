@@ -157,6 +157,20 @@ CONQUISTAS.push(
   { id: "e4", titulo: "Som das Letras",  descricao: "Ouça 15 letras do Alfabeto.",                      icone: AudioLines,  categoria: "exploracao", meta: 15, recompensa: { xp: 150, diamantes: 75, bau: "raro" },   badge: "roxa" },
 );
 
+// Ancião — acertar 100% no teste de nivelamento (Módulo 1).
+CONQUISTAS.push(
+  {
+    id: "ancao",
+    titulo: "Ancião",
+    descricao: "Acertou 100% no teste de nivelamento do Módulo 1 — uma proeza de poucos.",
+    icone: Crown,
+    categoria: "primeiros_passos",
+    meta: 1,
+    recompensa: { xp: 250, diamantes: 500, bau: "lendario" },
+    badge: "laranja-escuro",
+  },
+);
+
 export const CONQUISTAS_POR_CATEGORIA: Record<ConquistaCategoria, ConquistaDef[]> = {
   primeiros_passos: CONQUISTAS.filter((c) => c.categoria === "primeiros_passos"),
   linguagem: CONQUISTAS.filter((c) => c.categoria === "linguagem"),
