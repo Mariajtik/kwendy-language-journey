@@ -45,6 +45,10 @@ const STORAGE_KEY = "kwendi_seen_fronteiras_intro";
 const FronteirasIntroScreen = () => {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const { autoPlayAudio } = useAcessibilidade();
+  const [muted, setMuted] = useState(!autoPlayAudio);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
 
