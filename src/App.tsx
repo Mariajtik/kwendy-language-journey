@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { AcessibilidadeProvider } from "@/contexts/AcessibilidadeContext";
 
 /* Screen imports */
 import SplashScreen from "./screens/SplashScreen";
@@ -42,6 +43,7 @@ import ContaScreen from "./screens/definicoes/ContaScreen";
 import NotificacoesScreen from "./screens/definicoes/NotificacoesScreen";
 import SobreScreen from "./screens/definicoes/SobreScreen";
 import DefinicoesScreen from "./screens/definicoes/DefinicoesScreen";
+import AcessibilidadeScreen from "./screens/definicoes/AcessibilidadeScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +70,7 @@ const AnimatedRoutes = () => {
         <Route path="/profile/definicoes" element={<DefinicoesScreen />} />
         <Route path="/profile/conta" element={<ContaScreen />} />
         <Route path="/profile/notificacoes" element={<NotificacoesScreen />} />
+        <Route path="/profile/acessibilidade" element={<AcessibilidadeScreen />} />
         <Route path="/profile/sobre" element={<SobreScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
         <Route path="/historias" element={<HistoriasScreen />} />
@@ -90,13 +93,15 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <AcessibilidadeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AcessibilidadeProvider>
   </QueryClientProvider>
 );
 
