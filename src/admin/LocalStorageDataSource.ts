@@ -13,7 +13,10 @@ import type {
   SessionStats,
   AchievementStats,
   SessionEntry,
+  OverviewStats,
+  OverviewAlert,
 } from "./dataSource";
+import { getLocalUsers, getStealthActive, type RegistryEntry } from "@/lib/adminRegistry";
 
 const K = {
   auth: "kwendi.auth.user",
@@ -54,42 +57,58 @@ export class LocalStorageDataSource implements AdminDataSource {
   async listUsers(): Promise<AdminUser[]> {
     const auth = readAuthUser();
     const saldo = readJSON<any>(K.saldo, {});
-    const progresso = readJSON<any>(K.progresso, { seccoesCompletas: [] });
     const niv = readJSON<any>(K.nivelamento, {});
     const premium = localStorage.getItem(K.premium) === "1";
+    const stealthAtivo = getStealthActive();
+    const registry = getLocalUsers();
 
-    // Se não há utilizador local, devolve um placeholder para o painel não parecer vazio.
-    if (!auth) {
-      return [
-        {
-          id: "device",
-          nome: "Dispositivo atual",
-          email: "—",
-          nivel: niv.ancao ? "avancado" : "iniciante",
-          xp: Number(saldo.xp ?? 0),
-          diamantes: Number(saldo.diamantes ?? 0),
-          streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
-          premium,
-          cadastradoEm: null,
-          resultadoNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
-        },
-      ];
-    }
+    const mapEntry = (e: RegistryEntry): AdminUser => ({
+      id: e.id,
+      nome: e.nome,
+      email: e.email ?? "—",
+      nivel: e.nivel ?? (e.tipo === "stealth" ? "furtivo" : "iniciante"),
+      xp: 0,
+      diamantes: 0,
+      streak: 0,
+      premium: false,
+      cadastradoEm: e.criadoEm,
+      resultadoNivelamento: null,
+      tipo: e.tipo,
+      regiao: e.provincia ?? e.pais ?? null,
+      pais: e.pais ?? null,
+      motivacao: e.motivacao ?? null,
+      stealthAtivo:
+        e.tipo === "stealth" && !!e.expiraEm && Date.parse(e.expiraEm) > Date.now(),
+      stealthExpiraEm: e.expiraEm ?? null,
+    });
 
-    return [
-      {
-        id: auth.id,
-        nome: auth.nome,
-        email: auth.email,
-        nivel: auth.nivel ?? (niv.ancao ? "avancado" : "iniciante"),
-        xp: Number(saldo.xp ?? 0),
-        diamantes: Number(saldo.diamantes ?? 0),
-        streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
-        premium,
-        cadastradoEm: auth.cadastradoEm ?? null,
-        resultadoNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
-      },
-    ];
+    const users: AdminUser[] = registry.map(mapEntry);
+
+    // Adiciona também o "dispositivo atual" com métricas em tempo real (XP/diamantes/streak).
+    const deviceUser: AdminUser = {
+      id: auth?.id ?? "device",
+      nome: auth?.nome ?? "Dispositivo atual",
+      email: auth?.email ?? "—",
+      nivel: auth?.nivel ?? (niv.ancao ? "avancado" : "iniciante"),
+      xp: Number(saldo.xp ?? 0),
+      diamantes: Number(saldo.diamantes ?? 0),
+      streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
+      premium,
+      cadastradoEm: auth?.cadastradoEm ?? null,
+      resultadoNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
+      tipo: auth ? "signup" : "device",
+      regiao: null,
+      pais: null,
+      motivacao: null,
+      stealthAtivo: !!stealthAtivo,
+      stealthExpiraEm: stealthAtivo?.expiraEm ?? null,
+    };
+
+    // Evita duplicar se o auth user já constar no registry (mesmo email).
+    const exists = auth && users.some((u) => u.email === auth.email);
+    if (!exists) users.unshift(deviceUser);
+
+    return users;
   }
 
   async getProgress(): Promise<ProgressStats> {
@@ -164,6 +183,103 @@ export class LocalStorageDataSource implements AdminDataSource {
       unidadeSugerida: niv.unidadeSugerida ?? null,
       missoesConcluidas: Number(missoesConcluidas ?? 0),
       cadernoGuardadas: Array.isArray(caderno) ? caderno.length : 0,
+    };
+  }
+
+  async getOverview(): Promise<OverviewStats> {
+    const users = await this.listUsers();
+    const sess = await this.getSessions();
+
+    const cadastrados = users.filter((u) => u.tipo === "signup");
+    const stealthAll = users.filter((u) => u.tipo === "stealth");
+    const stealthAtivos = stealthAll.filter((u) => u.stealthAtivo);
+    const now = Date.now();
+    const stealthExpirandoEm24h = stealthAll.filter(
+      (u) =>
+        u.stealthExpiraEm &&
+        Date.parse(u.stealthExpiraEm) > now &&
+        Date.parse(u.stealthExpiraEm) - now <= 86400000,
+    ).length;
+    const premiumAtivos = users.filter((u) => u.premium).length;
+
+    const bucket = <T>(arr: T[], key: (t: T) => string | null | undefined) => {
+      const m = new Map<string, number>();
+      for (const it of arr) {
+        const k = key(it);
+        if (!k) continue;
+        m.set(k, (m.get(k) ?? 0) + 1);
+      }
+      return [...m.entries()]
+        .map(([k, total]) => ({ k, total }))
+        .sort((a, b) => b.total - a.total);
+    };
+
+    const porRegiao = bucket(users, (u) => u.regiao).map((x) => ({ regiao: x.k, total: x.total }));
+    const porPais = bucket(users, (u) => u.pais).map((x) => ({ pais: x.k, total: x.total }));
+    const porMotivacao = bucket(users, (u) => u.motivacao).map((x) => ({ motivo: x.k, total: x.total }));
+    const porTipo = bucket(users, (u) => (u.tipo === "device" ? null : u.tipo)).map((x) => ({
+      tipo: x.k === "signup" ? "Cadastrados" : "Modo furtivo",
+      total: x.total,
+    }));
+
+    // Novos por dia (30 dias) baseado em cadastradoEm.
+    const dias = new Map<string, number>();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+      dias.set(d, 0);
+    }
+    for (const u of users) {
+      if (!u.cadastradoEm) continue;
+      const d = u.cadastradoEm.slice(0, 10);
+      if (dias.has(d)) dias.set(d, (dias.get(d) ?? 0) + 1);
+    }
+    const novosPorDia = [...dias.entries()].map(([dia, total]) => ({ dia, total }));
+
+    // Alertas condicionais.
+    const alertas: OverviewAlert[] = [];
+    if (stealthExpirandoEm24h > 0) {
+      alertas.push({
+        nivel: "warn",
+        texto: `${stealthExpirandoEm24h} conta(s) em modo furtivo expiram nas próximas 24h.`,
+      });
+    }
+    const totalNaoDispositivo = cadastrados.length + stealthAll.length;
+    if (totalNaoDispositivo > 0) {
+      const pctStealth = Math.round((stealthAll.length / totalNaoDispositivo) * 100);
+      if (pctStealth > 40) {
+        alertas.push({
+          nivel: "warn",
+          texto: `${pctStealth}% dos utilizadores estão em modo furtivo (sem conta real).`,
+        });
+      }
+    }
+    if (sess.totalSessoes === 0) {
+      alertas.push({ nivel: "info", texto: "Ainda sem dados de sessão registados neste dispositivo." });
+    }
+    if (sess.ativosHoje === 0 && sess.totalSessoes > 0) {
+      alertas.push({ nivel: "info", texto: "Nenhum utilizador ativo hoje." });
+    }
+    if (cadastrados.length === 0 && stealthAll.length === 0) {
+      alertas.push({
+        nivel: "info",
+        texto: "Nenhum registo local ainda — os dados aparecem após um signup ou ativação do modo furtivo.",
+      });
+    }
+
+    return {
+      totalUsuarios: users.length,
+      totalCadastrados: cadastrados.length,
+      totalStealth: stealthAll.length,
+      stealthAtivosAgora: stealthAtivos.length,
+      stealthExpirandoEm24h,
+      premiumAtivos,
+      ativosHoje: sess.ativosHoje,
+      porRegiao,
+      porPais,
+      porMotivacao,
+      porTipo,
+      novosPorDia,
+      alertas,
     };
   }
 }
