@@ -9,12 +9,18 @@
  * Response: { allowed: boolean, reason?: string, field?: "username" | "photo" }
  */
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+/** Hard limits to prevent cost abuse. */
+const MAX_USERNAME_LEN = 60;
+const MAX_IMAGE_BASE64_BYTES = 2 * 1024 * 1024; // ~2 MB of base64 payload
 
 type ModerationResult = { allowed: boolean; reason?: string };
 
