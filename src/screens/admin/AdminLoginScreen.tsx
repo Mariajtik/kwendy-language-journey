@@ -1,21 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Loader2 } from "lucide-react";
 
 const AdminLoginScreen = () => {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const { login } = useAdminAuth();
   const navigate = useNavigate();
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (login(user.trim(), pass)) {
-      navigate("/grupo16Kwendi/dashboard", { replace: true });
-    } else {
-      setErro("Credenciais inválidas.");
+    setErro(null);
+    setBusy(true);
+    try {
+      const ok = await login(user.trim(), pass);
+      if (ok) navigate("/grupo16Kwendi/dashboard", { replace: true });
+      else setErro("Credenciais inválidas.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -67,10 +72,12 @@ const AdminLoginScreen = () => {
 
         <button
           type="submit"
-          className="w-full rounded-lg py-2.5 text-sm font-semibold transition-transform active:scale-[0.98]"
+          disabled={busy}
+          className="w-full rounded-lg py-2.5 text-sm font-semibold transition-transform active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
           style={{ background: "hsl(5 84% 42%)" }}
         >
-          Entrar
+          {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+          {busy ? "A validar..." : "Entrar"}
         </button>
 
         <p className="text-[11px] text-white/30 leading-relaxed">
