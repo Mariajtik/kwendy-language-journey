@@ -1,92 +1,55 @@
+## Objetivo
 
-# Plano — Alfabeto na U5 + escrita rápida após cada palavra nova
+Permitir que o usuário, dentro de uma lição, marque temporariamente:
+- "Não posso falar agora" → remove só exercícios de fala
+- "Não posso ouvir agora" → remove só exercícios de escuta
+- Ambos → sobra apenas escrita
 
-## Parte A — U5 (Palavras + Revisão) passa a ser a unidade mais extensa
+Estas escolhas duram apenas a **sessão da lição**. Sair da lição ou fechar a app volta ao fluxo normal — **nada é persistido**.
 
-A unidade `m1u5` recebe um bloco de lições dedicadas ao alfabeto Umbundu, encaixadas **antes** das lições já existentes (Pi/Kupi, vocabulário, revisão, família, corpo, cidade). A ordem final da U5 fica:
+## Comportamento
 
-1. Vogais — `a e i o u` (cinco vogais claras, sem ditongos como em PT)
-2. Consoantes simples I — `b c d f g h j`
-3. Consoantes simples II — `k l m n p s`
-4. Consoantes simples III — `t v w y` (o Umbundu **não** usa `q r x z`)
-5. Digrafos nasais — `mb · nd · ng · ny` (com exemplos: *ombisi*, *ndakolapo*, *ongolo*, *onyima*)
-6. Digrafos labiais/complexos — `mp · nc · ngw · mbw · ny + vogal`
-7. Tabela completa do alfabeto Umbundu (visão global, 1 lição de leitura + escuta)
-8. Letras que não existem em Umbundu (`q r x z`) e falsos amigos com o PT
-9. Sons especiais — vogais nasalizadas `ã õ` (ex.: *Omelã*, *Ukãyi*)
-10. Revisão do alfabeto (escuta + emparelhar letra ↔ palavra ↔ som)
-11. Pi (onde) — antes do verbo *(já existente)*
-12. Kupi (aonde) — depois do verbo *(já existente)*
-13. Twenda kupi? *(já existente)*
-14. Ndikakala kupi *(já existente)*
-15. Vocabulário do dia-a-dia *(já existente)*
-16. Revisão do módulo *(já existente)*
-17. Casa e família alargada *(já existente)*
-18. Corpo humano *(já existente)*
-19. Cidade e natureza *(já existente)*
+**Exercícios afetados**
+- Fala: `falar`
+- Escuta: `escuta_escolha`, `escuta_escrever`, `escuta_montar`
 
-Cada nova lição do alfabeto segue o fluxo Kwendi:
-`aprender letra` → `escrever (preencher letras)` → `escuta_escolha` → `emparelhar` → `falar`.
+**Transformações (só quando a flag correspondente está ativa)**
+- `falar` → `escrever` (pergunta = PT, resposta = frase Umbundu)
+- `escuta_escolha` → `traduzir_umbundu_pt` (mostra a frase escrita, mesmas opções e correta)
+- `escuta_escrever` → `escrever` (pergunta = "Escreve em Umbundu: <PT>", resposta = frase que seria falada)
+- `escuta_montar` → `montar_frase` (mesmo alvo/distratores, sem áudio)
 
-## Parte B — Escrita "muito fácil" após cada palavra nova (toda a app)
+Passos que **não** são de fala/escuta permanecem intactos. Regras de XP, vidas, dicas e progresso não mudam.
 
-Sempre que numa lição aparece um passo `aprender`, o motor injeta **automaticamente** logo a seguir um mini-passo de escrita do tipo **preencher letras em falta**. Regras:
+## UI
 
-- É gerado em tempo de execução — os ficheiros de dados (`m1.ts` e módulos futuros) não precisam de ser reescritos.
-- A palavra alvo é a do `aprender` que acabou de sair (`umbundu`).
-- Uma ou duas letras (interiores, nunca a primeira) são substituídas por `_`. Vogais têm prioridade; se a palavra só tiver 3 letras esconde-se 1 letra.
-- Palavras curtíssimas (≤ 2 caracteres) ou multipalavra longa (> 3 palavras) são saltadas — não faz sentido preencher.
-- Tradução PT e a palavra "modelo" mantêm-se visíveis, para reforçar grafia sem frustrar (é o pedido "muito fácil").
-- É considerado errado apenas se a letra digitada não corresponder à letra oculta (case-insensitive, ignorando acentos via `normalizar()` já existente).
-- Não conta para XP negativo se falhar — apenas mostra a letra correta e continua.
+**1. Botão inline no topo do exercício** (só aparece em passos de fala ou escuta):
+- Em passos de fala: pequeno link "Não posso falar agora" (ícone mic-off).
+- Em passos de escuta: pequeno link "Não posso ouvir agora" (ícone volume-off).
+- Ao tocar: ativa a flag correspondente e o passo atual é imediatamente re-renderizado na forma de escrita. Uma tela de confirmação curta (toast) explica que dura só esta lição.
 
-Exemplo:
-- `aprender` mostra **Ekumbi — O sol**
-- imediatamente aparece **`Ek_mbi`** (o "u" oculto) com o hint "O sol"
-- utilizador escreve `u` → verde → passo `falar`/`escuta` da lição prossegue
+**2. Botão de reverter**
+- Enquanto a flag estiver ativa, um pequeno chip discreto no cabeçalho da lição ("Modo escrita: fala" / "Modo escrita: escuta") permite desligar novamente sem sair da lição.
 
-## Detalhes técnicos
+## Estado
 
-### Dados (`src/data/licoes/m1.ts`)
-Adicionar 10 novas lições `m1u5s1`..`m1u5s10` (alfabeto) e renumerar as atuais para `m1u5s11`..`m1u5s19`. Actualizar `curriculo.ts` (`m1u5.seccoes`) para refletir as 19 secções + báu.
+- Duas flags em `useState` dentro de `LessonScreen` (`semFala`, `semEscuta`) — resetam ao desmontar a tela.
+- **Sem** localStorage, **sem** contexto global — a natureza efêmera é o requisito.
+- Ao sair para `/home` ou dar reload, o componente desmonta e o estado se perde.
 
-### Novo tipo de passo (`src/data/licoes/tipos.ts`)
-```ts
-| {
-    tipo: "preencher_letras";
-    palavra: string;      // Umbundu completo — usado como resposta
-    pt: string;           // dica em PT
-    mascara: string;      // ex: "Ek_mbi"
-    letras: string[];     // ex: ["u"] — respostas por ordem
-  }
-```
+## Onde muda o código
 
-### Geração automática no motor da lição
-Em `src/screens/LessonScreen.tsx`, ao construir a lista de passos da lição atual, aplicar uma função `expandirComEscrita(passos)`:
+- **`src/screens/LessonScreen.tsx`**
+  - Adiciona `semFala` e `semEscuta` como estado local.
+  - Função `transformarPasso(p, semFala, semEscuta): Passo` chamada no render; passa o passo transformado para o componente correspondente em vez do original.
+  - Chip discreto no cabeçalho da lição para ligar/desligar quando ativo.
+- **`src/components/licao/PassoComponents.tsx`**
+  - `EscutaPasso`, `EscutaEscreverPasso`, `EscutaMontarPasso`: adiciona um link "Não posso ouvir agora" no topo, com callback `onNaoPossoOuvir`.
+  - `FalarPasso`: adiciona um link "Não posso falar agora" no topo, com callback `onNaoPossoFalar`.
+  - Callbacks propagam até `LessonScreen`, que seta a flag e o próximo render aplica a transformação (inclusive re-renderizando o passo atual como escrita).
 
-```
-para cada passo:
-  emitir passo
-  se passo.tipo === "aprender" e elegível:
-    emitir { tipo: "preencher_letras", ... } gerado a partir de passo.umbundu/pt
-```
+## Fora de escopo
 
-Elegibilidade: palavra tem entre 3 e 24 caracteres, contém pelo menos uma vogal interior. Se a palavra tiver espaços (frase curta), esconde apenas uma letra da **última** palavra.
-
-### Renderização (`src/components/licao/PassoComponents.tsx`)
-Novo componente `PassoPreencherLetras`:
-- Mostra os caracteres da máscara como caixas quadradas grandes.
-- Caixas fixas (letras já visíveis) usam o estilo `card` cinzento.
-- Caixas vazias são inputs de 1 letra, com foco automático e avanço.
-- Botão *"Verificar"* fica no rodapé; feedback verde/vermelho consistente com o resto da app.
-- Botão pequeno *"Ouvir palavra"* reaproveita o TTS já usado em `escuta_escolha`.
-- Feedback pedagógico: se errar, mostra a letra correta e prossegue automaticamente após 800 ms.
-
-### Vocabulário (`src/data/licoes/vocabulario.ts`)
-Adicionar entradas para as letras/digrafos e para palavras-exemplo novas usadas no alfabeto (ex.: nomes de letras em Umbundu com pronúncia PT).
-
-## Fora do âmbito
-- Não altero o design system nem os banners/cores da U5 (continua rosa `330 75% 55%`).
-- Não mexo em módulos que não seja o M1 nos ficheiros de dados; a regra global só toma efeito quando eles existirem.
-- Não adiciono TTS novo — reutilizo o existente.
-- Não altero pontuação/XP; a mini-escrita é neutra em caso de erro.
+- Nenhuma alteração em tela de acessibilidade, contexto global, ou preferências persistidas.
+- Nenhuma mudança no motor de progresso, XP, vidas, dicas, ou nos scripts das lições.
+- Nenhum novo tipo de passo — reaproveita `escrever`, `traduzir_umbundu_pt` e `montar_frase` já existentes.
