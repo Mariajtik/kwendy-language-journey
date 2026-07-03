@@ -23,6 +23,9 @@ import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 import { usePremium } from "@/contexts/PremiumContext";
+import { useNivelamento } from "@/hooks/useNivelamento";
+import { rotularUnidade } from "@/data/nivelamento";
+import { Crown, Settings } from "lucide-react";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
@@ -151,7 +154,8 @@ const HomeScreen = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const atualBannerRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
-  const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
+  const { unidadeAtualInfo, statusSeccaoNa, completarAteUnidade } = useProgresso();
+  const { estado: niv, consumirPopup } = useNivelamento();
   const { fundoBranco } = useAcessibilidade();
   const { ativo: premium } = usePremium();
   const atual = unidadeAtualInfo();
@@ -164,6 +168,23 @@ const HomeScreen = () => {
   const [startOpen, setStartOpen] = useState(false);
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
+  const [nivelamentoOpen, setNivelamentoOpen] = useState(false);
+
+  /** Pop-up pós-nivelamento: ancião ou posicionado. Roda uma vez. */
+  useEffect(() => {
+    if (niv.popupPendente === "posicionado" && niv.unidadeSugerida) {
+      completarAteUnidade(niv.unidadeSugerida);
+    }
+    if (niv.popupPendente) {
+      setNivelamentoOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [niv.popupPendente]);
+
+  const fecharNivelamentoPopup = () => {
+    setNivelamentoOpen(false);
+    consumirPopup();
+  };
 
   /** Mensagem de boas-vindas quando o utilizador Iniciante chega direto
    *  do onboarding sem passar pelo teste de nivelamento. */
