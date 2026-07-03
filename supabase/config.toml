@@ -1,7 +1,7 @@
 project_id = "hrbltonpknsxfwdyzykz"
 
 [functions.moderate-profile]
-verify_jwt = false
+verify_jwt = true
 
 [functions.bootstrap-admin]
 verify_jwt = false
