@@ -78,9 +78,30 @@ const StealthModeScreen = () => {
       });
       if (error) throw error;
       if (data?.allowed) {
+        const ativadoEm = new Date().toISOString();
+        const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
+        // 1) Cria conta furtiva no backend (email sintético + password aleatória).
         try {
-          const ativadoEm = new Date().toISOString();
-          const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
+          const uid = crypto.randomUUID();
+          const email = `stealth-${uid}@kwendi.local`;
+          const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+          await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                nome: username,
+                tipo: "stealth",
+                stealth_expira_em: expiraEm,
+                pais: "Angola",
+              },
+            },
+          });
+        } catch {
+          /* offline — segue com registo local */
+        }
+        // 2) Mantém também o estado local para back-compat.
+        try {
           setStealthActive(ativadoEm, expiraEm);
           registerLocalUser({
             tipo: "stealth",
