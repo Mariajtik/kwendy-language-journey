@@ -8,7 +8,22 @@
 
 import { LocalStorageDataSource } from "./LocalStorageDataSource";
 import { SupabaseDataSource } from "./SupabaseDataSource";
-import { supabase } from "@/integrations/supabase/client";
+
+function hasSupabaseSession(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith("sb-") || !key.endsWith("-auth-token")) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (parsed?.access_token) return true;
+    }
+  } catch {
+    /* noop */
+  }
+  return false;
+}
 
 export type AdminUser = {
   id: string;
@@ -97,13 +112,9 @@ let _instance: AdminDataSource | null = null;
  */
 export function getAdminDataSource(): AdminDataSource {
   if (_instance) return _instance;
-  // Não podemos await aqui; decidimos com base na sessão em memória.
-  const anyBackend = (supabase.auth as any)._store?.getSession?.()?.data?.session;
-  if (anyBackend) {
-    _instance = new SupabaseDataSource();
-  } else {
-    _instance = new LocalStorageDataSource();
-  }
+  _instance = hasSupabaseSession()
+    ? new SupabaseDataSource()
+    : new LocalStorageDataSource();
   return _instance;
 }
 
