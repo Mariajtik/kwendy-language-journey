@@ -31,7 +31,68 @@ import {
   PreencherLacunaPasso,
   EscutaEscreverPasso,
   EscutaMontarPasso,
+  PreencherLetrasPasso,
 } from "@/components/licao/PassoComponents";
+import type { Passo } from "@/data/licoes/tipos";
+
+/**
+ * Após cada passo "aprender" elegível, injeta um mini-exercício
+ * "preencher_letras" para reforçar a grafia da palavra recém-aprendida.
+ * Regras: 3–24 chars, ≤3 palavras, esconde 1 vogal interior (fallback: letra interior).
+ */
+function expandirComEscrita(passos: Passo[]): Passo[] {
+  const out: Passo[] = [];
+  for (const p of passos) {
+    out.push(p);
+    if (p.tipo !== "aprender") continue;
+    const gerado = gerarPreencherLetras(p.umbundu, p.pt);
+    if (gerado) out.push(gerado);
+  }
+  return out;
+}
+
+function gerarPreencherLetras(u: string, pt: string): Passo | null {
+  const raw = u.trim();
+  if (raw.length < 3 || raw.length > 24) return null;
+  const words = raw.split(/\s+/);
+  if (words.length > 3) return null;
+  // Escolhe a última palavra "alfabética" com ≥3 letras (excluindo pontuação).
+  const clean = (w: string) => w.replace(/[.,!?;:'"()]/g, "");
+  let targetIdx = -1;
+  for (let i = words.length - 1; i >= 0; i--) {
+    if (clean(words[i]).length >= 3) {
+      targetIdx = i;
+      break;
+    }
+  }
+  if (targetIdx === -1) return null;
+  const target = words[targetIdx];
+  const chars = [...target];
+  const isLetter = (c: string) => /[a-zA-ZãõÃÕáéíóúâêîôû]/.test(c);
+  const isVowel = (c: string) => /[aeiouAEIOUãõÃÕáéíóúâêîôû]/.test(c);
+  // Posições internas (não primeira, não última) que sejam letras.
+  const interiores: number[] = [];
+  for (let i = 1; i < chars.length - 1; i++) {
+    if (isLetter(chars[i])) interiores.push(i);
+  }
+  if (interiores.length === 0) return null;
+  // Preferir vogais internas; caso contrário qualquer letra interna.
+  const vogaisInternas = interiores.filter((i) => isVowel(chars[i]));
+  const candidatas = vogaisInternas.length > 0 ? vogaisInternas : interiores;
+  const pick = candidatas[Math.floor(candidatas.length / 2)];
+  const hidden = chars[pick];
+  const newWordChars = [...chars];
+  newWordChars[pick] = "_";
+  const newWords = [...words];
+  newWords[targetIdx] = newWordChars.join("");
+  return {
+    tipo: "preencher_letras",
+    palavra: raw,
+    pt,
+    mascara: newWords.join(" "),
+    letras: [hidden],
+  };
+}
 
 /** Controlo de dicas grátis diárias (5/dia). Persiste em localStorage. */
 const DICAS_KEY = "kwendi_dicas_diarias_v1";
@@ -95,8 +156,12 @@ const LessonScreen = () => {
     () => (id ? LICOES_BAU[id] ?? getLicaoM1(id) : undefined),
     [id],
   );
+  const passosExpandidos = useMemo<Passo[]>(
+    () => (licao ? expandirComEscrita(licao.passos) : []),
+    [licao],
+  );
   const usaScript = !!licao;
-  const totalScript = licao?.passos.length ?? 0;
+  const totalScript = passosExpandidos.length;
   const total = usaScript ? totalScript : QUESTIONS.length;
 
   const [index, setIndex] = useState(0);
@@ -124,7 +189,7 @@ const LessonScreen = () => {
   const dobradorMin = tempoRestante("dobrador-xp");
   const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
-  const passo = usaScript ? licao!.passos[index] : null;
+  const passo = usaScript ? passosExpandidos[index] : null;
   const q = usaScript ? null : QUESTIONS[index];
   const isCorrect = selected === q?.correct;
   const progress = ((index + (checked ? 1 : 0)) / total) * 100;
@@ -285,7 +350,10 @@ const LessonScreen = () => {
 
   // ------------------ Render (modo script) ------------------
   if (usaScript && passo) {
-    const contaComoAcerto = passo.tipo !== "aprender" && passo.tipo !== "dialogo";
+    const contaComoAcerto =
+      passo.tipo !== "aprender" &&
+      passo.tipo !== "dialogo" &&
+      passo.tipo !== "preencher_letras";
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -355,6 +423,12 @@ const LessonScreen = () => {
         )}
         {passo.tipo === "escuta_montar" && (
           <EscutaMontarPasso passo={passo} onResolved={(c) => avancarScript(c, contaComoAcerto)} />
+        )}
+        {passo.tipo === "preencher_letras" && (
+          <PreencherLetrasPasso
+            passo={passo}
+            onResolved={(c) => avancarScript(c, contaComoAcerto)}
+          />
         )}
       </motion.div>
     );

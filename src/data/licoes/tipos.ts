@@ -114,6 +114,16 @@ export type Passo =
       pt: string;
       alvo: string;    // igual ao audio, mas separado por espaços
       distratores?: string[];
+    }
+  | {
+      // Preencher letra(s) em falta numa palavra que acabou de ser aprendida.
+      // Gerado automaticamente pelo motor após cada passo "aprender" elegível.
+      // Estilo "muito fácil": normalmente esconde apenas 1 vogal interior.
+      tipo: "preencher_letras";
+      palavra: string;    // Umbundu completo (resposta modelo)
+      pt: string;         // dica em PT
+      mascara: string;    // Igual a `palavra` com letras ocultas por "_"
+      letras: string[];   // Letras ocultas por ordem de aparição
     };
 
 export type Licao = {

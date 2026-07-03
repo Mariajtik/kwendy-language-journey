@@ -1,66 +1,92 @@
-# Refinar experiência visual do "Para Além de Fronteiras"
 
-Três problemas a resolver, mantendo tudo em código de apresentação (sem alterar lógica de jogo).
+# Plano — Alfabeto na U5 + escrita rápida após cada palavra nova
 
----
+## Parte A — U5 (Palavras + Revisão) passa a ser a unidade mais extensa
 
-## 1. Cartão da curiosidade — um só cartão, sem réplicas
+A unidade `m1u5` recebe um bloco de lições dedicadas ao alfabeto Umbundu, encaixadas **antes** das lições já existentes (Pi/Kupi, vocabulário, revisão, família, corpo, cidade). A ordem final da U5 fica:
 
-**Problema:** Existe um cartão branco "frente" que aparece brevemente antes do flip 3D — o utilizador vê duas versões da mesma informação.
+1. Vogais — `a e i o u` (cinco vogais claras, sem ditongos como em PT)
+2. Consoantes simples I — `b c d f g h j`
+3. Consoantes simples II — `k l m n p s`
+4. Consoantes simples III — `t v w y` (o Umbundu **não** usa `q r x z`)
+5. Digrafos nasais — `mb · nd · ng · ny` (com exemplos: *ombisi*, *ndakolapo*, *ongolo*, *onyima*)
+6. Digrafos labiais/complexos — `mp · nc · ngw · mbw · ny + vogal`
+7. Tabela completa do alfabeto Umbundu (visão global, 1 lição de leitura + escuta)
+8. Letras que não existem em Umbundu (`q r x z`) e falsos amigos com o PT
+9. Sons especiais — vogais nasalizadas `ã õ` (ex.: *Omelã*, *Ukãyi*)
+10. Revisão do alfabeto (escuta + emparelhar letra ↔ palavra ↔ som)
+11. Pi (onde) — antes do verbo *(já existente)*
+12. Kupi (aonde) — depois do verbo *(já existente)*
+13. Twenda kupi? *(já existente)*
+14. Ndikakala kupi *(já existente)*
+15. Vocabulário do dia-a-dia *(já existente)*
+16. Revisão do módulo *(já existente)*
+17. Casa e família alargada *(já existente)*
+18. Corpo humano *(já existente)*
+19. Cidade e natureza *(já existente)*
 
-**Solução:** Eliminar o flip 3D e a face frontal. Passa a existir **um único cartão**, já com as cores da bandeira do país, que entra com uma animação sóbria (fade + slide-up + leve escala, ~400 ms). Conteúdo coerente numa hierarquia clara:
+Cada nova lição do alfabeto segue o fluxo Kwendi:
+`aprender letra` → `escrever (preencher letras)` → `escuta_escolha` → `emparelhar` → `falar`.
 
-- Chip de estado no topo: `✓ Acertaste` (verde translúcido) **ou** `Resposta correta` (branco translúcido) — usa a cor da bandeira como fundo do cartão em ambos os casos.
-- Título grande: a resposta correta.
-- Parágrafo: `explicacao` da pergunta.
-- Divisória fina + rodapé: `Curiosidade · 🇦🇴 Angola` + texto da curiosidade.
+## Parte B — Escrita "muito fácil" após cada palavra nova (toda a app)
 
-Ficheiro afetado: `src/components/fronteiras/CartaoCuriosidade.tsx` (reescrito, sem `perspective`/`rotateY`, sem face absoluta).
+Sempre que numa lição aparece um passo `aprender`, o motor injeta **automaticamente** logo a seguir um mini-passo de escrita do tipo **preencher letras em falta**. Regras:
 
----
+- É gerado em tempo de execução — os ficheiros de dados (`m1.ts` e módulos futuros) não precisam de ser reescritos.
+- A palavra alvo é a do `aprender` que acabou de sair (`umbundu`).
+- Uma ou duas letras (interiores, nunca a primeira) são substituídas por `_`. Vogais têm prioridade; se a palavra só tiver 3 letras esconde-se 1 letra.
+- Palavras curtíssimas (≤ 2 caracteres) ou multipalavra longa (> 3 palavras) são saltadas — não faz sentido preencher.
+- Tradução PT e a palavra "modelo" mantêm-se visíveis, para reforçar grafia sem frustrar (é o pedido "muito fácil").
+- É considerado errado apenas se a letra digitada não corresponder à letra oculta (case-insensitive, ignorando acentos via `normalizar()` já existente).
+- Não conta para XP negativo se falhar — apenas mostra a letra correta e continua.
 
-## 2. Mapa de África — nitidez no zoom e enquadramento
-
-**Problema:** A `africa-bandeiras.jpg` (37 KB) fica pixelizada ao aplicar `scale: 2.4`, e como o `<img>` usa `object-contain`, ao deslocar por `%` para centrar o país, partes do mapa saem do cartão.
-
-**Solução dupla:**
-
-**a) Substituir por versão de alta resolução.** Gerar um novo asset `africa-bandeiras@2x.jpg` (~1600 px de largura, mesma composição visual do mapa com bandeiras) e servi-lo via `srcSet` para que no zoom o browser use a imagem nítida. Usar `image-rendering: auto` e `will-change: transform` para suavizar.
-
-**b) Corrigir o enquadramento no zoom.** Em vez do atual "deslocar por percentagem da imagem", passar a usar `transform-origin` dinâmico: `transformOrigin: \`${pais.x * 100}% ${pais.y * 100}%\`` e apenas `scale`. Isto mantém o país sempre visível dentro do cartão, sem cortes nas bordas, e é matematicamente estável para qualquer coordenada.
-
-**c) Bónus visual:** Adicionar um leve `filter: saturate(1.1)` durante o zoom e um halo dourado à volta do alfinete (`box-shadow: 0 0 24px hsl(45 90% 55% / 0.6)`) para reforçar o "wow".
-
-Ficheiros afetados: `src/components/fronteiras/MapaAfricaViva.tsx`, novo asset `src/assets/africa-bandeiras-hd.jpg.asset.json`.
-
----
-
-## 3. Cartão de resultado partilhável — mapa dourado com alfinetes reais
-
-**Problema:** O mini-mapa é apenas um círculo com pontos soltos — não parece África nem valoriza os países visitados.
-
-**Solução:** Redesenhar o cartão (720 × 1000 canvas) com três camadas:
-
-**a) Fundo cinemático.** Gradiente radial crimson → azul-noite + textura sutil de pontos dourados (ruído procedural leve no canvas).
-
-**b) Mapa dourado com alfinetes precisos.** Carregar `africa-bandeiras-hd.jpg` (o mesmo asset novo) no canvas com `globalCompositeOperation = "luminosity"` + camada dourada por cima (`hsl(45 90% 55%)` com `multiply`) para obter silhueta dourada de África. Sobre esse mapa, desenhar alfinetes reais nas coordenadas `(pais.x, pais.y)` de cada país acertado — mesmo sistema já usado no `MapaAfricaViva`, garantindo posições coerentes entre jogo e cartão. Cada alfinete: círculo dourado + estrela pequena + sombra.
-
-**c) Tipografia refinada.** Título em `letter-spacing` largo, pontuação com sublinhado dourado, streak como "selo carimbado" rodado -6°, nome do país destaque (top 1 acerto), frase da Kwendi em itálico com aspas tipográficas «...».
-
-**d) Botões de partilha.** Mantêm-se (Baixar / WhatsApp / Comunidade) mas ganham ícone dourado e sombra 3D coerente com o resto da app.
-
-Ficheiro afetado: `src/components/fronteiras/CartaoResultado.tsx` (reescrito, com helper para desenhar silhueta dourada e pins).
-
----
+Exemplo:
+- `aprender` mostra **Ekumbi — O sol**
+- imediatamente aparece **`Ek_mbi`** (o "u" oculto) com o hint "O sol"
+- utilizador escreve `u` → verde → passo `falar`/`escuta` da lição prossegue
 
 ## Detalhes técnicos
 
-- Sem mudanças em `FronteirasJogoScreen.tsx` além de remover a prop `explicacao` (agora integrada no cartão único — a prop passa a ser opcional para não partir a assinatura).
-- Sem mudanças em `paisesAfrica.ts`, `fronteirasPerguntas.ts`, `usePassaporte.ts`, `conquistas.ts`, `sonsFronteiras.ts`.
-- O novo asset de alta resolução vai ser gerado com `imagegen` e enviado para o CDN via `lovable-assets`.
-- Verificação: `tsgo --noEmit` + inspeção visual via Playwright do estado "revelar" e do cartão de resultado.
+### Dados (`src/data/licoes/m1.ts`)
+Adicionar 10 novas lições `m1u5s1`..`m1u5s10` (alfabeto) e renumerar as atuais para `m1u5s11`..`m1u5s19`. Actualizar `curriculo.ts` (`m1u5.seccoes`) para refletir as 19 secções + báu.
+
+### Novo tipo de passo (`src/data/licoes/tipos.ts`)
+```ts
+| {
+    tipo: "preencher_letras";
+    palavra: string;      // Umbundu completo — usado como resposta
+    pt: string;           // dica em PT
+    mascara: string;      // ex: "Ek_mbi"
+    letras: string[];     // ex: ["u"] — respostas por ordem
+  }
+```
+
+### Geração automática no motor da lição
+Em `src/screens/LessonScreen.tsx`, ao construir a lista de passos da lição atual, aplicar uma função `expandirComEscrita(passos)`:
+
+```
+para cada passo:
+  emitir passo
+  se passo.tipo === "aprender" e elegível:
+    emitir { tipo: "preencher_letras", ... } gerado a partir de passo.umbundu/pt
+```
+
+Elegibilidade: palavra tem entre 3 e 24 caracteres, contém pelo menos uma vogal interior. Se a palavra tiver espaços (frase curta), esconde apenas uma letra da **última** palavra.
+
+### Renderização (`src/components/licao/PassoComponents.tsx`)
+Novo componente `PassoPreencherLetras`:
+- Mostra os caracteres da máscara como caixas quadradas grandes.
+- Caixas fixas (letras já visíveis) usam o estilo `card` cinzento.
+- Caixas vazias são inputs de 1 letra, com foco automático e avanço.
+- Botão *"Verificar"* fica no rodapé; feedback verde/vermelho consistente com o resto da app.
+- Botão pequeno *"Ouvir palavra"* reaproveita o TTS já usado em `escuta_escolha`.
+- Feedback pedagógico: se errar, mostra a letra correta e prossegue automaticamente após 800 ms.
+
+### Vocabulário (`src/data/licoes/vocabulario.ts`)
+Adicionar entradas para as letras/digrafos e para palavras-exemplo novas usadas no alfabeto (ex.: nomes de letras em Umbundu com pronúncia PT).
 
 ## Fora do âmbito
-
-- Não altero o timer, XP, sons, confetes nem as achievements.
-- Não introduzo Griot mode nem música regional (adiado como combinado).
+- Não altero o design system nem os banners/cores da U5 (continua rosa `330 75% 55%`).
+- Não mexo em módulos que não seja o M1 nos ficheiros de dados; a regra global só toma efeito quando eles existirem.
+- Não adiciono TTS novo — reutilizo o existente.
+- Não altero pontuação/XP; a mini-escrita é neutra em caso de erro.

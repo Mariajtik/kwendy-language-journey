@@ -1224,3 +1224,148 @@ export const EscutaMontarPasso = ({
     </div>
   );
 };
+
+/* -------------------- Preencher letras (mini escrita pós-aprender) -------- */
+
+export const PreencherLetrasPasso = ({
+  passo,
+  onResolved,
+}: {
+  passo: Extract<Passo, { tipo: "preencher_letras" }>;
+  onResolved: (certo: boolean) => void;
+}) => {
+  const chars = useMemo(() => [...passo.mascara], [passo.mascara]);
+  const numBlanks = passo.letras.length;
+  const [values, setValues] = useState<string[]>(() => Array(numBlanks).fill(""));
+  const [checked, setChecked] = useState(false);
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
+
+  const cheio = values.every((v) => v.trim().length > 0);
+  const certo =
+    cheio &&
+    values.every(
+      (v, i) => normalizar(v) === normalizar(passo.letras[i] ?? ""),
+    );
+
+  const setLetra = (idx: number, val: string) => {
+    const letra = val.slice(-1);
+    setValues((prev) => {
+      const next = [...prev];
+      next[idx] = letra;
+      return next;
+    });
+    if (letra && idx + 1 < numBlanks) {
+      inputRefs.current[idx + 1]?.focus();
+    }
+  };
+
+  const handleKey = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !values[idx] && idx > 0) {
+      inputRefs.current[idx - 1]?.focus();
+    }
+    if (e.key === "Enter") {
+      if (checked) onResolved(certo);
+      else if (cheio) setChecked(true);
+    }
+  };
+
+  let blankIdx = -1;
+  return (
+    <div className="flex flex-col flex-1">
+      <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground mb-3">
+        PREENCHE A LETRA QUE FALTA
+      </p>
+      <p className="text-base text-muted-foreground text-center mb-2">
+        "{passo.pt}"
+      </p>
+      <button
+        type="button"
+        onClick={() => falar(passo.palavra)}
+        className="self-center inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-extrabold text-white mb-5"
+        style={{
+          background: "hsl(202 80% 50%)",
+          boxShadow: "0 2px 0 hsl(202 80% 35%)",
+        }}
+      >
+        <Volume2 className="w-3.5 h-3.5" /> Ouvir palavra
+      </button>
+      <div className="flex flex-wrap gap-1.5 justify-center items-center mb-4 text-2xl font-extrabold text-foreground">
+        {chars.map((c, i) => {
+          if (c === "_") {
+            blankIdx++;
+            const idx = blankIdx;
+            const v = values[idx] ?? "";
+            const showWrong = checked && normalizar(v) !== normalizar(passo.letras[idx] ?? "");
+            const showOk = checked && !showWrong;
+            return (
+              <input
+                key={i}
+                ref={(el) => {
+                  inputRefs.current[idx] = el;
+                }}
+                value={v}
+                disabled={checked}
+                onChange={(e) => setLetra(idx, e.target.value)}
+                onKeyDown={(e) => handleKey(idx, e)}
+                maxLength={1}
+                inputMode="text"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                className="w-10 h-12 rounded-lg border-2 text-center outline-none font-extrabold"
+                style={{
+                  borderColor: showOk
+                    ? "#86D05D"
+                    : showWrong
+                    ? "hsl(var(--primary))"
+                    : "hsl(var(--border))",
+                  background: showOk
+                    ? "#eaf7e0"
+                    : showWrong
+                    ? "#fdecec"
+                    : "#fff",
+                  boxShadow: "0 2px 0 hsl(var(--border))",
+                  color: "hsl(var(--foreground))",
+                }}
+              />
+            );
+          }
+          if (/\s/.test(c)) return <span key={i} className="w-2" />;
+          return (
+            <span
+              key={i}
+              className="inline-flex items-center justify-center w-8 h-12 rounded-lg bg-muted"
+            >
+              {c}
+            </span>
+          );
+        })}
+      </div>
+      {checked && !certo && (
+        <p className="text-sm font-bold text-center mb-3" style={{ color: "hsl(var(--primary))" }}>
+          Palavra certa:{" "}
+          <span className="font-extrabold">{passo.palavra}</span>
+        </p>
+      )}
+      {checked && certo && (
+        <p
+          className="text-sm font-extrabold text-center mb-3"
+          style={{ color: "#5fae3a" }}
+        >
+          Boa! É mesmo assim.
+        </p>
+      )}
+      <button
+        disabled={!cheio}
+        onClick={() => (checked ? onResolved(certo) : setChecked(true))}
+        className="btn-duo btn-duo-primary w-full mt-auto disabled:opacity-50"
+      >
+        {checked ? "Continuar" : "Verificar"}
+      </button>
+    </div>
+  );
+};
