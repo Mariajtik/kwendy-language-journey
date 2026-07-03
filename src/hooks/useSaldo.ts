@@ -6,6 +6,7 @@
  * Migrar para Supabase no futuro = trocar load/save por chamadas async.
  */
 import { useCallback, useEffect, useState } from "react";
+import { premiumAtivoStatic } from "@/contexts/PremiumContext";
 
 export type Raridade = "comum" | "raro" | "lendario";
 
@@ -106,6 +107,11 @@ export function useSaldo() {
  * depois das vidas normais. Devolve o novo total combinado.
  */
 export function perderVida(): number {
+  // Premium (degustação): vidas infinitas — não consome nada.
+  if (premiumAtivoStatic()) {
+    const s = getSaldo();
+    return s.vidas + s.vidasExtra;
+  }
   const next = setSaldo((prev) => {
     if (prev.vidasExtra > 0) {
       return { ...prev, vidasExtra: prev.vidasExtra - 1 };
