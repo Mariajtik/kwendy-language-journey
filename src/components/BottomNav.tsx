@@ -107,7 +107,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
         {/* Nav bar */}
         <div
           className="bg-white rounded-t-3xl px-3 pt-3 pb-2 flex items-center justify-around shadow-lg"
-          style={{ borderTop: "3px solid #86D05D" }}
+          style={{ borderTop: "1px solid hsl(var(--border))" }}
         >
           {navItems.map((item) => {
             const isActive = active === item.key;
