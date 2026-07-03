@@ -8,10 +8,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import logo from "@/assets/logo.jpg";
 import PasswordInput from "@/components/PasswordInput";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
@@ -19,6 +21,18 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const handleLogin = async () => {
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message || "Credenciais inválidas.");
+      return;
+    }
+    setSuccess(true);
+  };
 
   /* ---- SUCCESS STATE ---- */
   if (success) {
@@ -97,10 +111,11 @@ const LoginScreen = () => {
 
       {/* Login button */}
       <button
-        className="btn-duo btn-duo-primary disabled:opacity-50"
-        onClick={() => setSuccess(true)}
-        disabled={!/\S+@\S+\.\S+/.test(email) || password.length < 6}
+        className="btn-duo btn-duo-primary disabled:opacity-50 flex items-center justify-center gap-2"
+        onClick={handleLogin}
+        disabled={busy || !/\S+@\S+\.\S+/.test(email) || password.length < 6}
       >
+        {busy && <Loader2 className="w-4 h-4 animate-spin" />}
         Entrar
       </button>
     </motion.div>
