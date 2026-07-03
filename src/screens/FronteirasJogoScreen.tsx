@@ -18,7 +18,6 @@ import { useSaldo } from "@/hooks/useSaldo";
 import { useMissoes } from "@/hooks/useMissoes";
 import { CONQUISTAS, type ConquistaDef } from "@/data/conquistas";
 import {
-  CURIOSIDADES,
   PAISES,
   PAISES_PALOP,
   paisPorId,
@@ -444,9 +443,6 @@ const FronteirasJogoScreen = () => {
                     pais={paisAtual}
                     acertou={escolha === perguntaAtual.respostaCorreta}
                     respostaCorreta={perguntaAtual.opcoes[perguntaAtual.respostaCorreta]}
-                    curiosidade={
-                      CURIOSIDADES[paisAtual.iso] ?? perguntaAtual.explicacao
-                    }
                     explicacao={perguntaAtual.explicacao}
                   />
                   <button
