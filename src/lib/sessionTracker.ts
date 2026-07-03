@@ -9,6 +9,14 @@ const KEY = "kwendi_sessions";
 const MAX = 200;
 const IDLE_MS = 5 * 60 * 1000;
 
+function adminTesting(): boolean {
+  try {
+    return sessionStorage.getItem("kwendi_admin_testing") === "1";
+  } catch {
+    return false;
+  }
+}
+
 type Entry = { startedAt: number; endedAt: number; route: string };
 
 let current: Entry | null = null;
@@ -25,6 +33,7 @@ function readAll(): Entry[] {
 
 function persistCurrent() {
   if (!current) return;
+  if (adminTesting()) return; // sessão do admin não conta para estatísticas
   const all = readAll();
   // Substitui última entrada se for a mesma sessão em curso.
   const last = all[all.length - 1];
@@ -65,6 +74,8 @@ let installed = false;
 export function installSessionTracker() {
   if (installed || typeof window === "undefined") return;
   installed = true;
+
+  if (adminTesting()) return; // não regista nada durante o modo teste do admin
 
   ensureSession(window.location.pathname);
 
