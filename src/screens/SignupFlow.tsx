@@ -20,6 +20,7 @@ import logoImg from "@/assets/logo.jpg";
 import avatarImg from "@/assets/avatar.jpg";
 import PasswordInput from "@/components/PasswordInput";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
+import { registerLocalUser } from "@/lib/adminRegistry";
 import {
   Select,
   SelectContent,
@@ -182,8 +183,25 @@ const SignupFlow = () => {
 
   /** Move to next step, or finish */
   const next = () => {
-    if (step < totalSteps - 1) setStep(step + 1);
-    else if (level === "Iniciante")
+    if (step < totalSteps - 1) {
+      setStep(step + 1);
+      return;
+    }
+    // Fim do fluxo — persiste o registo local para o painel admin.
+    try {
+      registerLocalUser({
+        tipo: "signup",
+        nome: username,
+        email,
+        provincia: origin && origin !== "Outro" ? origin : null,
+        pais: origin === "Outro" ? originCountry : "Angola",
+        motivacao: motivation || null,
+        nivel: level || null,
+      });
+    } catch {
+      /* silencioso */
+    }
+    if (level === "Iniciante")
       navigate("/home", { state: { welcome: true, username } });
     else navigate("/nivelamento", { state: { level, username } });
   };
