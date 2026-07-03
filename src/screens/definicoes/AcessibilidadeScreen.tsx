@@ -77,8 +77,8 @@ const AcessibilidadeScreen = () => {
           />
           <Linha
             icon={Eye}
-            titulo="Fundo branco"
-            descricao="Substitui o fundo com relva do início por um branco simples, mais legível."
+            titulo="Fundo transparente"
+            descricao="Substitui o fundo com relva do início por um fundo simples, de acordo ao tema e mais legível."
             valor={fundoBranco}
             onToggle={setFundoBranco}
           />
