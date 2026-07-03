@@ -458,7 +458,7 @@ const HomeScreen = () => {
               className="font-extrabold text-sm"
               style={{ color: semOfensiva ? "#B5B5B5" : "#5E5C5C" }}
             >
-              {saldo.ofensiva}
+              {premium ? "∞" : saldo.ofensiva}
             </span>
           </div>
 
