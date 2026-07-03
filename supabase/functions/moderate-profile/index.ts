@@ -67,7 +67,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Require a valid Supabase JWT to prevent unauthenticated cost abuse.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supa = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const token = authHeader.slice("bearer ".length).trim();
+    const { data: claimsData, error: claimsError } = await supa.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { username, imageBase64, imageMime } = await req.json();
+
+    // Enforce input size limits before touching the AI gateway.
+    if (typeof username === "string" && username.length > MAX_USERNAME_LEN) {
+      return new Response(
+        JSON.stringify({ allowed: false, field: "username", reason: "Nome demasiado longo." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (typeof imageBase64 === "string" && imageBase64.length > MAX_IMAGE_BASE64_BYTES) {
+      return new Response(
+        JSON.stringify({ allowed: false, field: "photo", reason: "Imagem excede o limite de 2 MB." }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // Moderate username first if provided
     if (typeof username === "string" && username.trim().length > 0) {
