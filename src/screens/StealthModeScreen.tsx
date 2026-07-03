@@ -70,36 +70,42 @@ const StealthModeScreen = () => {
     setPolicyError(null);
     try {
       const isCustomPhoto = photo.startsWith("data:");
+      const ativadoEm = new Date().toISOString();
+      const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
+
+      // 1) Cria conta furtiva no backend PRIMEIRO — dessa forma temos um JWT
+      //    válido para autenticar a chamada de moderação (evita abuso de custo
+      //    por chamadas anónimas ao gateway de IA).
+      const uid = crypto.randomUUID();
+      const email = `stealth-${uid}@kwendi.local`;
+      const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nome: username,
+            tipo: "stealth",
+            stealth_expira_em: expiraEm,
+            pais: "Angola",
+          },
+        },
+      });
+      if (signUpError) throw signUpError;
+
+      // 2) Agora, com sessão activa, chama a moderação (função requer JWT).
       const { data, error } = await supabase.functions.invoke("moderate-profile", {
         body: {
           username,
           imageBase64: isCustomPhoto ? photo : undefined,
         },
       });
-      if (error) throw error;
+      if (error) {
+        // Rejeição do lado do servidor — encerra a sessão para não deixar conta órfã activa.
+        await supabase.auth.signOut().catch(() => {});
+        throw error;
+      }
       if (data?.allowed) {
-        const ativadoEm = new Date().toISOString();
-        const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
-        // 1) Cria conta furtiva no backend (email sintético + password aleatória).
-        try {
-          const uid = crypto.randomUUID();
-          const email = `stealth-${uid}@kwendi.local`;
-          const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-          await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                nome: username,
-                tipo: "stealth",
-                stealth_expira_em: expiraEm,
-                pais: "Angola",
-              },
-            },
-          });
-        } catch {
-          /* offline — segue com registo local */
-        }
         // 2) Mantém também o estado local para back-compat.
         try {
           setStealthActive(ativadoEm, expiraEm);
@@ -114,6 +120,8 @@ const StealthModeScreen = () => {
         }
         setActivated(true);
       } else {
+        // Conteúdo rejeitado — termina a sessão furtiva recém-criada.
+        await supabase.auth.signOut().catch(() => {});
         setPolicyError(
           data?.reason ||
             "A equipa Kwendi considerou este conteúdo ofensivo segundo a política da comunidade.",
