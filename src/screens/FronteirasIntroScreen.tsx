@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import fronteirasAsset from "@/assets/fronteiras.mp4.asset.json";
+import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 
 type Slide = { bold?: string; text: string };
 const SLIDES: Slide[] = [
@@ -45,11 +46,12 @@ const STORAGE_KEY = "kwendi_seen_fronteiras_intro";
 const FronteirasIntroScreen = () => {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const { autoPlayAudio } = useAcessibilidade();
+  const [muted, setMuted] = useState(!autoPlayAudio);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (paused || finished) return;

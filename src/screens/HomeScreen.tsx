@@ -21,6 +21,7 @@ import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
@@ -150,6 +151,7 @@ const HomeScreen = () => {
   const atualBannerRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
   const { unidadeAtualInfo, statusSeccaoNa } = useProgresso();
+  const { fundoBranco } = useAcessibilidade();
   const atual = unidadeAtualInfo();
   const totalVidas = saldo.vidas + saldo.vidasExtra;
   const semVidas = totalVidas <= 0;
@@ -403,9 +405,10 @@ const HomeScreen = () => {
       className="app-shell relative"
       style={{
         minHeight: "100dvh",
-        backgroundImage: `url(${grass.url})`,
+        backgroundImage: fundoBranco ? "none" : `url(${grass.url})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundColor: fundoBranco ? "hsl(var(--background))" : undefined,
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -414,7 +417,9 @@ const HomeScreen = () => {
       {/* Soft overlay for legibility */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "rgba(255,255,255,0.18)" }}
+        style={{
+          background: fundoBranco ? "transparent" : "rgba(255,255,255,0.18)",
+        }}
       />
 
       {/* ---- HEADER ---- */}

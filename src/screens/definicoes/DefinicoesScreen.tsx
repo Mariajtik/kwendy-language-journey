@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronRight, Info, LogOut, User as UserIcon } from "lucide-react";
+import { Accessibility, Bell, ChevronRight, Info, LogOut, User as UserIcon } from "lucide-react";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import SairConfirmModal from "@/screens/definicoes/SairConfirmModal";
 
@@ -16,6 +16,7 @@ const DefinicoesScreen = () => {
   const items = [
     { icon: UserIcon, label: "Conta", onClick: () => nav("/profile/conta") },
     { icon: Bell, label: "Notificações", onClick: () => nav("/profile/notificacoes") },
+    { icon: Accessibility, label: "Acessibilidade", onClick: () => nav("/profile/acessibilidade") },
     { icon: Info, label: "Sobre o Kwendi", onClick: () => nav("/profile/sobre") },
     { icon: LogOut, label: "Sair", destructive: true, onClick: () => setSairAberto(true) },
   ] as const;

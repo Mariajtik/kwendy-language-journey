@@ -29,6 +29,7 @@ import Confetes from "@/components/fronteiras/Confetes";
 import Cronometro from "@/components/fronteiras/Cronometro";
 import CartaoCuriosidade from "@/components/fronteiras/CartaoCuriosidade";
 import CartaoResultado from "@/components/fronteiras/CartaoResultado";
+import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 
 const TRACK_URL = musicAsset.url;
 const TOTAL_POR_PARTIDA = 10;
@@ -93,6 +94,7 @@ const FronteirasJogoScreen = () => {
   const { update } = useSaldo();
   const { desbloquearConquista } = useMissoes();
   const { carimbados, carimbar } = usePassaporte();
+  const { autoPlayAudio } = useAcessibilidade();
 
   /* ---------- Música de fundo ---------- */
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -102,9 +104,16 @@ const FronteirasJogoScreen = () => {
     const a = audioRef.current;
     if (!a) return;
     a.volume = 0.5;
-    a.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    if (autoPlayAudio) {
+      a.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      setMudo(false);
+    } else {
+      // Padrão: mudo. O usuário pode iniciar manualmente com o botão.
+      setIsPlaying(false);
+      setMudo(true);
+    }
     return () => a.pause();
-  }, []);
+  }, [autoPlayAudio]);
 
   const toggleMusic = () => {
     const a = audioRef.current;
