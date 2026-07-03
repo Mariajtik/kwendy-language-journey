@@ -41,42 +41,49 @@ function drawGoldenMap(
   const dy = cy - dh / 2;
 
   ctx.save();
-  // Camada 1: silhueta base — desenha imagem em modo "source-over" e
-  // depois pinta por cima com composição "source-in" para colorir a
-  // silhueta a dourado. O branco de fundo é neutralizado por um filtro
-  // de contraste antes de compor.
+  // Tinta cada pixel do mapa em tons dourados brilhantes, mantendo as
+  // delimitações e bandeiras dos países visíveis (mais escuras/claras
+  // conforme a luminância original). Fundo branco vira transparente.
   const off = document.createElement("canvas");
   off.width = dw;
   off.height = dh;
   const octx = off.getContext("2d")!;
   octx.drawImage(img, 0, 0, dw, dh);
 
-  // Remove o fundo branco: qualquer pixel com luminosidade > 0.9 vira transparente.
   const imgData = octx.getImageData(0, 0, dw, dh);
   const d = imgData.data;
+  // Alvos douradas — claro e escuro — para mapear luminância → dourado
+  const goldHi = { r: 255, g: 224, b: 130 }; // dourado claro brilhante
+  const goldLo = { r: 120, g: 72, b: 12 };   // dourado escuro / bronze
   for (let i = 0; i < d.length; i += 4) {
     const r = d[i], g = d[i + 1], b = d[i + 2];
-    const l = (r + g + b) / 3;
-    if (l > 230) d[i + 3] = 0;
+    // Luminância percebida
+    const l = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    // Fundo branco → transparente
+    if (r > 236 && g > 236 && b > 236) {
+      d[i + 3] = 0;
+      continue;
+    }
+    // Boost do contraste para as bandeiras "aparecerem"
+    const t = Math.pow(l, 0.85);
+    d[i]     = Math.round(goldLo.r + (goldHi.r - goldLo.r) * t);
+    d[i + 1] = Math.round(goldLo.g + (goldHi.g - goldLo.g) * t);
+    d[i + 2] = Math.round(goldLo.b + (goldHi.b - goldLo.b) * t);
   }
   octx.putImageData(imgData, 0, 0);
 
-  // Pinta a silhueta a dourado usando source-in.
-  octx.globalCompositeOperation = "source-in";
-  const grad = octx.createLinearGradient(0, 0, dw, dh);
-  grad.addColorStop(0, "hsl(45 95% 65%)");
-  grad.addColorStop(0.5, "hsl(42 90% 55%)");
-  grad.addColorStop(1, "hsl(38 80% 42%)");
-  octx.fillStyle = grad;
+  // Brilho dourado sobreposto (multiply suave) para ficar cintilante
+  octx.globalCompositeOperation = "overlay";
+  const shine = octx.createLinearGradient(0, 0, dw, dh);
+  shine.addColorStop(0, "hsl(48 100% 70% / 0.55)");
+  shine.addColorStop(1, "hsl(38 90% 40% / 0.25)");
+  octx.fillStyle = shine;
   octx.fillRect(0, 0, dw, dh);
-
-  // Contorno subtil
   octx.globalCompositeOperation = "source-over";
-  // (nada — o dourado já sugere o contorno)
 
-  // Coloca no canvas principal com sombra suave
-  ctx.shadowColor = "hsl(45 90% 40% / 0.5)";
-  ctx.shadowBlur = 24;
+  // Sombra dourada suave à volta do continente
+  ctx.shadowColor = "hsl(45 95% 55% / 0.55)";
+  ctx.shadowBlur = 28;
   ctx.drawImage(off, dx, dy, dw, dh);
   ctx.restore();
 
