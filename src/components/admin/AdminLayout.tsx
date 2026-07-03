@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getAdminDataSource } from "@/admin/dataSource";
-import { LayoutDashboard, Users, TrendingUp, Clock, Trophy, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, TrendingUp, Clock, Trophy, LogOut, MapPin } from "lucide-react";
 
 const nav = [
   { to: "/grupo16Kwendi/dashboard", label: "Visão geral", icon: LayoutDashboard },
   { to: "/grupo16Kwendi/usuarios", label: "Usuários", icon: Users },
+  { to: "/grupo16Kwendi/regioes", label: "Regiões", icon: MapPin },
   { to: "/grupo16Kwendi/progresso", label: "Progresso", icon: TrendingUp },
   { to: "/grupo16Kwendi/sessoes", label: "Sessões", icon: Clock },
   { to: "/grupo16Kwendi/conquistas", label: "Conquistas", icon: Trophy },
