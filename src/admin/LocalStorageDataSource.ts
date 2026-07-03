@@ -1,0 +1,169 @@
+/**
+ * LocalStorageDataSource.ts
+ * -------------------------
+ * Lê dados do dispositivo atual. Como o app hoje não regista uma lista de
+ * utilizadores, expõe o utilizador ativo como um único registo. Preparado
+ * para ser substituído pelo backend real depois.
+ */
+
+import type {
+  AdminDataSource,
+  AdminUser,
+  ProgressStats,
+  SessionStats,
+  AchievementStats,
+  SessionEntry,
+} from "./dataSource";
+
+const K = {
+  auth: "kwendi.auth.user",
+  progresso: "kwendi:progresso",
+  saldo: "kwendi_saldo_v1",
+  inventario: "kwendi.inventario",
+  nivelamento: "kwendi:nivelamento",
+  premium: "kwendi.premium.ativo",
+  missoes: "kwendi_missoes_v1",
+  sessoes: "kwendi_sessions",
+  caderno: "kwendi:caderno",
+} as const;
+
+function readJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readAuthUser(): { id: string; nome: string; email: string; nivel?: string; cadastradoEm?: string } | null {
+  const u = readJSON<any>(K.auth, null);
+  if (!u) return null;
+  return {
+    id: u.id ?? u.email ?? "local",
+    nome: u.nome ?? u.name ?? "Utilizador local",
+    email: u.email ?? "—",
+    nivel: u.nivel ?? u.level,
+    cadastradoEm: u.cadastradoEm ?? u.createdAt,
+  };
+}
+
+export class LocalStorageDataSource implements AdminDataSource {
+  readonly kind = "localStorage" as const;
+
+  async listUsers(): Promise<AdminUser[]> {
+    const auth = readAuthUser();
+    const saldo = readJSON<any>(K.saldo, {});
+    const progresso = readJSON<any>(K.progresso, { seccoesCompletas: [] });
+    const niv = readJSON<any>(K.nivelamento, {});
+    const premium = localStorage.getItem(K.premium) === "1";
+
+    // Se não há utilizador local, devolve um placeholder para o painel não parecer vazio.
+    if (!auth) {
+      return [
+        {
+          id: "device",
+          nome: "Dispositivo atual",
+          email: "—",
+          nivel: niv.ancao ? "avancado" : "iniciante",
+          xp: Number(saldo.xp ?? 0),
+          diamantes: Number(saldo.diamantes ?? 0),
+          streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
+          premium,
+          cadastradoEm: null,
+          resultadoNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
+        },
+      ];
+    }
+
+    return [
+      {
+        id: auth.id,
+        nome: auth.nome,
+        email: auth.email,
+        nivel: auth.nivel ?? (niv.ancao ? "avancado" : "iniciante"),
+        xp: Number(saldo.xp ?? 0),
+        diamantes: Number(saldo.diamantes ?? 0),
+        streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
+        premium,
+        cadastradoEm: auth.cadastradoEm ?? null,
+        resultadoNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
+      },
+    ];
+  }
+
+  async getProgress(): Promise<ProgressStats> {
+    const progresso = readJSON<any>(K.progresso, { seccoesCompletas: [], unidadeAtual: "" });
+    const saldo = readJSON<any>(K.saldo, {});
+    const seccoes: string[] = Array.isArray(progresso.seccoesCompletas) ? progresso.seccoesCompletas : [];
+
+    // Agrupa por prefixo do id da secção (ex.: "m1-u2-s3" -> "m1").
+    const porModulo = new Map<string, number>();
+    for (const id of seccoes) {
+      const mod = id.split("-")[0] ?? "?";
+      porModulo.set(mod, (porModulo.get(mod) ?? 0) + 1);
+    }
+
+    return {
+      xpTotal: Number(saldo.xp ?? 0),
+      diamantes: Number(saldo.diamantes ?? 0),
+      streak: Number(saldo.ofensiva ?? saldo.streak ?? 0),
+      seccoesCompletas: seccoes.length,
+      unidadeAtual: progresso.unidadeAtual ?? "—",
+      moduloProgresso: [...porModulo.entries()].map(([modulo, completas]) => ({ modulo, completas })),
+    };
+  }
+
+  async getSessions(): Promise<SessionStats> {
+    const sess = readJSON<SessionEntry[]>(K.sessoes, []);
+    const total = sess.length;
+    const durs = sess.map((s) => Math.max(0, s.endedAt - s.startedAt));
+    const tempoTotal = durs.reduce((a, b) => a + b, 0);
+    const tempoMedio = total ? tempoTotal / total : 0;
+
+    const hoje = new Date().toISOString().slice(0, 10);
+    const ativosHoje = sess.filter((s) => new Date(s.startedAt).toISOString().slice(0, 10) === hoje).length;
+
+    // Últimos 30 dias
+    const dias = new Map<string, { sessoes: number; tempoMs: number }>();
+    const now = Date.now();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+      dias.set(d, { sessoes: 0, tempoMs: 0 });
+    }
+    for (const s of sess) {
+      const d = new Date(s.startedAt).toISOString().slice(0, 10);
+      const cur = dias.get(d);
+      if (cur) {
+        cur.sessoes += 1;
+        cur.tempoMs += Math.max(0, s.endedAt - s.startedAt);
+      }
+    }
+
+    return {
+      totalSessoes: total,
+      tempoMedioMs: tempoMedio,
+      tempoTotalMs: tempoTotal,
+      ativosHoje,
+      porDia: [...dias.entries()].map(([dia, v]) => ({ dia, sessoes: v.sessoes, tempoMs: v.tempoMs })),
+    };
+  }
+
+  async getAchievements(): Promise<AchievementStats> {
+    const niv = readJSON<any>(K.nivelamento, {});
+    const missoes = readJSON<any>(K.missoes, {});
+    const caderno = readJSON<any[]>(K.caderno, []);
+    const missoesConcluidas = Array.isArray(missoes?.concluidas)
+      ? missoes.concluidas.length
+      : Object.values(missoes ?? {}).filter((v: any) => v?.concluida).length;
+
+    return {
+      ancao: !!niv.ancao,
+      premium: localStorage.getItem(K.premium) === "1",
+      percentagemNivelamento: typeof niv.percentagem === "number" ? niv.percentagem : null,
+      unidadeSugerida: niv.unidadeSugerida ?? null,
+      missoesConcluidas: Number(missoesConcluidas ?? 0),
+      cadernoGuardadas: Array.isArray(caderno) ? caderno.length : 0,
+    };
+  }
+}
