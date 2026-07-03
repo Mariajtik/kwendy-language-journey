@@ -88,7 +88,7 @@ const BottomNav = ({ active }: BottomNavProps) => {
                       setMoreOpen(false);
                       navigate(opt.route);
                     }}
-                    className="w-full px-4 py-2.5 rounded-full bg-white shadow-sm text-sm font-extrabold text-foreground hover:bg-secondary transition-colors"
+                    className="w-full px-4 py-2.5 rounded-full bg-white shadow-sm text-sm font-extrabold text-neutral-900 hover:bg-secondary hover:text-secondary-foreground transition-colors"
                     style={{ boxShadow: "0 2px 0 rgba(0,0,0,0.06)" }}
                   >
                     {opt.label}
