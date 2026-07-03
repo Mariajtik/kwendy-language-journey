@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import fronteirasAsset from "@/assets/fronteiras.mp4.asset.json";
+import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 
 type Slide = { bold?: string; text: string };
 const SLIDES: Slide[] = [
