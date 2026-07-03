@@ -32,7 +32,7 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
-import trofeu30dias from "@/assets/missoes/trofeu.png.asset.json";
+import trofeu30dias from "@/assets/missoes/trofeu.png";
 import { getStat, STATS } from "@/lib/stats";
 
 const TOTAL_LETRAS = 23;
@@ -79,7 +79,7 @@ const ProfileScreen = () => {
       { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
       { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
       { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
-      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias.url },
+      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias },
       { label: "Caderno 50", unlocked: guardadas >= 50,    trophy: undefined },
       { label: "Alfabeto",   unlocked: alfabeto >= TOTAL_LETRAS, trophy: undefined },
     ];
