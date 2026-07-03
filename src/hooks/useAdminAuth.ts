@@ -2,18 +2,19 @@
  * useAdminAuth.ts
  * ---------------
  * Autenticação real do painel admin via Supabase:
- *  1. Utilizador digita user "grupo16Kwendi" + password.
- *  2. Chamamos a edge function `bootstrap-admin` (idempotente) que garante
- *     que existe uma conta `grupo16Kwendi@kwendi.admin` com role `admin`.
- *  3. Fazemos `signInWithPassword` com essa conta.
- *  4. `RequireAdmin` valida `has_role(auth.uid(),'admin')` na base de dados.
+ *  1. Utilizador digita email + password no formulário.
+ *  2. Se a password bater com `ADMIN_BOOTSTRAP_PASSWORD` (segredo server-side),
+ *     a edge function `bootstrap-admin` garante a existência da conta e do role
+ *     admin — idempotente. Sem essa password, o bootstrap não faz nada.
+ *  3. Fazemos `signInWithPassword` com o email/password submetidos.
+ *  4. `RequireAdmin` valida `has_role(auth.uid(),'admin')` na base de dados,
+ *     o que impede acesso mesmo se alguém adivinhar o email.
+ *
+ * Nenhum email ou nome de utilizador do admin é embutido no bundle público.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-const ADMIN_USER = "grupo16Kwendi";
-const ADMIN_EMAIL = "grupo16Kwendi@kwendi.admin";
 
 export function useAdminAuth() {
   const [authed, setAuthed] = useState<boolean>(false);
@@ -45,21 +46,20 @@ export function useAdminAuth() {
     return () => sub.subscription.unsubscribe();
   }, [check]);
 
-  const login = useCallback(async (user: string, pass: string) => {
-    if (user.trim() !== ADMIN_USER) return false;
-    // Bootstrap idempotente (cria a conta admin + role se necessário).
+  const login = useCallback(async (email: string, pass: string) => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !pass) return false;
+    // Bootstrap idempotente: só surte efeito se `pass` == ADMIN_BOOTSTRAP_PASSWORD
+    // (segredo do servidor). Para todos os outros casos, é um no-op silencioso.
     try {
-      const { error: fnError } = await supabase.functions.invoke("bootstrap-admin", {
-        body: { password: pass },
+      await supabase.functions.invoke("bootstrap-admin", {
+        body: { email: trimmedEmail, password: pass },
       });
-      if (fnError) {
-        // Bootstrap falhou (password errada ou serviço) — tentamos signin mesmo assim.
-      }
     } catch {
-      /* continua */
+      /* segue para o signin */
     }
     const { error } = await supabase.auth.signInWithPassword({
-      email: ADMIN_EMAIL,
+      email: trimmedEmail,
       password: pass,
     });
     if (error) return false;
