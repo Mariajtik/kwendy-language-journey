@@ -17,7 +17,24 @@ interface Props {
 }
 
 const MapaAfricaViva = ({ pais, revelar, height = 200 }: Props) => {
-  // Zoom centra-se no país usando transform-origin dinâmico, o que
+  const [mostrarMarcador, setMostrarMarcador] = useState(false);
+
+  // Marcador surge 1 s após marcar a resposta e desaparece depois de 2 s,
+  // ou imediatamente quando muda de pergunta.
+  useEffect(() => {
+    if (!revelar) {
+      setMostrarMarcador(false);
+      return;
+    }
+    const entrar = setTimeout(() => setMostrarMarcador(true), 1000);
+    const sair = setTimeout(() => setMostrarMarcador(false), 3000);
+    return () => {
+      clearTimeout(entrar);
+      clearTimeout(sair);
+    };
+  }, [revelar]);
+
+  // Zoom centra-se no país usando transform-origin dinâmica, o que
   // mantém o país sempre dentro do enquadramento sem cortes nas bordas.
   const zoom = revelar ? 2.1 : 1;
   const originX = `${pais.x * 100}%`;
@@ -52,11 +69,12 @@ const MapaAfricaViva = ({ pais, revelar, height = 200 }: Props) => {
           }}
         >
           <AnimatePresence>
-            {!revelar && (
+            {mostrarMarcador && (
               <motion.div
                 key="pulse"
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: [1, 1.35, 1], opacity: [0.9, 0.4, 0.9] }}
+                exit={{ scale: 0.6, opacity: 0 }}
                 transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                 className="h-4 w-4 rounded-full"
                 style={{
