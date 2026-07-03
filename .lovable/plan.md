@@ -1,60 +1,67 @@
-## Objetivo
+## Teste de Nivelamento — plano
 
-Adicionar um **switch global de Premium** na Loja com anúncio "GRÁTIS em degustação · por tempo indeterminado". Quando ligado, ativa todos os benefícios viáveis já hoje. Quando desligado, a app comporta-se exactamente como agora.
+### Comportamento por nível
 
-## Benefícios ligados ao switch (viáveis)
+- **Iniciante** → sem teste. Continua o fluxo atual (`/home`, unidade `m1u1` ativa, restantes bloqueadas).
+- **Intermediário / Avançado** → após o passo de nível no `SignupFlow`, em vez de ir direto a `/processing`, o utilizador vai a `/nivelamento` (novo). O ecrã `ProcessingResultsScreen` deixa de mostrar valores fictícios: passa a receber `pontuacao`, `acertos`, `total` e `unidadeSugerida` reais via `location.state`.
 
-- **Vidas infinitas** — `perderVida()` vira no-op; UI mostra `∞` no lugar do número.
-- **XP em dobro para sempre** — `dobradorXpAtivo()` retorna `true` sem consumir power-up.
-- **Chama eterna** — piso da ofensiva não desce; visual sempre com chama acesa e badge "Eterna" ao lado do contador na Home.
-- **Dicas ilimitadas grátis** — bypass do contador diário e do custo em diamantes em `LessonScreen`.
-- **Cultura desbloqueada** — histórias/músicas/itens de cultura ficam sempre destravados (`inventario.desbloqueios` é considerado como contendo todos os IDs de cultura).
-- **Badge Premium no perfil** — coroa dourada ao lado do nome + linha "Membro Premium (degustação)" no `ProfileScreen`.
-- **Foto na comunidade** — o composer do `CommunityFeed` mostra botão "Adicionar foto" (input file → data URL local, preview na publicação). Sem Premium o botão fica oculto.
+### Estrutura do teste
 
-Bullets que **não** viram Premium ainda (marcadas como "em breve" no card, riscadas quando o switch está On para deixar claro): IA com sotaque angolano, chat/chamada com IA Kwendi, dicionário IA ilimitado, inglês/espanhol, eventos exclusivos, estatísticas avançadas, sem anúncios (a app já não tem anúncios), $5/3 meses (a mensagem é grátis por tempo indeterminado).
+- Base: **todas as unidades do Módulo 1** (`m1u1` a `m1u5`).
+- Para cada unidade, retirar exercícios reais das lições em `src/data/licoes/m1.ts`, **excluindo passos `aprender` e `dialogo`** (só exercícios: `escuta_escolha`, `traduzir_pt_umbundu`, `traduzir_umbundu_pt`, `montar_frase`, `escrever`, `falar`, `preencher_lacuna`, `preencher_letras`, `emparelhar`, `escuta_montar`, `escuta_escrever`).
+- Selecção difícil e curta: **3 exercícios por unidade = 15 exercícios totais** (~30–40s cada → ≤10 min). Preferir tipos difíceis: `escrever`, `montar_frase`, `preencher_lacuna`, `escuta_escrever`. Se `AcessibilidadeContext` marcar "não posso ouvir/falar", substituir por variantes de escrita (já suportado no LessonScreen — reutilizamos o mesmo filtro).
+- Cada exercício guarda a `unidadeId` de origem para permitir o cálculo de posicionamento.
 
-## Comportamento do switch
+### Ecrã `NivelamentoScreen`
 
-- Estado global `premiumAtivo: boolean`, persistido em `localStorage` (chave `kwendi.premium.ativo`).
-- Default `false` — a app abre no comportamento actual.
-- Ligar/desligar produz efeito imediato em todas as telas (dispatch de `CustomEvent` para sincronizar hooks abertos, seguindo o padrão de `useSaldo`).
-- O antigo fluxo de "Tenho interesse por $5" é **removido** da Loja (o card é substituído). As chaves `kwendi.premium.interessados` e `kwendi.premium.eu` deixam de ser lidas/escritas mas não são apagadas do storage do utilizador.
+- Header com barra de progresso e botão `X` (sair volta a `/signup`).
+- Sem vidas nem dicas — é avaliação. Sem feedback verde/vermelho imediato (evita ensinar as respostas); ao submeter, avança para o próximo exercício.
+- Cronómetro discreto de 10 min no topo; ao esgotar, submete automaticamente.
+- Reutiliza os componentes de `src/components/licao/PassoComponents.tsx` para renderizar cada tipo de exercício.
+- No fim, calcula:
+  - `acertos`, `total`, `percentagem = acertos/total * 100` (real, não mock).
+  - `acertosPorUnidade`: mapa `unidadeId → nº acertos` (0–3).
+  - `unidadeSugerida`: primeira unidade em ordem em que o utilizador acertou < 2 de 3 (i.e. onde o conhecimento falha). Se acertou tudo → `null` (100%).
 
-## UI do card Premium na Loja
+### Resultados
 
-Novo `PremiumSwitchCard` substitui `PremiumPackCard`:
+Navega para `/processing` com o payload real. `ProcessingResultsScreen` passa a mostrar `A sua pontuação: {acertos}/{total} ({percentagem}%)` e uma frase dinâmica consoante a unidade sugerida. Depois de "Continuar":
 
-- Faixa "🎉 GRÁTIS em degustação · por tempo indeterminado" no topo.
-- Título "Pacote Premium" + subtítulo "Ativa/desativa a qualquer momento".
-- Switch grande centralizado (estado ligado/desligado com animação).
-- Lista dos 7 benefícios ativos com check verde quando ligado, cinza quando desligado.
-- Bloco separado "Em breve" listando as features futuras (IA, chat, EN/ES, etc.), sempre em cinza.
-- Rodapé: "Enquanto durar a degustação, aproveita sem limites."
+- **100% (todas certas)**:
+  - Marca `nivelamento.ancao = true` em `localStorage` (`kwendi:nivelamento`).
+  - Desbloqueia **todas as unidades e módulos** para navegação (flag global).
+  - Desbloqueia o marco **"Ancião"** + credita **+500 diamantes** e **+250 XP** via `useSaldo`/`useInventario`.
+  - Ao entrar em `/home`, abre pop-up (Dialog do shadcn) com uma engrenagem/roda dentada:
+    > "Você é um ancião, por acaso? Executou uma proeza de poucos!  
+    > Infelizmente os outros módulos ainda não foram desenvolvidos mas por favor, continue usando a nossa app, pratique e nos ajude!"
+  - Mostra também um aviso curto: "Recomendamos começar pelo início, ao seu critério."
+- **< 100%**:
+  - Define `unidadeAtual = unidadeSugerida` no estado de `useProgresso`.
+  - Marca todas as unidades **anteriores** à sugerida como completamente concluídas (`seccoesCompletas` inclui todas as secções dessas unidades) — assim ficam desbloqueadas/checkadas no mapa.
+  - Pop-up em `/home`: "Com base no teu teste, começaste em {Módulo X · Unidade Y}. As unidades anteriores ficam disponíveis para revisão."
 
-O `PremiumInteresseModal` deixa de ser usado (não removo o ficheiro para não quebrar imports; simplesmente não é importado).
+### Marco "Ancião"
 
-## Onde muda o código
+- Adicionar entrada em `src/data/conquistas.ts` (categoria `primeiros_passos` ou nova `nivelamento`) com ícone `Crown`, título "Ancião", descrição "Acertou 100% no teste de nivelamento".
+- Desbloqueio é acionado por `useMissoes`/hook equivalente já usado para marcos.
+
+### Ficheiros
 
 **Novo**
-- `src/contexts/PremiumContext.tsx` — provider + hook `usePremium()` com `{ ativo, setAtivo }`. Persistência em localStorage + `CustomEvent` para sincronizar.
-- `src/components/loja/PremiumSwitchCard.tsx` — novo card.
+- `src/screens/NivelamentoScreen.tsx` — teste real, reutilizando `PassoComponents`.
+- `src/data/nivelamento.ts` — helper que extrai exercícios de `m1.ts` por unidade, aplica filtros de acessibilidade e devolve o conjunto de 15 exercícios.
+- `src/hooks/useNivelamento.ts` — persiste `{ ancao, unidadeSugerida, percentagem }` em localStorage e expõe helpers (`aplicarResultado`, `isAncao`, `todosDesbloqueados`).
 
-**Editar**
-- `src/App.tsx` — envolver com `PremiumProvider` (junto do `AcessibilidadeProvider`).
-- `src/screens/LojaScreen.tsx` — substituir render da tab "premium" pelo novo card; remover o toggle de interesse.
-- `src/hooks/useSaldo.ts` — `perderVida()` verifica flag Premium (leitura directa do localStorage) e não faz nada quando ligada.
-- `src/hooks/useInventario.ts` — `dobradorXpAtivo()` retorna `true` se Premium; helpers que consultam `desbloqueios` de cultura consideram tudo destravado se Premium.
-- `src/hooks/useLoja.ts` — se aplicável, itens de cultura reportam "já desbloqueado" quando Premium.
-- `src/screens/LessonScreen.tsx` — quando `usePremium().ativo`, dicas grátis e pagas viram grátis; UI mostra "Dicas ilimitadas". Contador de vidas exibe `∞`.
-- `src/screens/HomeScreen.tsx` — contador de vidas mostra `∞`; chama sempre acesa com etiqueta "Eterna".
-- `src/screens/ProfileScreen.tsx` — coroa dourada + "Membro Premium (degustação)" quando ligado; contador de streak sempre com `chamaAcesa`.
-- `src/components/CommunityFeed.tsx` — botão "Adicionar foto" no composer só quando Premium; anexa preview local ao post.
+**Editado**
+- `src/screens/SignupFlow.tsx` — no `next()` do passo de nível: `Iniciante → /home`, `Intermediário|Avançado → /nivelamento`.
+- `src/screens/ProcessingResultsScreen.tsx` — lê valores reais de `location.state`; mensagem dinâmica.
+- `src/screens/HomeScreen.tsx` — mostra pop-up `Ancião` ou `Posicionamento` na primeira visita pós-nivelamento (flag consumida uma vez).
+- `src/hooks/useProgresso.ts` — método `setUnidadeAtual` e `completarAteUnidade(id)` para marcar unidades anteriores como concluídas, e flag `todosDesbloqueados` que faz `statusSeccaoNa` devolver `ativa/concluida` em vez de `bloqueada`.
+- `src/data/conquistas.ts` — nova conquista "Ancião".
+- `src/App.tsx` — rota `/nivelamento`.
 
-## Fora de escopo
+### Fora do plano
 
-- IA Kwendi com sotaque, chat/chamada com IA, dicionário IA — exigem gateway/modelo e ficam para outra iteração.
-- Tradução da UI para EN/ES.
-- Sistema de eventos exclusivos e telas de estatísticas avançadas.
-- Cobrança real, integração de pagamentos, expiração de degustação (é "tempo indeterminado" por design).
-- Backend/migração para Cloud — tudo continua em localStorage, coerente com o resto da app.
+- Não altera o fluxo do Iniciante.
+- Não cria autenticação, backend ou persistência remota — tudo em `localStorage`, coerente com o resto do app.
+- Não desbloqueia lições de módulos ainda não implementados no código (M2+ existem só como catálogo em `curriculo.ts`); o pop-up "Ancião" comunica isto explicitamente.
