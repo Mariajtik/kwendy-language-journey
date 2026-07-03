@@ -7,6 +7,8 @@
  */
 
 import { LocalStorageDataSource } from "./LocalStorageDataSource";
+import { SupabaseDataSource } from "./SupabaseDataSource";
+import { supabase } from "@/integrations/supabase/client";
 
 export type AdminUser = {
   id: string;
@@ -88,14 +90,29 @@ export interface AdminDataSource {
 
 let _instance: AdminDataSource | null = null;
 
+/**
+ * Devolve o datasource ativo. Se houver sessão Supabase autenticada com role
+ * admin (verificado por `useAdminAuth`), usamos o backend. Caso contrário,
+ * fallback para o dispositivo local (útil em modo teste sem backend).
+ */
 export function getAdminDataSource(): AdminDataSource {
   if (_instance) return _instance;
-  const useBackend = import.meta.env.VITE_ADMIN_USE_BACKEND === "true";
-  // Placeholder: quando o backend existir, importar SupabaseDataSource aqui.
-  if (useBackend) {
-    // eslint-disable-next-line no-console
-    console.warn("[admin] backend datasource not implemented yet — falling back to localStorage");
+  // Não podemos await aqui; decidimos com base na sessão em memória.
+  const anyBackend = (supabase.auth as any)._store?.getSession?.()?.data?.session;
+  if (anyBackend) {
+    _instance = new SupabaseDataSource();
+  } else {
+    _instance = new LocalStorageDataSource();
   }
-  _instance = new LocalStorageDataSource();
   return _instance;
+}
+
+/** Força a criação de uma instância específica (usada após login admin). */
+export function setAdminDataSource(kind: "localStorage" | "backend") {
+  _instance = kind === "backend" ? new SupabaseDataSource() : new LocalStorageDataSource();
+}
+
+/** Reset (chamar em logout). */
+export function resetAdminDataSource() {
+  _instance = null;
 }
