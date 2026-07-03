@@ -1,0 +1,76 @@
+/**
+ * dataSource.ts
+ * -------------
+ * Abstração que o painel admin consome para obter dados. Hoje há apenas a
+ * implementação LocalStorage (dispositivo atual). Quando o backend estiver
+ * pronto, criar `SupabaseDataSource` e trocar via flag `VITE_ADMIN_USE_BACKEND`.
+ */
+
+import { LocalStorageDataSource } from "./LocalStorageDataSource";
+
+export type AdminUser = {
+  id: string;
+  nome: string;
+  email: string;
+  nivel: string;
+  xp: number;
+  diamantes: number;
+  streak: number;
+  premium: boolean;
+  cadastradoEm: string | null;
+  resultadoNivelamento: number | null;
+};
+
+export type SessionEntry = {
+  startedAt: number;
+  endedAt: number;
+  route: string;
+};
+
+export type ProgressStats = {
+  xpTotal: number;
+  diamantes: number;
+  streak: number;
+  seccoesCompletas: number;
+  unidadeAtual: string;
+  moduloProgresso: { modulo: string; completas: number }[];
+};
+
+export type SessionStats = {
+  totalSessoes: number;
+  tempoMedioMs: number;
+  tempoTotalMs: number;
+  ativosHoje: number;
+  porDia: { dia: string; sessoes: number; tempoMs: number }[];
+};
+
+export type AchievementStats = {
+  ancao: boolean;
+  premium: boolean;
+  percentagemNivelamento: number | null;
+  unidadeSugerida: string | null;
+  missoesConcluidas: number;
+  cadernoGuardadas: number;
+};
+
+export interface AdminDataSource {
+  readonly kind: "localStorage" | "backend";
+  listUsers(): Promise<AdminUser[]>;
+  getProgress(): Promise<ProgressStats>;
+  getSessions(): Promise<SessionStats>;
+  getAchievements(): Promise<AchievementStats>;
+}
+
+let _instance: AdminDataSource | null = null;
+
+export function getAdminDataSource(): AdminDataSource {
+  if (_instance) return _instance;
+  const useBackend = import.meta.env.VITE_ADMIN_USE_BACKEND === "true";
+  // Placeholder: quando o backend existir, importar SupabaseDataSource aqui.
+  if (useBackend) {
+    // eslint-disable-next-line no-console
+    console.warn("[admin] backend datasource not implemented yet — falling back to localStorage");
+  }
+  _instance = new LocalStorageDataSource();
+  return _instance;
+}
