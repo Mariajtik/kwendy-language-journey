@@ -24,6 +24,47 @@ import avatar from "@/assets/avatar.jpg";
 /* ----- Mocked data ----- */
 const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
 
+/* Comunidades por idioma nativo do usuário (todos aprendem Umbundu) */
+const LANGUAGES = [
+  { key: "pt", label: "Português", flag: "🇵🇹", hint: "Falantes de português" },
+  { key: "en", label: "English", flag: "🇬🇧", hint: "English speakers" },
+  { key: "fr", label: "Français", flag: "🇫🇷", hint: "Francophones" },
+] as const;
+type LangKey = (typeof LANGUAGES)[number]["key"];
+
+const PLACEHOLDERS: Record<LangKey, string> = {
+  pt: "Partilha algo sobre África, Angola, Umbundu ou o Kwendi…",
+  en: "Share something about Africa, Angola, Umbundu or Kwendi…",
+  fr: "Partage quelque chose sur l'Afrique, l'Angola, l'Umbundu ou Kwendi…",
+};
+
+const MOD_BANNER: Record<LangKey, { body: string; strong: string }> = {
+  pt: {
+    strong: "África, Angola, língua Umbundu e o Kwendi",
+    body: "é permitido. A IA Kwendi revê cada publicação antes de aparecer aqui.",
+  },
+  en: {
+    strong: "Africa, Angola, the Umbundu language and Kwendi",
+    body: "is allowed. The Kwendi AI reviews every post before it appears here.",
+  },
+  fr: {
+    strong: "l'Afrique, l'Angola, la langue Umbundu et Kwendi",
+    body: "est autorisé. L'IA Kwendi vérifie chaque publication avant sa parution.",
+  },
+};
+
+const ONLY_LABEL: Record<LangKey, string> = {
+  pt: "Só conteúdo sobre",
+  en: "Only content about",
+  fr: "Seul le contenu sur",
+};
+
+const PUBLISH_LABEL: Record<LangKey, string> = {
+  pt: "Publicar",
+  en: "Post",
+  fr: "Publier",
+};
+
 const REACTIONS = [
   { key: "malaik", label: "Okô", emoji: "😕" },
   { key: "mambo", label: "Granda mambo!", emoji: "❤️" },
@@ -43,6 +84,7 @@ type Post = {
   reactions: Record<ReactionKey, number>;
   comments: Comment[];
   tribe?: boolean;
+  lang: LangKey;
 };
 
 const posts: Post[] = [
@@ -56,6 +98,7 @@ const posts: Post[] = [
       { id: 1, user: "Kiame", text: "Boa! Vou usar amanhã com a minha avó." },
       { id: 2, user: "Suzana", text: "Wakolelepo, mana! 🙌" },
     ],
+    lang: "pt",
   },
   {
     id: 2,
@@ -66,6 +109,7 @@ const posts: Post[] = [
     comments: [
       { id: 1, user: "Hossy", text: "Granda mambo, parabéns!" },
     ],
+    lang: "pt",
   },
   {
     id: 3,
@@ -76,6 +120,47 @@ const posts: Post[] = [
     comments: [
       { id: 1, user: "Yellen", text: "Adoro estas curiosidades 🙏" },
     ],
+    lang: "pt",
+  },
+  {
+    id: 4,
+    user: "Amara",
+    badge: { icon: Flame, label: "5-day streak", color: "#FF7A2E" },
+    text: "Just learned 'Wakolelepo!' means 'Hello, how are you?' in Umbundu. Loving this journey through Angolan culture! 🌍",
+    reactions: { malaik: 6, mambo: 9, concordo: 3, discordo: 0, erreh: 0 },
+    comments: [
+      { id: 1, user: "Joseph", text: "Same here! The greetings are beautiful." },
+    ],
+    lang: "en",
+  },
+  {
+    id: 5,
+    user: "Joseph",
+    badge: { icon: Trophy, label: "Module unlocked", color: "hsl(var(--primary))" },
+    text: "Finished Module 1 today. Umbundu tones are challenging but rewarding! Anyone want to practice together?",
+    reactions: { malaik: 4, mambo: 11, concordo: 5, discordo: 0, erreh: 0 },
+    comments: [],
+    lang: "en",
+  },
+  {
+    id: 6,
+    user: "Camille",
+    badge: { icon: Zap, label: "+180 XP cette semaine", color: "#FBBD12" },
+    text: "Bonjour la communauté ! J'apprends l'Umbundu pour un voyage en Angola cet été. Des conseils ? 🇦🇴",
+    reactions: { malaik: 3, mambo: 7, concordo: 4, discordo: 0, erreh: 0 },
+    comments: [
+      { id: 1, user: "Léa", text: "Concentre-toi sur les salutations d'abord !" },
+    ],
+    lang: "fr",
+  },
+  {
+    id: 7,
+    user: "Léa",
+    badge: { icon: Flame, label: "Série de 3 jours", color: "#FF7A2E" },
+    text: "Le peuple Ovimbundu vit principalement sur le plateau central de l'Angola. Fascinant ! 🌍",
+    reactions: { malaik: 2, mambo: 5, concordo: 3, discordo: 0, erreh: 0 },
+    comments: [],
+    lang: "fr",
   },
 ];
 
@@ -102,6 +187,7 @@ type PostState = {
 
 const CommunityFeed = () => {
   const [tab, setTab] = useState<SubTab>("feed");
+  const [lang, setLang] = useState<LangKey>("pt");
   const [draft, setDraft] = useState("");
   const [state, setState] = useState<Record<number, PostState>>(() =>
     Object.fromEntries(
@@ -169,8 +255,39 @@ const CommunityFeed = () => {
     setDraft("");
   };
 
+  const visiblePosts = useMemo(
+    () =>
+      (tab === "tribo" ? posts.filter((p) => p.tribe) : posts).filter(
+        (p) => p.lang === lang,
+      ),
+    [tab, lang],
+  );
+
   return (
     <div>
+      {/* Language community selector */}
+      <div className="flex items-center gap-2 overflow-x-auto mb-3 -mx-1 px-1 pb-1">
+        {LANGUAGES.map((l) => {
+          const active = lang === l.key;
+          return (
+            <button
+              key={l.key}
+              onClick={() => setLang(l.key)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold whitespace-nowrap border-2 transition-colors"
+              style={{
+                background: active ? "hsl(var(--primary))" : "hsl(var(--card))",
+                color: active ? "#fff" : "hsl(var(--foreground))",
+                borderColor: active ? "hsl(var(--primary))" : "hsl(var(--border))",
+              }}
+              title={l.hint}
+            >
+              <span className="text-sm leading-none">{l.flag}</span>
+              {l.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Subtabs */}
       <div className="flex items-center gap-4 overflow-x-auto border-b border-border mb-4">
         {tabs.map((t) => {
@@ -204,8 +321,7 @@ const CommunityFeed = () => {
               style={{ color: "hsl(var(--primary))" }}
             />
             <p className="text-[12px] leading-relaxed text-muted-foreground">
-              Só conteúdo sobre <strong>África, Angola, língua Umbundu e o Kwendi</strong> é permitido.
-              A IA Kwendi revê cada publicação antes de aparecer aqui.
+              {ONLY_LABEL[lang]} <strong>{MOD_BANNER[lang].strong}</strong> {MOD_BANNER[lang].body}
             </p>
           </div>
 
@@ -218,7 +334,7 @@ const CommunityFeed = () => {
                 onChange={(e) => setDraft(e.target.value)}
                 rows={2}
                 maxLength={280}
-                placeholder="Partilha algo sobre África, Angola, Umbundu ou o Kwendi…"
+                placeholder={PLACEHOLDERS[lang]}
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
               />
             </div>
@@ -231,20 +347,20 @@ const CommunityFeed = () => {
                 style={{ background: "hsl(var(--primary))" }}
               >
                 <Send className="w-3.5 h-3.5" />
-                Publicar
+                {PUBLISH_LABEL[lang]}
               </button>
             </div>
           </div>
 
           {/* Feed */}
           <div className="space-y-3">
-            {(tab === "tribo" ? posts.filter((p) => p.tribe) : posts).length === 0 ? (
+            {visiblePosts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="font-bold">Nada por aqui ainda.</p>
                 <p className="text-sm mt-1">Segue alguém para veres as suas publicações.</p>
               </div>
             ) : (
-              (tab === "tribo" ? posts.filter((p) => p.tribe) : posts).map((p) => (
+              visiblePosts.map((p) => (
                 <PostCard
                   key={p.id}
                   post={p}
