@@ -814,8 +814,185 @@ const U4: Licao[] = [
 // -------- U5 · Advérbios Pi/Kupi + revisão --------------------------------
 
 const U5: Licao[] = [
+  // ===== Bloco alfabeto (10 lições) — a mais extensa unidade do módulo =====
   {
     id: "m1u5s1",
+    titulo: "Vogais — a, e, i, o, u",
+    personagens: ["narrador", "kwendi"],
+    passos: [
+      A("A", "vogal a", "Ame — Eu"),
+      A("E", "vogal e", "Eye — Ele/ela"),
+      A("I", "vogal i", "Ise — Pai"),
+      A("O", "vogal o", "Ove — Tu"),
+      A("U", "vogal u", "Uti — Árvore"),
+      E("Ame", "Eu", ["Eu", "Tu", "Ele"], 0),
+      TPU("Árvore", ["Uti", "Ame", "Ove"], 0),
+      TUP("Ise", ["Mãe", "Pai", "Irmão"], 1),
+      M("Diz as cinco vogais em Umbundu", "A E I O U"),
+      F("A E I O U", "Vogais do Umbundu"),
+    ],
+  },
+  {
+    id: "m1u5s2",
+    titulo: "Consoantes I — b, c, d, f, g",
+    personagens: ["narrador"],
+    passos: [
+      A("B", "consoante b", "Ombolo — Pão"),
+      A("C", "consoante c", "Cokulya — Comida"),
+      A("D", "consoante d", "Ndakolapo — Estou bem"),
+      A("F", "consoante f", "Ofingo — Pescoço"),
+      A("G", "consoante g", "Ongeva — Saudade"),
+      E("Cokulya", "Comida", ["Água", "Comida", "Sonho"], 1),
+      TPU("Pão", ["Ombolo", "Osema", "Ovava"], 0),
+      TUP("Ongeva", ["Saudade", "Verdade", "Fome"], 0),
+      F("Ba Be Bi Bo Bu", "Sílabas com B"),
+    ],
+  },
+  {
+    id: "m1u5s3",
+    titulo: "Consoantes II — h, j, k, l",
+    personagens: ["narrador"],
+    passos: [
+      A("H", "consoante h", "Ohenda — Piedade"),
+      A("J", "consoante j", "Onjala — Fome"),
+      A("K", "consoante k", "Kwendi — nome próprio"),
+      A("L", "consoante l", "Elimi — Língua"),
+      E("Onjala", "Fome", ["Sede", "Fome", "Sonho"], 1),
+      TPU("Língua", ["Elimi", "Utwe", "Etwi"], 0),
+      TUP("Ohenda", ["Piedade", "Verdade", "Alegria"], 0),
+      F("Ka Ke Ki Ko Ku", "Sílabas com K"),
+    ],
+  },
+  {
+    id: "m1u5s4",
+    titulo: "Consoantes III — m, n, p, s",
+    personagens: ["narrador"],
+    passos: [
+      A("M", "consoante m", "Manjange — Meu irmão"),
+      A("N", "consoante n", "Ndenda — Vou"),
+      A("P", "consoante p", "Pi enda? — Onde vais?"),
+      A("S", "consoante s", "Osema — Fuba"),
+      E("Osema", "Fuba", ["Fuba", "Feijão", "Peixe"], 0),
+      TPU("Meu irmão", ["Manjange", "Ise yange", "Ina yange"], 0),
+      TUP("Ndenda", ["Vou", "Vamos", "Estás"], 0),
+      F("Sa Se Si So Su", "Sílabas com S"),
+    ],
+  },
+  {
+    id: "m1u5s5",
+    titulo: "Consoantes IV — t, v, w, y",
+    personagens: ["narrador"],
+    passos: [
+      A("T", "consoante t", "Utwe — Cabeça"),
+      A("V", "consoante v", "Ovava — Água"),
+      A("W", "consoante w", "Wakolapo — Como estás"),
+      A("Y", "consoante y", "Yange — meu / minha"),
+      E("Ovava", "Água", ["Fogo", "Água", "Terra"], 1),
+      TPU("Cabeça", ["Utwe", "Ocipala", "Utima"], 0),
+      TUP("Wakolapo", ["Como estás?", "Onde vais?", "Quem és?"], 0),
+      F("Wa We Wi Wo Wu", "Sílabas com W"),
+    ],
+  },
+  {
+    id: "m1u5s6",
+    titulo: "Digrafos nasais — mb, nd, ng, ny",
+    personagens: ["narrador", "kwendi"],
+    passos: [
+      A("MB", "digrafo mb", "Ombisi — Peixe"),
+      A("ND", "digrafo nd", "Ndakolapo — Estou bem"),
+      A("NG", "digrafo ng", "Ongolo — Joelho"),
+      A("NY", "digrafo ny", "Onyima — Costas"),
+      E("Ombisi", "Peixe", ["Peixe", "Galinha", "Coelho"], 0),
+      TPU("Joelho", ["Ongolo", "Okulu", "Okwokwo"], 0),
+      TUP("Onyima", ["Costas", "Peito", "Cabeça"], 0),
+      M("Traduz: “Estou bem”", "Ndakolapo ciwa"),
+      F("Mba Nda Nga Nya", "Digrafos nasais"),
+    ],
+  },
+  {
+    id: "m1u5s7",
+    titulo: "Tabela do alfabeto Umbundu",
+    personagens: ["narrador"],
+    passos: [
+      A("A B C D E F G", "Primeira metade das letras"),
+      A("H I J K L M N", "Meio do alfabeto"),
+      A("O P S T U V W Y", "Segunda metade"),
+      A("MB ND NG NY", "Digrafos nasais essenciais"),
+      {
+        tipo: "emparelhar",
+        pares: [
+          { umbundu: "Ame", pt: "Eu" },
+          { umbundu: "Ove", pt: "Tu" },
+          { umbundu: "Utwe", pt: "Cabeça" },
+          { umbundu: "Ombisi", pt: "Peixe" },
+        ],
+      },
+      E("Ove", "Tu", ["Eu", "Tu", "Ele"], 1),
+      F("A E I O U · MB ND NG NY", "Vogais e digrafos"),
+    ],
+  },
+  {
+    id: "m1u5s8",
+    titulo: "Letras que não existem — q, r, x, z",
+    personagens: ["narrador"],
+    passos: [
+      A("Q · R · X · Z", "Não existem em Umbundu", "O umbundu não usa estas letras."),
+      A("R → L", "O som R é substituído por L", "Rio → “Olwali” (o rio traz o l)."),
+      A("Kwanza", "Moeda de Angola", "Escreve-se com K, não com Q."),
+      TPU("Como estás?", ["Wakolapo?", "Rakolapo?", "Zakolapo?"], 0),
+      TUP("Kwendi", ["Kwendi (nome próprio)", "Quendi", "Zwendi"], 0),
+      W("Escreve “Kwanza” em Umbundu", "Kwanza"),
+      F("K · não Q", "Usamos K, não Q"),
+    ],
+  },
+  {
+    id: "m1u5s9",
+    titulo: "Vogais nasais — ã, õ",
+    personagens: ["narrador"],
+    passos: [
+      A("ã", "vogal a nasal", "Omelã — Boca"),
+      A("õ", "vogal o nasal", "Osõi — Vergonha"),
+      A("Ukãyi", "Mulher / esposa"),
+      A("Namãle", "Madrasta"),
+      E("Omelã", "Boca", ["Boca", "Olho", "Nariz"], 0),
+      TPU("Mulher / esposa", ["Ukãyi", "Ulume", "Manjange"], 0),
+      TUP("Namãle", ["Madrasta", "Sogra", "Sobrinha"], 0),
+      F("Omelã · Ukãyi", "Vogais nasais em prática"),
+    ],
+  },
+  {
+    id: "m1u5s10",
+    titulo: "Revisão do alfabeto",
+    personagens: ["narrador", "kwendi", "otchali"],
+    passos: [
+      {
+        tipo: "emparelhar",
+        pares: [
+          { umbundu: "A", pt: "Ame — Eu" },
+          { umbundu: "K", pt: "Kwendi" },
+          { umbundu: "MB", pt: "Ombisi — Peixe" },
+          { umbundu: "NY", pt: "Onyima — Costas" },
+        ],
+      },
+      E("Ombolo", "Pão", ["Fuba", "Pão", "Peixe"], 1),
+      TPU("Cabeça", ["Utwe", "Utima", "Okulu"], 0),
+      TUP("Onjala", ["Sede", "Fome", "Alegria"], 1),
+      {
+        tipo: "preencher_lacuna",
+        frase: "___ ciwa.",
+        pt: "Estou bem.",
+        opcoes: ["Ove", "Ndakolapo", "Kwendi"],
+        correta: 1,
+      },
+      M("Monta: “Estou bem”", "Ndakolapo ciwa"),
+      W("Escreve: “Peixe”", "Ombisi"),
+      F("A E I O U · MB ND NG NY", "Alfabeto Umbundu"),
+    ],
+  },
+
+  // ===== Conteúdo Pi/Kupi + revisão (renumerado) =====
+  {
+    id: "m1u5s11",
     titulo: "Pi (onde) — antes do verbo",
     personagens: ["narrador", "kwendi", "otchali"],
     passos: [
@@ -833,7 +1010,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s2",
+    id: "m1u5s12",
     titulo: "Kupi (aonde) — depois do verbo",
     personagens: ["narrador"],
     passos: [
@@ -855,7 +1032,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s3",
+    id: "m1u5s13",
     titulo: "Twenda kupi? — Aonde vamos?",
     personagens: ["kwendi", "otchali"],
     passos: [
@@ -871,7 +1048,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s4",
+    id: "m1u5s14",
     titulo: "Ndikakala kupi — aonde estarei",
     personagens: ["narrador"],
     passos: [
@@ -884,7 +1061,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s5",
+    id: "m1u5s15",
     titulo: "Vocabulário do dia-a-dia",
     personagens: ["narrador"],
     passos: [
@@ -906,7 +1083,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s6",
+    id: "m1u5s16",
     titulo: "Revisão do módulo",
     personagens: ["kwendi", "otchali", "yellen", "hossy"],
     passos: [
@@ -930,7 +1107,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s7",
+    id: "m1u5s17",
     titulo: "Casa e família alargada",
     personagens: ["kwendi", "otchali"],
     passos: [
@@ -955,7 +1132,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s8",
+    id: "m1u5s18",
     titulo: "Corpo humano",
     personagens: ["narrador", "kwendi"],
     passos: [
@@ -980,7 +1157,7 @@ const U5: Licao[] = [
     ],
   },
   {
-    id: "m1u5s9",
+    id: "m1u5s19",
     titulo: "Cidade e natureza",
     personagens: ["yellen", "hossy"],
     passos: [
