@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, X as XIcon, Lightbulb } from "lucide-react";
+import { MicOff, VolumeX } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
@@ -94,6 +95,49 @@ function gerarPreencherLetras(u: string, pt: string): Passo | null {
   };
 }
 
+/**
+ * Se `semFala`/`semEscuta` estiverem ativas nesta sessão da lição, converte
+ * passos de fala/escuta em equivalentes de escrita já existentes. Puramente
+ * efêmero — vive só no estado local de `LessonScreen`.
+ */
+function transformarPasso(
+  p: Passo,
+  semFala: boolean,
+  semEscuta: boolean,
+): Passo {
+  if (semFala && p.tipo === "falar") {
+    return {
+      tipo: "escrever",
+      pergunta: `Escreve em Umbundu: "${p.pt}"`,
+      resposta: p.frase,
+    };
+  }
+  if (semEscuta && p.tipo === "escuta_escolha") {
+    return {
+      tipo: "traduzir_umbundu_pt",
+      umbundu: p.audio,
+      opcoes: p.opcoes,
+      correta: p.correta,
+    };
+  }
+  if (semEscuta && p.tipo === "escuta_escrever") {
+    return {
+      tipo: "escrever",
+      pergunta: `Escreve em Umbundu: "${p.pt}"`,
+      resposta: p.audio,
+    };
+  }
+  if (semEscuta && p.tipo === "escuta_montar") {
+    return {
+      tipo: "montar_frase",
+      pergunta: `Traduz para Umbundu: "${p.pt}"`,
+      alvo: p.alvo,
+      distratores: p.distratores,
+    };
+  }
+  return p;
+}
+
 /** Controlo de dicas grátis diárias (5/dia). Persiste em localStorage. */
 const DICAS_KEY = "kwendi_dicas_diarias_v1";
 const DICAS_GRATIS_DIA = 5;
@@ -171,6 +215,13 @@ const LessonScreen = () => {
   const [done, setDone] = useState(false);
   const [dicaAtiva, setDicaAtiva] = useState(false);
   const [dicasHoje, setDicasHoje] = useState<number>(() => lerDicasHoje());
+  /**
+   * Flags de acessibilidade específicas desta sessão da lição.
+   * Não são persistidas: ao sair da lição (unmount) ou fechar a app
+   * voltam ao padrão false, restaurando o fluxo normal de fala/escuta.
+   */
+  const [semFala, setSemFala] = useState(false);
+  const [semEscuta, setSemEscuta] = useState(false);
   const { saldo } = useSaldo();
   const hearts = saldo.vidas + saldo.vidasExtra;
 
@@ -189,7 +240,32 @@ const LessonScreen = () => {
   const dobradorMin = tempoRestante("dobrador-xp");
   const dobradorOn = dobradorMin !== null && dobradorMin > 0;
 
-  const passo = usaScript ? passosExpandidos[index] : null;
+  const passoOriginal = usaScript ? passosExpandidos[index] : null;
+  const passo = passoOriginal
+    ? transformarPasso(passoOriginal, semFala, semEscuta)
+    : null;
+  const passoEhFala = passoOriginal?.tipo === "falar";
+  const passoEhEscuta =
+    passoOriginal?.tipo === "escuta_escolha" ||
+    passoOriginal?.tipo === "escuta_escrever" ||
+    passoOriginal?.tipo === "escuta_montar";
+
+  const ativarSemFala = () => {
+    setSemFala(true);
+    toast({
+      title: "Modo escrita ativado",
+      description:
+        "Exercícios de fala viram escrita só nesta lição. Sair volta ao normal.",
+    });
+  };
+  const ativarSemEscuta = () => {
+    setSemEscuta(true);
+    toast({
+      title: "Modo escrita ativado",
+      description:
+        "Exercícios de escuta viram escrita só nesta lição. Sair volta ao normal.",
+    });
+  };
   const q = usaScript ? null : QUESTIONS[index];
   const isCorrect = selected === q?.correct;
   const progress = ((index + (checked ? 1 : 0)) / total) * 100;
@@ -384,6 +460,56 @@ const LessonScreen = () => {
             </span>
           </div>
         </div>
+
+        {/* Chips de acessibilidade da sessão (fala/escuta) */}
+        {(passoEhFala || passoEhEscuta || semFala || semEscuta) && (
+          <div className="flex flex-wrap gap-2 mb-3 -mt-1">
+            {passoEhFala && !semFala && (
+              <button
+                type="button"
+                onClick={ativarSemFala}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full border-2 border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <MicOff className="w-3.5 h-3.5" />
+                Não posso falar agora
+              </button>
+            )}
+            {passoEhEscuta && !semEscuta && (
+              <button
+                type="button"
+                onClick={ativarSemEscuta}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full border-2 border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                Não posso ouvir agora
+              </button>
+            )}
+            {semFala && (
+              <button
+                type="button"
+                onClick={() => setSemFala(false)}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full text-white"
+                style={{ background: "hsl(var(--primary))" }}
+                title="Voltar aos exercícios de fala"
+              >
+                <MicOff className="w-3.5 h-3.5" />
+                Modo escrita: fala · desligar
+              </button>
+            )}
+            {semEscuta && (
+              <button
+                type="button"
+                onClick={() => setSemEscuta(false)}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full text-white"
+                style={{ background: "hsl(var(--primary))" }}
+                title="Voltar aos exercícios de escuta"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                Modo escrita: escuta · desligar
+              </button>
+            )}
+          </div>
+        )}
 
         {passo.tipo === "aprender" && (
           <AprenderPasso passo={passo} onContinuar={() => avancarScript(true, false)} />
