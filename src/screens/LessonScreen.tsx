@@ -15,6 +15,7 @@ import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
+import { usePremium } from "@/contexts/PremiumContext";
 import { toast } from "@/hooks/use-toast";
 import { getLicao as getLicaoM1 } from "@/data/licoes/m1";
 import { LICOES_BAU } from "@/data/licoes/baus";
@@ -195,6 +196,7 @@ const LessonScreen = () => {
   const { registrarAcao } = useMissoes();
   const { concluirSeccao } = useProgresso();
   const { tempoRestante } = useInventario();
+  const { ativo: premium } = usePremium();
 
   const licao = useMemo(
     () => (id ? LICOES_BAU[id] ?? getLicaoM1(id) : undefined),
@@ -270,11 +272,21 @@ const LessonScreen = () => {
   const isCorrect = selected === q?.correct;
   const progress = ((index + (checked ? 1 : 0)) / total) * 100;
 
-  const dicasRestantesGratis = Math.max(0, DICAS_GRATIS_DIA - dicasHoje);
+  const dicasRestantesGratis = premium
+    ? Number.POSITIVE_INFINITY
+    : Math.max(0, DICAS_GRATIS_DIA - dicasHoje);
   const podePagarDica = saldo.diamantes >= DICA_CUSTO_DIAMANTES;
 
   const usarDica = () => {
     if (dicaAtiva || checked) return;
+    if (premium) {
+      setDicaAtiva(true);
+      toast({
+        title: "Dica desbloqueada",
+        description: "Premium: dicas ilimitadas.",
+      });
+      return;
+    }
     if (dicasRestantesGratis > 0) {
       const n = dicasHoje + 1;
       setDicasHoje(n);
