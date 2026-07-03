@@ -48,11 +48,29 @@ import DefinicoesScreen from "./screens/definicoes/DefinicoesScreen";
 import AcessibilidadeScreen from "./screens/definicoes/AcessibilidadeScreen";
 import NotFound from "./pages/NotFound";
 
+/* Admin panel (rota secreta, sem link em fluxos do app) */
+import AdminLoginScreen from "./screens/admin/AdminLoginScreen";
+import AdminDashboardScreen from "./screens/admin/AdminDashboardScreen";
+import AdminUsersScreen from "./screens/admin/AdminUsersScreen";
+import AdminProgressScreen from "./screens/admin/AdminProgressScreen";
+import AdminSessionsScreen from "./screens/admin/AdminSessionsScreen";
+import AdminAchievementsScreen from "./screens/admin/AdminAchievementsScreen";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { RequireAdmin } from "./components/admin/RequireAdmin";
+import { useAdminShortcut } from "./hooks/useAdminShortcut";
+import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { installSessionTracker } from "./lib/sessionTracker";
+
 const queryClient = new QueryClient();
 
 /** Animated routes wrapper — uses location key for AnimatePresence */
 const AnimatedRoutes = () => {
   const location = useLocation();
+  useAdminShortcut();
+  useEffect(() => {
+    installSessionTracker();
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -88,6 +106,25 @@ const AnimatedRoutes = () => {
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
         <Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />
+
+        {/* Admin — rota secreta, não linkada */}
+        <Route path="/grupo16Kwendi" element={<Navigate to="/grupo16Kwendi/dashboard" replace />} />
+        <Route path="/grupo16Kwendi/login" element={<AdminLoginScreen />} />
+        <Route
+          path="/grupo16Kwendi/*"
+          element={
+            <RequireAdmin>
+              <AdminLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route path="dashboard" element={<AdminDashboardScreen />} />
+          <Route path="usuarios" element={<AdminUsersScreen />} />
+          <Route path="progresso" element={<AdminProgressScreen />} />
+          <Route path="sessoes" element={<AdminSessionsScreen />} />
+          <Route path="conquistas" element={<AdminAchievementsScreen />} />
+        </Route>
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
