@@ -355,17 +355,52 @@ const CommunityFeed = () => {
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
               />
             </div>
+            {foto && (
+              <div className="relative mt-2 ml-12 rounded-xl overflow-hidden border border-border">
+                <img src={foto} alt="Pré-visualização" className="w-full max-h-56 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setFoto(null)}
+                  aria-label="Remover foto"
+                  className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/60 text-white grid place-items-center"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             <div className="flex items-center justify-between mt-2 pl-12">
               <span className="text-[11px] text-muted-foreground">{draft.length}/280</span>
-              <button
-                onClick={handlePublish}
-                disabled={!draft.trim()}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold text-white disabled:opacity-50"
-                style={{ background: "hsl(var(--primary))" }}
-              >
-                <Send className="w-3.5 h-3.5" />
-                {PUBLISH_LABEL[lang]}
-              </button>
+              <div className="flex items-center gap-2">
+                {premium && (
+                  <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFotoEscolhida}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold border-2 border-border bg-card text-muted-foreground hover:text-foreground"
+                      title="Anexar foto (Premium)"
+                    >
+                      <ImagePlus className="w-3.5 h-3.5" />
+                      Foto
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={handlePublish}
+                  disabled={!draft.trim() && !foto}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold text-white disabled:opacity-50"
+                  style={{ background: "hsl(var(--primary))" }}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {PUBLISH_LABEL[lang]}
+                </button>
+              </div>
             </div>
           </div>
 
