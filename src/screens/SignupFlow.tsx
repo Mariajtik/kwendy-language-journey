@@ -21,6 +21,7 @@ import avatarImg from "@/assets/avatar.jpg";
 import PasswordInput from "@/components/PasswordInput";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
 import { registerLocalUser } from "@/lib/adminRegistry";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -182,24 +183,55 @@ const SignupFlow = () => {
   const [done, setDone] = useState(false);
 
   /** Move to next step, or finish */
-  const next = () => {
+  const next = async () => {
     if (step < totalSteps - 1) {
       setStep(step + 1);
       return;
     }
-    // Fim do fluxo — persiste o registo local para o painel admin.
+    // Fim do fluxo — cria conta real no Supabase.
+    const provincia = origin && origin !== "Outro" ? origin : null;
+    const pais = origin === "Outro" ? originCountry : "Angola";
+    try {
+      const redirect = `${window.location.origin}/home`;
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirect,
+          data: {
+            nome: username,
+            provincia,
+            pais,
+            motivacao: motivation || null,
+            fonte_kwendi: source === "Outro" ? sourceOther : source || null,
+            chokwe: chokwe || null,
+            objetivo_diario: dailyGoal || null,
+            nivel_declarado: level || null,
+            tipo: "signup",
+          },
+        },
+      });
+      if (error && !`${error.message}`.toLowerCase().includes("already")) {
+        toast.error(error.message || "Não foi possível criar a conta.");
+        return;
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao criar a conta.");
+      return;
+    }
+    // Mantém também o registo local (back-compat com painel local).
     try {
       registerLocalUser({
         tipo: "signup",
         nome: username,
         email,
-        provincia: origin && origin !== "Outro" ? origin : null,
-        pais: origin === "Outro" ? originCountry : "Angola",
+        provincia,
+        pais,
         motivacao: motivation || null,
         nivel: level || null,
       });
     } catch {
-      /* silencioso */
+      /* noop */
     }
     if (level === "Iniciante")
       navigate("/home", { state: { welcome: true, username } });
