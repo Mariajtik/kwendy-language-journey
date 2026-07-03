@@ -461,6 +461,56 @@ const LessonScreen = () => {
           </div>
         </div>
 
+        {/* Chips de acessibilidade da sessão (fala/escuta) */}
+        {(passoEhFala || passoEhEscuta || semFala || semEscuta) && (
+          <div className="flex flex-wrap gap-2 mb-3 -mt-1">
+            {passoEhFala && !semFala && (
+              <button
+                type="button"
+                onClick={ativarSemFala}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full border-2 border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <MicOff className="w-3.5 h-3.5" />
+                Não posso falar agora
+              </button>
+            )}
+            {passoEhEscuta && !semEscuta && (
+              <button
+                type="button"
+                onClick={ativarSemEscuta}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full border-2 border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                Não posso ouvir agora
+              </button>
+            )}
+            {semFala && (
+              <button
+                type="button"
+                onClick={() => setSemFala(false)}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full text-white"
+                style={{ background: "hsl(var(--primary))" }}
+                title="Voltar aos exercícios de fala"
+              >
+                <MicOff className="w-3.5 h-3.5" />
+                Modo escrita: fala · desligar
+              </button>
+            )}
+            {semEscuta && (
+              <button
+                type="button"
+                onClick={() => setSemEscuta(false)}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1.5 rounded-full text-white"
+                style={{ background: "hsl(var(--primary))" }}
+                title="Voltar aos exercícios de escuta"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                Modo escrita: escuta · desligar
+              </button>
+            )}
+          </div>
+        )}
+
         {passo.tipo === "aprender" && (
           <AprenderPasso passo={passo} onContinuar={() => avancarScript(true, false)} />
         )}
