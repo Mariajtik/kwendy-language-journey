@@ -682,6 +682,45 @@ const HomeScreen = () => {
         </DialogContent>
       </Dialog>
 
+      {/* ---- Nivelamento pop-up (ancião ou posicionado) ---- */}
+      <Dialog open={nivelamentoOpen} onOpenChange={(o) => { if (!o) fecharNivelamentoPopup(); }}>
+        <DialogContent className="max-w-sm rounded-3xl text-center">
+          <DialogHeader>
+            <div
+              className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-2"
+              style={{ background: niv.ancao ? "hsl(45 90% 55%)" : "hsl(var(--primary))" }}
+            >
+              {niv.ancao ? (
+                <Crown className="w-8 h-8 text-white" strokeWidth={2.5} />
+              ) : (
+                <Settings className="w-8 h-8 text-white" strokeWidth={2.5} />
+              )}
+            </div>
+            <DialogTitle className="text-center text-xl font-extrabold">
+              {niv.ancao ? "Ancião desbloqueado!" : "Vamos começar aqui"}
+            </DialogTitle>
+            <DialogDescription className="text-center whitespace-pre-line">
+              {niv.ancao
+                ? "Você é um ancião, por acaso? Executou uma proeza de poucos!\n\nInfelizmente os outros módulos ainda não foram desenvolvidos, mas por favor continue a usar a nossa app, pratique e nos ajude! Recomendamos começar pelo início, ao seu critério."
+                : niv.unidadeSugerida
+                ? `Com base no teu teste, começamos em ${rotularUnidade(niv.unidadeSugerida)}. As unidades anteriores ficam desbloqueadas para revisão.`
+                : "Bom desempenho — vamos começar pelo início do Módulo 1."}
+            </DialogDescription>
+          </DialogHeader>
+          {niv.ancao && (
+            <div className="rounded-2xl bg-muted/40 p-3 mt-2 text-sm font-bold" style={{ color: "hsl(var(--primary))" }}>
+              +500 diamantes · +250 XP · Marco “Ancião”
+            </div>
+          )}
+          <button
+            onClick={fecharNivelamentoPopup}
+            className="btn-duo btn-duo-primary w-full mt-3"
+          >
+            Continuar
+          </button>
+        </DialogContent>
+      </Dialog>
+
     </motion.div>
   );
 };
