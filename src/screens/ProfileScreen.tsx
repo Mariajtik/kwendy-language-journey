@@ -188,7 +188,16 @@ const ProfileScreen = () => {
                 Visão geral
               </h2>
               <div className="grid grid-cols-3 gap-2">
-                <StatCard icon={<KwendiIcon name={profile.streak > 0 ? "chamaAcesa" : "chamaApagada"} className="w-6 h-6" />} value={profile.streak} label="Sequência" />
+                <StatCard
+                  icon={
+                    <KwendiIcon
+                      name={premium || profile.streak > 0 ? "chamaAcesa" : "chamaApagada"}
+                      className="w-6 h-6"
+                    />
+                  }
+                  value={premium ? "∞" : profile.streak}
+                  label={premium ? "Chama eterna" : "Sequência"}
+                />
                 <StatCard icon={<KwendiIcon name="raioxp" className="w-6 h-6" />} value={`${profile.xp} XP`} label="Experiência" />
                 <StatCard icon={<Trophy className="w-5 h-5" style={{ color: "hsl(var(--primary))" }} />} value={`Nv ${profile.level}`} label="Nível" />
               </div>
