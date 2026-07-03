@@ -4,6 +4,7 @@
  */
 
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   /** Action verb shown in the toast — "Login" or "Cadastro" */
@@ -12,13 +13,23 @@ interface Props {
 }
 
 const SocialAuthButtons = ({ mode = "login", onProvider }: Props) => {
-  const handle = (provider: "google" | "apple") => {
+  const handle = async (provider: "google" | "apple") => {
     if (onProvider) return onProvider(provider);
-    toast.info(
-      `${provider === "google" ? "Google" : "Apple"} — em breve! (${
-        mode === "login" ? "entrar" : "criar conta"
-      })`,
-    );
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/home` },
+      });
+      if (error) {
+        toast.error(
+          `Provedor não configurado. Ative ${provider} no Supabase → Authentication → Providers.`,
+        );
+      }
+    } catch {
+      toast.error("Não foi possível iniciar o login social.");
+    }
+    // silencioso após redirect
+    void mode;
   };
 
   return (
