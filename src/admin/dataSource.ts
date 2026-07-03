@@ -19,6 +19,12 @@ export type AdminUser = {
   premium: boolean;
   cadastradoEm: string | null;
   resultadoNivelamento: number | null;
+  tipo: "signup" | "stealth" | "device";
+  regiao: string | null;
+  pais: string | null;
+  motivacao: string | null;
+  stealthAtivo: boolean;
+  stealthExpiraEm: string | null;
 };
 
 export type SessionEntry = {
@@ -53,12 +59,31 @@ export type AchievementStats = {
   cadernoGuardadas: number;
 };
 
+export type OverviewAlert = { nivel: "warn" | "info" | "danger"; texto: string };
+
+export type OverviewStats = {
+  totalUsuarios: number;
+  totalCadastrados: number;
+  totalStealth: number;
+  stealthAtivosAgora: number;
+  stealthExpirandoEm24h: number;
+  premiumAtivos: number;
+  ativosHoje: number;
+  porRegiao: { regiao: string; total: number }[];
+  porPais: { pais: string; total: number }[];
+  porMotivacao: { motivo: string; total: number }[];
+  porTipo: { tipo: string; total: number }[];
+  novosPorDia: { dia: string; total: number }[];
+  alertas: OverviewAlert[];
+};
+
 export interface AdminDataSource {
   readonly kind: "localStorage" | "backend";
   listUsers(): Promise<AdminUser[]>;
   getProgress(): Promise<ProgressStats>;
   getSessions(): Promise<SessionStats>;
   getAchievements(): Promise<AchievementStats>;
+  getOverview(): Promise<OverviewStats>;
 }
 
 let _instance: AdminDataSource | null = null;

@@ -55,6 +55,7 @@ import AdminUsersScreen from "./screens/admin/AdminUsersScreen";
 import AdminProgressScreen from "./screens/admin/AdminProgressScreen";
 import AdminSessionsScreen from "./screens/admin/AdminSessionsScreen";
 import AdminAchievementsScreen from "./screens/admin/AdminAchievementsScreen";
+import AdminRegionsScreen from "./screens/admin/AdminRegionsScreen";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { RequireAdmin } from "./components/admin/RequireAdmin";
 import { useAdminShortcut } from "./hooks/useAdminShortcut";
@@ -120,6 +121,7 @@ const AnimatedRoutes = () => {
         >
           <Route path="dashboard" element={<AdminDashboardScreen />} />
           <Route path="usuarios" element={<AdminUsersScreen />} />
+          <Route path="regioes" element={<AdminRegionsScreen />} />
           <Route path="progresso" element={<AdminProgressScreen />} />
           <Route path="sessoes" element={<AdminSessionsScreen />} />
           <Route path="conquistas" element={<AdminAchievementsScreen />} />

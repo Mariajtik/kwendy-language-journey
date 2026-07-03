@@ -1,82 +1,101 @@
-## Painel Admin — Kwendi
+## Painel Admin — Expansão de dados críticos
 
-Painel isolado, sem link em nenhum fluxo do app, acessível apenas por rota secreta ou atalho de teclado, com login próprio. Lê dados do localStorage agora e já deixa a estrutura pronta para trocar para backend depois.
+Adicionar instrumentação para capturar dados que o app já pergunta mas não persiste (região/província, país, modo furtivo, motivação, nível declarado), guardar num registo local de utilizadores e mostrar no painel com destaque para o que merece atenção operacional.
 
-### Acesso
-- Rota secreta: `/grupo16Kwendi` (não linkada em nenhum menu).
-- Atalho global `Ctrl+Shift+A` (listener montado no `App.tsx`) — navega para `/grupo16Kwendi`.
-- Tela de login própria (`AdminLoginScreen`) exigindo usuário e senha.
-- Credenciais: `grupo16Kwendi` / `Teremos19Valores!` — hardcoded no frontend nesta fase (usuário aceitou adiar segurança real para quando existir backend). Comentário explícito no código marcando o ponto de substituição.
-- Sessão de admin guardada em `sessionStorage` (`kwendi_admin_session`) para expirar ao fechar aba. Guard `RequireAdmin` protege rotas filhas — se não autenticado, redireciona para `/grupo16Kwendi/login`.
+### 1. Instrumentação — capturar o que já é perguntado
 
-### Estrutura de rotas
-```
-/grupo16Kwendi              -> redireciona p/ login ou dashboard
-/grupo16Kwendi/login        -> AdminLoginScreen
-/grupo16Kwendi/dashboard    -> visão geral + gráficos
-/grupo16Kwendi/usuarios     -> lista completa + filtros
-/grupo16Kwendi/progresso    -> XP, diamantes, lições, streak
-/grupo16Kwendi/sessoes      -> tempo médio, sessões
-/grupo16Kwendi/conquistas   -> conquistas, nivelamento, Premium
-```
-Layout com sidebar exclusiva do admin (`AdminLayout`), fora do fluxo visual do app (sem BottomNav, sem tema do usuário).
+**Signup (`src/screens/SignupFlow.tsx`)**
+- No sucesso final, persistir um registo em `localStorage["kwendi_local_users"]` (array cumulativo, capado a 500):
+  ```ts
+  { id, tipo: "signup", nome, email, provincia | null, pais, motivacao, nivel, criadoEm }
+  ```
+- Não altera UX — apenas grava depois de todas as validações passarem.
 
-### Camada de dados (abstração para backend futuro)
-Criar `src/admin/dataSource.ts` com uma interface única:
+**Stealth (`src/screens/StealthModeScreen.tsx`)**
+- Depois do `data.allowed`, gravar no mesmo array:
+  ```ts
+  { id, tipo: "stealth", nome: username, ativadoEm, expiraEm: +7d }
+  ```
+- Persiste também `kwendi.stealth.ativo = { ativadoEm, expiraEm }` para o dashboard saber quantos ainda estão dentro da janela de 7 dias no dispositivo atual.
+
+### 2. Data source — novos campos
+
+Atualizar `AdminUser` e `LocalStorageDataSource.listUsers()` para:
+- Ler `kwendi_local_users` e combinar com o utilizador ativo (auth/stealth atual).
+- Cada `AdminUser` ganha: `regiao` (província/país), `pais`, `motivacao`, `tipo: "signup" | "stealth"`, `stealthAtivo: boolean`, `stealthExpiraEm`.
+
+Adicionar novo método:
 ```ts
-interface AdminDataSource {
-  listUsers(): Promise<AdminUser[]>;
-  getProgress(): Promise<ProgressStats>;
-  getSessions(): Promise<SessionStats>;
-  getAchievements(): Promise<AchievementStats>;
-  getPremiumStats(): Promise<PremiumStats>;
-}
+getOverview(): Promise<{
+  totalCadastrados: number;
+  totalStealth: number;
+  stealthAtivosAgora: number;
+  premiumAtivos: number;
+  porRegiao: { regiao: string; total: number }[];
+  porPais: { pais: string; total: number }[];
+  porMotivacao: { motivo: string; total: number }[];
+  porTipo: { tipo: string; total: number }[];
+  novosPorDia: { dia: string; total: number }[]; // 30 dias
+  alertas: { nivel: "warn" | "info"; texto: string }[];
+}>
 ```
-Duas implementações:
-- `LocalStorageDataSource` — varre chaves conhecidas (`kwendi_user`, `kwendi_progresso`, `kwendi_saldo`, `kwendi_inventario`, `kwendi_nivelamento`, `kwendi_premium`, `kwendi_sessions`, etc.) do dispositivo atual.
-- `SupabaseDataSource` — stub retornando `[]` / zeros por enquanto; será plugado quando o backend existir.
 
-Um `getAdminDataSource()` decide qual usar (flag `VITE_ADMIN_USE_BACKEND`, hoje false). Assim, quando o backend chegar, só troca a flag — o painel não muda.
+### 3. Dashboard — foco em dados críticos
 
-### Instrumentação de sessões (novo)
-Como hoje não há tracking, adicionar util leve `src/lib/sessionTracker.ts` chamado do `App.tsx`:
-- Regista `startedAt`, `endedAt`, `route` em `localStorage['kwendi_sessions']` (array capado a 200 entradas).
-- Considera "sessão" cada abertura do app até 5 min de inatividade / `visibilitychange` hidden.
-- Não afeta UI do usuário; apenas escreve dados que o painel lê.
+Reorganizar `AdminDashboardScreen` numa faixa de destaque no topo com **cards críticos**:
+1. Cadastrados totais
+2. Modo furtivo (total + "N ativos agora")
+3. Premium ativos
+4. Ativos hoje (sessões)
+5. Tempo médio/sessão
+6. Retenção estimada (ativos hoje ÷ cadastrados)
 
-### Métricas & gráficos
-Usar **Recharts** (já compatível com o stack). Dashboard principal com cards + gráficos:
-- Card: Total de usuários / Ativos hoje / Premium ativos / Tempo médio de sessão.
-- LineChart: sessões por dia (últimos 30 dias).
-- BarChart: XP total por usuário (top 10).
-- PieChart: distribuição por nível (iniciante / intermediário / avançado).
-- BarChart: lições concluídas por módulo.
-- AreaChart: diamantes acumulados vs gastos ao longo do tempo.
-- Tabela filtrável em `/usuarios` com nome, e-mail, nível, XP, diamantes, streak, data de cadastro, Premium, resultado do nivelamento.
-- Exportar CSV (botão) da tabela de usuários.
+Abaixo, uma **faixa de alertas** que aparece condicionalmente:
+- "X contas em modo furtivo vão expirar nas próximas 24h"
+- "Nenhum utilizador ativo nos últimos 7 dias"
+- "Y% dos usuários no modo furtivo (sem cadastro real)" — quando > 40%
+- "Sem dados de sessão ainda" — quando `porDia` está vazio
 
-Todas as telas mostram badge "Fonte: LocalStorage (dispositivo atual)" ou "Fonte: Backend" conforme o dataSource ativo, deixando claro o escopo dos dados.
+Gráficos adicionais:
+- **Mapa de barras horizontal** — top 10 províncias (`porRegiao`).
+- **BarChart** — distribuição por país (só quando >1 país).
+- **PieChart** — Signup vs Furtivo (`porTipo`).
+- **BarChart** — motivações de aprendizagem.
+- **LineChart** — novos cadastros por dia (30d).
+- Mantém: sessões/dia, XP top 10, secções por módulo, distribuição por nível.
 
-### Estilo visual
-Painel deliberadamente distinto do app: fundo escuro `hsl(220 20% 10%)`, sidebar com destaque em crimson do brand, tipografia mono para números, cards com bordas sutis. Objetivo: parecer ferramenta interna, não parte do produto.
+### 4. Tabela de usuários — colunas adicionais
+
+`AdminUsersScreen` ganha colunas:
+- Tipo (Signup / Furtivo com badge âmbar)
+- Região (província ou país)
+- Motivação (truncada)
+- Furtivo expira em (dias restantes; vermelho quando ≤ 1)
+
+Filtros extra por chips: **Todos / Signup / Furtivo / Premium / Furtivo expirando**.
+Export CSV incorpora as novas colunas.
+
+### 5. Nova aba "Regiões"
+
+`/grupo16Kwendi/regioes` (novo item na sidebar com ícone `MapPin`):
+- StatCards: províncias distintas, países distintos, % Angola vs Diáspora.
+- BarChart horizontal de todas as províncias.
+- BarChart de países (excluindo Angola).
+- Tabela ordenável região → n° usuários → % do total.
 
 ### Arquivos a criar
-- `src/screens/admin/AdminLoginScreen.tsx`
-- `src/screens/admin/AdminDashboardScreen.tsx`
-- `src/screens/admin/AdminUsersScreen.tsx`
-- `src/screens/admin/AdminProgressScreen.tsx`
-- `src/screens/admin/AdminSessionsScreen.tsx`
-- `src/screens/admin/AdminAchievementsScreen.tsx`
-- `src/components/admin/AdminLayout.tsx`
-- `src/components/admin/RequireAdmin.tsx`
-- `src/components/admin/StatCard.tsx`
-- `src/admin/dataSource.ts` + `LocalStorageDataSource.ts` + `SupabaseDataSource.ts`
-- `src/hooks/useAdminAuth.ts`
-- `src/hooks/useAdminShortcut.ts` (Ctrl+Shift+A)
-- `src/lib/sessionTracker.ts`
+- `src/screens/admin/AdminRegionsScreen.tsx`
 
 ### Arquivos a editar
-- `src/App.tsx` — registrar rotas `/grupo16Kwendi/*`, montar `useAdminShortcut` e `sessionTracker`. Não adicionar links visíveis.
+- `src/admin/dataSource.ts` — expandir `AdminUser`, adicionar `OverviewStats`, método `getOverview`.
+- `src/admin/LocalStorageDataSource.ts` — ler `kwendi_local_users`, calcular agregados, alertas.
+- `src/components/admin/AdminLayout.tsx` — nova entrada "Regiões".
+- `src/screens/admin/AdminDashboardScreen.tsx` — layout com cards críticos + faixa de alertas + novos gráficos.
+- `src/screens/admin/AdminUsersScreen.tsx` — colunas + filtros + CSV.
+- `src/screens/SignupFlow.tsx` — persistir registo ao concluir.
+- `src/screens/StealthModeScreen.tsx` — persistir registo + flag `kwendi.stealth.ativo`.
+- `src/App.tsx` — registar rota `/grupo16Kwendi/regioes`.
 
-### Segurança (assumido)
-Credenciais no bundle são visíveis a quem inspecionar o JS — aceitável nesta fase por escolha do usuário. Quando o backend existir, substituir `useAdminAuth` por auth real (Supabase + tabela `user_roles` com role `admin`, seguindo o padrão seguro do projeto).
+### Notas
+- Continua tudo local; quando o backend chegar, o `SupabaseDataSource` implementa a mesma interface e o painel não muda.
+- Alertas são derivados dos próprios dados — nada de tracking externo.

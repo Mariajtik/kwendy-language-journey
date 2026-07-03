@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Check, Camera, Loader2 } from "lucide-react";
 import avatar from "@/assets/avatar.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { registerLocalUser, setStealthActive } from "@/lib/adminRegistry";
 
 const StealthModeScreen = () => {
   const navigate = useNavigate();
@@ -77,6 +78,19 @@ const StealthModeScreen = () => {
       });
       if (error) throw error;
       if (data?.allowed) {
+        try {
+          const ativadoEm = new Date().toISOString();
+          const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
+          setStealthActive(ativadoEm, expiraEm);
+          registerLocalUser({
+            tipo: "stealth",
+            nome: username,
+            ativadoEm,
+            expiraEm,
+          });
+        } catch {
+          /* silencioso */
+        }
         setActivated(true);
       } else {
         setPolicyError(
