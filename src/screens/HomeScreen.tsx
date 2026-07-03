@@ -494,7 +494,7 @@ const HomeScreen = () => {
               className="font-extrabold text-sm"
               style={{ color: semVidas ? "#B5B5B5" : "hsl(var(--primary))" }}
             >
-              {totalVidas}
+              {premium ? "∞" : totalVidas}
             </span>
           </div>
 
