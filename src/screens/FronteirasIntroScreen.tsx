@@ -47,9 +47,6 @@ const FronteirasIntroScreen = () => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (paused || finished) return;
