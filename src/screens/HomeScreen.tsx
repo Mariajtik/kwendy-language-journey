@@ -21,6 +21,7 @@ import BottomNav from "@/components/BottomNav";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
