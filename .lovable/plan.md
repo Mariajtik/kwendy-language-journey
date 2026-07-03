@@ -1,55 +1,60 @@
 ## Objetivo
 
-Permitir que o usuário, dentro de uma lição, marque temporariamente:
-- "Não posso falar agora" → remove só exercícios de fala
-- "Não posso ouvir agora" → remove só exercícios de escuta
-- Ambos → sobra apenas escrita
+Adicionar um **switch global de Premium** na Loja com anúncio "GRÁTIS em degustação · por tempo indeterminado". Quando ligado, ativa todos os benefícios viáveis já hoje. Quando desligado, a app comporta-se exactamente como agora.
 
-Estas escolhas duram apenas a **sessão da lição**. Sair da lição ou fechar a app volta ao fluxo normal — **nada é persistido**.
+## Benefícios ligados ao switch (viáveis)
 
-## Comportamento
+- **Vidas infinitas** — `perderVida()` vira no-op; UI mostra `∞` no lugar do número.
+- **XP em dobro para sempre** — `dobradorXpAtivo()` retorna `true` sem consumir power-up.
+- **Chama eterna** — piso da ofensiva não desce; visual sempre com chama acesa e badge "Eterna" ao lado do contador na Home.
+- **Dicas ilimitadas grátis** — bypass do contador diário e do custo em diamantes em `LessonScreen`.
+- **Cultura desbloqueada** — histórias/músicas/itens de cultura ficam sempre destravados (`inventario.desbloqueios` é considerado como contendo todos os IDs de cultura).
+- **Badge Premium no perfil** — coroa dourada ao lado do nome + linha "Membro Premium (degustação)" no `ProfileScreen`.
+- **Foto na comunidade** — o composer do `CommunityFeed` mostra botão "Adicionar foto" (input file → data URL local, preview na publicação). Sem Premium o botão fica oculto.
 
-**Exercícios afetados**
-- Fala: `falar`
-- Escuta: `escuta_escolha`, `escuta_escrever`, `escuta_montar`
+Bullets que **não** viram Premium ainda (marcadas como "em breve" no card, riscadas quando o switch está On para deixar claro): IA com sotaque angolano, chat/chamada com IA Kwendi, dicionário IA ilimitado, inglês/espanhol, eventos exclusivos, estatísticas avançadas, sem anúncios (a app já não tem anúncios), $5/3 meses (a mensagem é grátis por tempo indeterminado).
 
-**Transformações (só quando a flag correspondente está ativa)**
-- `falar` → `escrever` (pergunta = PT, resposta = frase Umbundu)
-- `escuta_escolha` → `traduzir_umbundu_pt` (mostra a frase escrita, mesmas opções e correta)
-- `escuta_escrever` → `escrever` (pergunta = "Escreve em Umbundu: <PT>", resposta = frase que seria falada)
-- `escuta_montar` → `montar_frase` (mesmo alvo/distratores, sem áudio)
+## Comportamento do switch
 
-Passos que **não** são de fala/escuta permanecem intactos. Regras de XP, vidas, dicas e progresso não mudam.
+- Estado global `premiumAtivo: boolean`, persistido em `localStorage` (chave `kwendi.premium.ativo`).
+- Default `false` — a app abre no comportamento actual.
+- Ligar/desligar produz efeito imediato em todas as telas (dispatch de `CustomEvent` para sincronizar hooks abertos, seguindo o padrão de `useSaldo`).
+- O antigo fluxo de "Tenho interesse por $5" é **removido** da Loja (o card é substituído). As chaves `kwendi.premium.interessados` e `kwendi.premium.eu` deixam de ser lidas/escritas mas não são apagadas do storage do utilizador.
 
-## UI
+## UI do card Premium na Loja
 
-**1. Botão inline no topo do exercício** (só aparece em passos de fala ou escuta):
-- Em passos de fala: pequeno link "Não posso falar agora" (ícone mic-off).
-- Em passos de escuta: pequeno link "Não posso ouvir agora" (ícone volume-off).
-- Ao tocar: ativa a flag correspondente e o passo atual é imediatamente re-renderizado na forma de escrita. Uma tela de confirmação curta (toast) explica que dura só esta lição.
+Novo `PremiumSwitchCard` substitui `PremiumPackCard`:
 
-**2. Botão de reverter**
-- Enquanto a flag estiver ativa, um pequeno chip discreto no cabeçalho da lição ("Modo escrita: fala" / "Modo escrita: escuta") permite desligar novamente sem sair da lição.
+- Faixa "🎉 GRÁTIS em degustação · por tempo indeterminado" no topo.
+- Título "Pacote Premium" + subtítulo "Ativa/desativa a qualquer momento".
+- Switch grande centralizado (estado ligado/desligado com animação).
+- Lista dos 7 benefícios ativos com check verde quando ligado, cinza quando desligado.
+- Bloco separado "Em breve" listando as features futuras (IA, chat, EN/ES, etc.), sempre em cinza.
+- Rodapé: "Enquanto durar a degustação, aproveita sem limites."
 
-## Estado
-
-- Duas flags em `useState` dentro de `LessonScreen` (`semFala`, `semEscuta`) — resetam ao desmontar a tela.
-- **Sem** localStorage, **sem** contexto global — a natureza efêmera é o requisito.
-- Ao sair para `/home` ou dar reload, o componente desmonta e o estado se perde.
+O `PremiumInteresseModal` deixa de ser usado (não removo o ficheiro para não quebrar imports; simplesmente não é importado).
 
 ## Onde muda o código
 
-- **`src/screens/LessonScreen.tsx`**
-  - Adiciona `semFala` e `semEscuta` como estado local.
-  - Função `transformarPasso(p, semFala, semEscuta): Passo` chamada no render; passa o passo transformado para o componente correspondente em vez do original.
-  - Chip discreto no cabeçalho da lição para ligar/desligar quando ativo.
-- **`src/components/licao/PassoComponents.tsx`**
-  - `EscutaPasso`, `EscutaEscreverPasso`, `EscutaMontarPasso`: adiciona um link "Não posso ouvir agora" no topo, com callback `onNaoPossoOuvir`.
-  - `FalarPasso`: adiciona um link "Não posso falar agora" no topo, com callback `onNaoPossoFalar`.
-  - Callbacks propagam até `LessonScreen`, que seta a flag e o próximo render aplica a transformação (inclusive re-renderizando o passo atual como escrita).
+**Novo**
+- `src/contexts/PremiumContext.tsx` — provider + hook `usePremium()` com `{ ativo, setAtivo }`. Persistência em localStorage + `CustomEvent` para sincronizar.
+- `src/components/loja/PremiumSwitchCard.tsx` — novo card.
+
+**Editar**
+- `src/App.tsx` — envolver com `PremiumProvider` (junto do `AcessibilidadeProvider`).
+- `src/screens/LojaScreen.tsx` — substituir render da tab "premium" pelo novo card; remover o toggle de interesse.
+- `src/hooks/useSaldo.ts` — `perderVida()` verifica flag Premium (leitura directa do localStorage) e não faz nada quando ligada.
+- `src/hooks/useInventario.ts` — `dobradorXpAtivo()` retorna `true` se Premium; helpers que consultam `desbloqueios` de cultura consideram tudo destravado se Premium.
+- `src/hooks/useLoja.ts` — se aplicável, itens de cultura reportam "já desbloqueado" quando Premium.
+- `src/screens/LessonScreen.tsx` — quando `usePremium().ativo`, dicas grátis e pagas viram grátis; UI mostra "Dicas ilimitadas". Contador de vidas exibe `∞`.
+- `src/screens/HomeScreen.tsx` — contador de vidas mostra `∞`; chama sempre acesa com etiqueta "Eterna".
+- `src/screens/ProfileScreen.tsx` — coroa dourada + "Membro Premium (degustação)" quando ligado; contador de streak sempre com `chamaAcesa`.
+- `src/components/CommunityFeed.tsx` — botão "Adicionar foto" no composer só quando Premium; anexa preview local ao post.
 
 ## Fora de escopo
 
-- Nenhuma alteração em tela de acessibilidade, contexto global, ou preferências persistidas.
-- Nenhuma mudança no motor de progresso, XP, vidas, dicas, ou nos scripts das lições.
-- Nenhum novo tipo de passo — reaproveita `escrever`, `traduzir_umbundu_pt` e `montar_frase` já existentes.
+- IA Kwendi com sotaque, chat/chamada com IA, dicionário IA — exigem gateway/modelo e ficam para outra iteração.
+- Tradução da UI para EN/ES.
+- Sistema de eventos exclusivos e telas de estatísticas avançadas.
+- Cobrança real, integração de pagamentos, expiração de degustação (é "tempo indeterminado" por design).
+- Backend/migração para Cloud — tudo continua em localStorage, coerente com o resto da app.

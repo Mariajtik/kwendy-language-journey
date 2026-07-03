@@ -26,6 +26,7 @@ import CommunityFeed from "@/components/CommunityFeed";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import { useSaldo } from "@/hooks/useSaldo";
+import { usePremium } from "@/contexts/PremiumContext";
 import { useMissoes } from "@/hooks/useMissoes";
 import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
@@ -55,6 +56,7 @@ const ProfileScreen = () => {
   const [tab, setTab] = useState<Tab>("perfil");
   const [conquistaAberta, setConquistaAberta] = useState<ConquistaView | null>(null);
   const { saldo } = useSaldo();
+  const { ativo: premium } = usePremium();
   const { conquistas, resgatarConquista } = useMissoes();
   const desbloqueadas = useMemo(
     () => conquistas.filter((c) => c.desbloqueada),
@@ -85,7 +87,7 @@ const ProfileScreen = () => {
 
   const profile = {
     ...profileBase,
-    streak: saldo.ofensiva,
+    streak: premium ? Math.max(saldo.ofensiva, 1) : saldo.ofensiva,
     xp: saldo.xp,
     diamonds: saldo.diamantes,
   };
@@ -111,9 +113,20 @@ const ProfileScreen = () => {
         }}
       >
         <div className="flex items-start justify-between">
-          <h1 className="text-3xl font-extrabold drop-shadow-sm">
-            {profile.username}
-          </h1>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-3xl font-extrabold drop-shadow-sm">
+              {profile.username}
+            </h1>
+            {premium && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold tracking-widest uppercase"
+                title="Membro Premium (degustação)"
+              >
+                <span aria-hidden>👑</span>
+                Premium
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <button aria-label="Partilhar" className="p-1.5">
               <Share2 className="w-5 h-5" />
@@ -175,7 +188,16 @@ const ProfileScreen = () => {
                 Visão geral
               </h2>
               <div className="grid grid-cols-3 gap-2">
-                <StatCard icon={<KwendiIcon name={profile.streak > 0 ? "chamaAcesa" : "chamaApagada"} className="w-6 h-6" />} value={profile.streak} label="Sequência" />
+                <StatCard
+                  icon={
+                    <KwendiIcon
+                      name={premium || profile.streak > 0 ? "chamaAcesa" : "chamaApagada"}
+                      className="w-6 h-6"
+                    />
+                  }
+                  value={premium ? "∞" : profile.streak}
+                  label={premium ? "Chama eterna" : "Sequência"}
+                />
                 <StatCard icon={<KwendiIcon name="raioxp" className="w-6 h-6" />} value={`${profile.xp} XP`} label="Experiência" />
                 <StatCard icon={<Trophy className="w-5 h-5" style={{ color: "hsl(var(--primary))" }} />} value={`Nv ${profile.level}`} label="Nível" />
               </div>

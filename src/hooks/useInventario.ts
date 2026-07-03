@@ -4,6 +4,8 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import type { ItemId } from "@/data/loja";
+import { premiumAtivoStatic } from "@/contexts/PremiumContext";
+import { ITENS_LOJA } from "@/data/loja";
 
 export interface PowerUpAtivo {
   itemId: ItemId;
@@ -74,7 +76,15 @@ export function useInventario() {
   }, []);
 
   const temDesbloqueio = useCallback(
-    (id: ItemId) => inv.desbloqueios.includes(id),
+    (id: ItemId) => {
+      if (inv.desbloqueios.includes(id)) return true;
+      // Premium: todos os itens da categoria "cultura" ficam desbloqueados.
+      if (premiumAtivoStatic()) {
+        const item = ITENS_LOJA.find((i) => i.id === id);
+        if (item?.categoria === "cultura") return true;
+      }
+      return false;
+    },
     [inv.desbloqueios]
   );
 
@@ -129,6 +139,7 @@ export function usarPowerUpStatic(id: ItemId) {
 
 /** Verifica se um dobrador de XP está ativo agora. */
 export function dobradorXpAtivo(): boolean {
+  if (premiumAtivoStatic()) return true;
   const inv = getInventario();
   const p = inv.powerUps.find((x) => x.itemId === "dobrador-xp");
   if (!p?.expiraEm) return false;

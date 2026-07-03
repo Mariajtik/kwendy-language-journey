@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AcessibilidadeProvider } from "@/contexts/AcessibilidadeContext";
+import { PremiumProvider } from "@/contexts/PremiumContext";
 
 /* Screen imports */
 import SplashScreen from "./screens/SplashScreen";
@@ -94,13 +95,15 @@ const AnimatedRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AcessibilidadeProvider>
-      <TooltipProvider>
+      <PremiumProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <AnimatedRoutes />
         </BrowserRouter>
-      </TooltipProvider>
+        </TooltipProvider>
+      </PremiumProvider>
     </AcessibilidadeProvider>
   </QueryClientProvider>
 );
