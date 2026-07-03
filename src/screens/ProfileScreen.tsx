@@ -32,7 +32,7 @@ import BadgeStar from "@/components/missoes/BadgeStar";
 import ConquistaModal from "@/components/missoes/ConquistaModal";
 import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
-import trofeu30dias from "@/assets/missoes/trofeu.png.asset.json";
+import trofeu30dias from "@/assets/missoes/trofeu.png";
 import { getStat, STATS } from "@/lib/stats";
 
 const TOTAL_LETRAS = 23;
