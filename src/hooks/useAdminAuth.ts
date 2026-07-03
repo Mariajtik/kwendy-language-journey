@@ -1,60 +1,76 @@
 /**
  * useAdminAuth.ts
  * ---------------
- * Autenticação do painel admin — hardcoded no frontend nesta fase (usuário
- * assumiu o risco). SUBSTITUIR por auth real (Supabase + user_roles admin)
- * quando o backend estiver disponível.
+ * Autenticação real do painel admin via Supabase:
+ *  1. Utilizador digita user "grupo16Kwendi" + password.
+ *  2. Chamamos a edge function `bootstrap-admin` (idempotente) que garante
+ *     que existe uma conta `grupo16Kwendi@kwendi.admin` com role `admin`.
+ *  3. Fazemos `signInWithPassword` com essa conta.
+ *  4. `RequireAdmin` valida `has_role(auth.uid(),'admin')` na base de dados.
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const SESSION_KEY = "kwendi_admin_session";
-// TODO(backend): substituir pelas credenciais/verificação server-side.
 const ADMIN_USER = "grupo16Kwendi";
-const ADMIN_PASS = "Teremos19Valores!";
+const ADMIN_EMAIL = "grupo16Kwendi@kwendi.admin";
 
 export function useAdminAuth() {
-  const [authed, setAuthed] = useState<boolean>(() => {
+  const [authed, setAuthed] = useState<boolean>(false);
+  const [checking, setChecking] = useState<boolean>(true);
+
+  const check = useCallback(async () => {
     try {
-      return sessionStorage.getItem(SESSION_KEY) === "1";
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (!uid) {
+        setAuthed(false);
+        return;
+      }
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: uid,
+        _role: "admin",
+      });
+      setAuthed(!!data && !error);
     } catch {
-      return false;
+      setAuthed(false);
+    } finally {
+      setChecking(false);
     }
-  });
+  }, []);
 
   useEffect(() => {
-    const onStorage = () => {
-      try {
-        setAuthed(sessionStorage.getItem(SESSION_KEY) === "1");
-      } catch {
-        setAuthed(false);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+    check();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
+    return () => sub.subscription.unsubscribe();
+  }, [check]);
 
-  const login = useCallback((user: string, pass: string) => {
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      try {
-        sessionStorage.setItem(SESSION_KEY, "1");
-      } catch {
-        /* noop */
-      }
-      setAuthed(true);
-      return true;
-    }
-    return false;
-  }, []);
-
-  const logout = useCallback(() => {
+  const login = useCallback(async (user: string, pass: string) => {
+    if (user.trim() !== ADMIN_USER) return false;
+    // Bootstrap idempotente (cria a conta admin + role se necessário).
     try {
-      sessionStorage.removeItem(SESSION_KEY);
+      const { error: fnError } = await supabase.functions.invoke("bootstrap-admin", {
+        body: { password: pass },
+      });
+      if (fnError) {
+        // Bootstrap falhou (password errada ou serviço) — tentamos signin mesmo assim.
+      }
     } catch {
-      /* noop */
+      /* continua */
     }
+    const { error } = await supabase.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: pass,
+    });
+    if (error) return false;
+    await check();
+    return true;
+  }, [check]);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setAuthed(false);
   }, []);
 
-  return { authed, login, logout };
+  return { authed, checking, login, logout };
 }

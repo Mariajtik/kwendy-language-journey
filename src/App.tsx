@@ -13,6 +13,8 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AcessibilidadeProvider } from "@/contexts/AcessibilidadeContext";
 import { PremiumProvider } from "@/contexts/PremiumContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { useBackendSync } from "@/hooks/useBackendSync";
 
 /* Screen imports */
 import SplashScreen from "./screens/SplashScreen";
@@ -27,6 +29,7 @@ import LoginScreen from "./screens/LoginScreen";
 import StealthModeScreen from "./screens/StealthModeScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import ProcessingResultsScreen from "./screens/ProcessingResultsScreen";
 import NivelamentoScreen from "./screens/NivelamentoScreen";
 import LessonScreen from "./screens/LessonScreen";
@@ -70,6 +73,7 @@ const queryClient = new QueryClient();
 const AnimatedRoutes = () => {
   const location = useLocation();
   useAdminShortcut();
+  useBackendSync();
   useEffect(() => {
     installSessionTracker();
   }, []);
@@ -85,6 +89,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<SignupFlow />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+        <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/processing" element={<ProcessingResultsScreen />} />
         <Route path="/nivelamento" element={<NivelamentoScreen />} />
         <Route path="/stealth" element={<StealthModeScreen />} />
@@ -137,6 +142,7 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
     <AcessibilidadeProvider>
       <PremiumProvider>
         <TooltipProvider>
@@ -148,6 +154,7 @@ const App = () => (
         </TooltipProvider>
       </PremiumProvider>
     </AcessibilidadeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
