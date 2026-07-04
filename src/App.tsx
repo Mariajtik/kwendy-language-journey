@@ -73,6 +73,41 @@ import KwendiChatScreen from "./screens/KwendiChatScreen";
 
 const queryClient = new QueryClient();
 
+const PUBLIC_ROUTES = new Set([
+  "/",
+  "/apresentation",
+  "/features",
+  "/welcome",
+  "/signup",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+  "/verify-email",
+  "/verify-otp",
+  "/stealth",
+  "/fronteiras-intro",
+]);
+
+/** Redireciona para /apresentation se o utilizador não tem sessão real nem
+ *  modo furtivo válido e está a tentar aceder a uma rota protegida. */
+const RouteGate = () => {
+  const { user, isStealth, stealthValido, loading } = useAuth();
+  const location = useLocation();
+  const nav = useNavigate();
+  useEffect(() => {
+    if (loading) return;
+    const path = location.pathname;
+    if (PUBLIC_ROUTES.has(path)) return;
+    if (path.startsWith("/grupo16Kwendi")) return;
+    const temAcesso = !!user && (!isStealth || stealthValido);
+    if (!temAcesso) {
+      nav("/apresentation", { replace: true });
+    }
+  }, [loading, location.pathname, user, isStealth, stealthValido, nav]);
+  return null;
+};
+
 /** Animated routes wrapper — uses location key for AnimatePresence */
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -86,6 +121,7 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <AdminTestingBanner />
       <StealthExpiryBanner />
+      <RouteGate />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<SplashScreen />} />
         <Route path="/apresentation" element={<ApresentationScreen />} />
