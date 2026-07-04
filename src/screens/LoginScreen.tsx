@@ -24,14 +24,33 @@ const LoginScreen = () => {
   const [busy, setBusy] = useState(false);
 
   const handleLogin = async () => {
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Introduz um e-mail válido.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
     setBusy(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
     setBusy(false);
     if (error) {
       const msg = `${error.message}`.toLowerCase();
       if (msg.includes("confirm") || msg.includes("not confirmed")) {
-        toast.error("O teu e-mail ainda não foi confirmado. Insere o código.");
-        navigate("/verify-otp", { state: { email, next: "/home" } });
+        toast.error("O teu e-mail ainda não foi confirmado. Verifica a tua caixa de entrada.");
+        navigate("/verify-email", { state: { email, next: "/home" } });
+        return;
+      }
+      if (msg.includes("invalid login") || msg.includes("credentials")) {
+        toast.error("E-mail ou senha incorretos.");
+        return;
+      }
+      if (msg.includes("rate")) {
+        toast.error("Demasiadas tentativas. Aguarda uns segundos.");
         return;
       }
       toast.error(error.message || "Credenciais inválidas.");
