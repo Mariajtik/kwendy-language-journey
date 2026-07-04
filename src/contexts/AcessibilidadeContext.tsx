@@ -17,6 +17,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { pushKey } from "@/lib/backend/mirror";
 
 type Prefs = {
   temaEscuro: boolean;
@@ -55,11 +56,7 @@ export const AcessibilidadeProvider = ({ children }: { children: ReactNode }) =>
   const [prefs, setPrefs] = useState<Prefs>(() => readStored());
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-    } catch {
-      /* ignore */
-    }
+    pushKey(STORAGE_KEY, prefs);
     const root = document.documentElement;
     if (prefs.temaEscuro) root.classList.add("dark");
     else root.classList.remove("dark");
