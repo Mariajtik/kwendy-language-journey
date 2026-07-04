@@ -274,7 +274,7 @@ const SignupFlow = () => {
           const nextRoute = level === "Iniciante"
             ? "/home"
             : "/nivelamento";
-          navigate("/verify-otp", { state: { email, next: nextRoute } });
+          navigate("/verify-email", { state: { email, next: nextRoute } });
           return;
         }
       }
