@@ -1,10 +1,13 @@
 /**
  * SocialAuthButtons.tsx
- * Google + Apple buttons (UI only). Calls onProvider with the chosen provider.
+ * Google + Apple buttons. Uses Supabase OAuth and stores the intended return route.
  */
 
+import { useState } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildOAuthRedirectTo, rememberOAuthNext } from "@/lib/authRedirect";
 
 interface Props {
   /** Action verb shown in the toast — "Login" or "Cadastro" */
@@ -13,20 +16,26 @@ interface Props {
 }
 
 const SocialAuthButtons = ({ mode = "login", onProvider }: Props) => {
+  const [busyProvider, setBusyProvider] = useState<"google" | "apple" | null>(null);
+
   const handle = async (provider: "google" | "apple") => {
     if (onProvider) return onProvider(provider);
+    setBusyProvider(provider);
     try {
+      rememberOAuthNext("/home");
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/home` },
+        options: { redirectTo: buildOAuthRedirectTo("/home") },
       });
       if (error) {
         toast.error(
           `Provedor não configurado. Ative ${provider} no Supabase → Authentication → Providers.`,
         );
+        setBusyProvider(null);
       }
     } catch {
       toast.error("Não foi possível iniciar o login social.");
+      setBusyProvider(null);
     }
     // silencioso após redirect
     void mode;
@@ -37,20 +46,22 @@ const SocialAuthButtons = ({ mode = "login", onProvider }: Props) => {
       <button
         type="button"
         onClick={() => handle("google")}
+        disabled={busyProvider !== null}
         className="w-full h-12 rounded-2xl bg-white border-2 border-border flex items-center justify-center gap-3 font-bold text-foreground active:translate-y-1 transition-transform"
         style={{ boxShadow: "0 3px 0 hsl(var(--border))" }}
       >
-        <GoogleIcon className="w-5 h-5" />
+        {busyProvider === "google" ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon className="w-5 h-5" />}
         Continuar com Google
       </button>
 
       <button
         type="button"
         onClick={() => handle("apple")}
+        disabled={busyProvider !== null}
         className="w-full h-12 rounded-2xl bg-black text-white flex items-center justify-center gap-3 font-bold active:translate-y-1 transition-transform"
         style={{ boxShadow: "0 3px 0 #000" }}
       >
-        <AppleIcon className="w-5 h-5" />
+        {busyProvider === "apple" ? <Loader2 className="w-5 h-5 animate-spin" /> : <AppleIcon className="w-5 h-5" />}
         Continuar com Apple
       </button>
     </div>

@@ -23,6 +23,7 @@ import SocialAuthButtons from "@/components/SocialAuthButtons";
 import { registerLocalUser } from "@/lib/adminRegistry";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { buildOAuthRedirectTo, rememberOAuthNext } from "@/lib/authRedirect";
 import {
   Select,
   SelectContent,
@@ -333,9 +334,10 @@ const SignupFlow = () => {
     } catch {
       /* noop */
     }
+    rememberOAuthNext("/signup");
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/signup` },
+      options: { redirectTo: buildOAuthRedirectTo("/signup") },
     });
     if (error) {
       toast.error(

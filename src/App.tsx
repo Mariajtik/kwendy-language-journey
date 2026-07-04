@@ -31,6 +31,7 @@ import HomeScreen from "./screens/HomeScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import VerifyEmailScreen from "./screens/VerifyEmailScreen";
+import AuthCallbackScreen from "./screens/AuthCallbackScreen";
 import ProcessingResultsScreen from "./screens/ProcessingResultsScreen";
 import NivelamentoScreen from "./screens/NivelamentoScreen";
 import LessonScreen from "./screens/LessonScreen";
@@ -91,6 +92,7 @@ const AnimatedRoutes = () => {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
+        <Route path="/auth/callback" element={<AuthCallbackScreen />} />
         <Route path="/verify-email" element={<VerifyEmailScreen />} />
         <Route path="/verify-otp" element={<VerifyEmailScreen />} />
         <Route path="/processing" element={<ProcessingResultsScreen />} />
