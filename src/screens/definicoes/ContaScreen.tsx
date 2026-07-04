@@ -81,22 +81,12 @@ const ContaScreen = () => {
     if (aEliminar) return;
     setAEliminar(true);
     try {
-      if (user) {
-        const { error } = await supabase.functions.invoke("delete-account");
-        if (error) {
-          setAEliminar(false);
-          toast.error("Não foi possível eliminar a conta. Tenta de novo.");
-          return;
-        }
+      if (!user) {
+        nav("/", { replace: true });
+        return;
       }
-      await signOut().catch(() => {});
-      try {
-        Object.keys(localStorage)
-          .filter((k) => k.startsWith("kwendi"))
-          .forEach((k) => localStorage.removeItem(k));
-      } catch { /* noop */ }
-      toast.success("Conta eliminada");
-      nav("/", { replace: true });
+      // Exige verificação OTP antes de eliminar.
+      nav("/auth/otp", { state: { purpose: "account_delete" } });
     } finally {
       setAEliminar(false);
     }
