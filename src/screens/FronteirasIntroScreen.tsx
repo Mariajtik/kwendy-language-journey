@@ -41,7 +41,7 @@ const SLIDES: Slide[] = [
 ];
 
 const SLIDE_DURATION = 6500;
-const STORAGE_KEY = "kwendi_seen_fronteiras_intro";
+const FLAG = "kwendi_seen_fronteiras_intro";
 
 const FronteirasIntroScreen = () => {
   const navigate = useNavigate();
@@ -82,14 +82,14 @@ const FronteirasIntroScreen = () => {
   };
 
   const handleSkip = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+    setFlag(FLAG);
     navigate("/para-alem-fronteiras", { replace: true });
   };
 
   const handleGo = () => {
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, "1");
+      setFlag(FLAG);
       navigate("/para-alem-fronteiras", { replace: true });
     }, 900);
   };

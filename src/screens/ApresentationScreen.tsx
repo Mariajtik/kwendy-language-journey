@@ -101,14 +101,14 @@ const ApresentationScreen = () => {
   };
 
   const handleSkip = () => {
-    localStorage.setItem("kwendi_seen_apresentation", "1");
+    setFlag("kwendi_seen_apresentation");
     navigate("/features", { replace: true });
   };
 
   const handleGo = () => {
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem("kwendi_seen_apresentation", "1");
+      setFlag("kwendi_seen_apresentation");
       navigate("/features", { replace: true });
     }, 900);
   };

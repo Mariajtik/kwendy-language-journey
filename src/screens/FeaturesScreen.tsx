@@ -85,7 +85,7 @@ const FeaturesScreen = () => {
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    localStorage.setItem("kwendi_seen_features", "1");
+    setFlag("kwendi_seen_features");
     navigate("/welcome", { replace: true });
   };
 

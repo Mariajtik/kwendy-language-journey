@@ -42,7 +42,7 @@ const SplashScreen = () => {
     /* Após mais 1s, segue para a próxima tela.
        Primeira visita → /apresentation; depois → /welcome. */
     const navTimer = setTimeout(() => {
-      const seenApresentation = localStorage.getItem("kwendi_seen_apresentation");
+      const seenApresentation = getLegacyFlag("kwendi_seen_apresentation");
       const next = seenApresentation ? "/welcome" : "/apresentation";
       navigate(next, { replace: true });
     }, 2000);

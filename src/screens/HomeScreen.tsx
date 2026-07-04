@@ -465,7 +465,7 @@ const HomeScreen = () => {
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             aria-label="Mapa de África"
             onClick={() => {
-              const seen = localStorage.getItem("kwendi_seen_fronteiras_intro");
+              const seen = getLegacyFlag("kwendi_seen_fronteiras_intro");
               navigate(seen ? "/para-alem-fronteiras" : "/fronteiras-intro");
             }}
           >
