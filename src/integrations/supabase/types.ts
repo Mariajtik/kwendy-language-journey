@@ -104,6 +104,48 @@ export type Database = {
         }
         Relationships: []
       }
+      progresso: {
+        Row: {
+          created_at: string
+          diamantes: number
+          ofensiva: number
+          ofensiva_ultimo_dia: string | null
+          premium: boolean
+          secoes_completas: Json
+          unidade_atual: number
+          updated_at: string
+          user_id: string
+          vidas: number
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          diamantes?: number
+          ofensiva?: number
+          ofensiva_ultimo_dia?: string | null
+          premium?: boolean
+          secoes_completas?: Json
+          unidade_atual?: number
+          updated_at?: string
+          user_id: string
+          vidas?: number
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          diamantes?: number
+          ofensiva?: number
+          ofensiva_ultimo_dia?: string | null
+          premium?: boolean
+          secoes_completas?: Json
+          unidade_atual?: number
+          updated_at?: string
+          user_id?: string
+          vidas?: number
+          xp?: number
+        }
+        Relationships: []
+      }
       user_devices: {
         Row: {
           created_at: string
@@ -128,6 +170,159 @@ export type Database = {
           id?: string
           ultimo_uso?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_inventario: {
+        Row: {
+          created_at: string
+          itens: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          itens?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          itens?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_missoes: {
+        Row: {
+          conquistas: Json
+          created_at: string
+          diarias: Json
+          reset_diario_em: string | null
+          reset_semanal_em: string | null
+          semanais: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conquistas?: Json
+          created_at?: string
+          diarias?: Json
+          reset_diario_em?: string | null
+          reset_semanal_em?: string | null
+          semanais?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conquistas?: Json
+          created_at?: string
+          diarias?: Json
+          reset_diario_em?: string | null
+          reset_semanal_em?: string | null
+          semanais?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_nivelamento: {
+        Row: {
+          ancião: string | null
+          created_at: string
+          feito: boolean
+          percentagem: number
+          respostas: Json
+          unidade_sugerida: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ancião?: string | null
+          created_at?: string
+          feito?: boolean
+          percentagem?: number
+          respostas?: Json
+          unidade_sugerida?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ancião?: string | null
+          created_at?: string
+          feito?: boolean
+          percentagem?: number
+          respostas?: Json
+          unidade_sugerida?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_passaporte: {
+        Row: {
+          created_at: string
+          provincias_visitadas: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          provincias_visitadas?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          provincias_visitadas?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferencias: {
+        Row: {
+          alto_contraste: boolean
+          created_at: string
+          extras: Json
+          fonte: string
+          musica: boolean
+          notificacoes: boolean
+          reduzir_movimento: boolean
+          som: boolean
+          tema: string
+          updated_at: string
+          user_id: string
+          vibracao: boolean
+        }
+        Insert: {
+          alto_contraste?: boolean
+          created_at?: string
+          extras?: Json
+          fonte?: string
+          musica?: boolean
+          notificacoes?: boolean
+          reduzir_movimento?: boolean
+          som?: boolean
+          tema?: string
+          updated_at?: string
+          user_id: string
+          vibracao?: boolean
+        }
+        Update: {
+          alto_contraste?: boolean
+          created_at?: string
+          extras?: Json
+          fonte?: string
+          musica?: boolean
+          notificacoes?: boolean
+          reduzir_movimento?: boolean
+          som?: boolean
+          tema?: string
+          updated_at?: string
+          user_id?: string
+          vibracao?: boolean
         }
         Relationships: []
       }

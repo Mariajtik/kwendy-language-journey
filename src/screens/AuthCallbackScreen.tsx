@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { consumeOAuthNext, getOAuthErrorFromUrl, normaliseAppPath } from "@/lib/authRedirect";
+import { isDeviceTrusted, trustDevice } from "@/lib/deviceTrust";
 
 const AuthCallbackScreen = () => {
   const navigate = useNavigate();
@@ -23,9 +24,20 @@ const AuthCallbackScreen = () => {
     }
 
     let settled = false;
-    const finish = () => {
+    const finish = async (userId?: string) => {
       if (settled) return;
       settled = true;
+      if (userId) {
+        const trusted = await isDeviceTrusted(userId);
+        if (trusted) {
+          await trustDevice(userId).catch(() => {});
+          toast.success("Login concluído.");
+          navigate(next, { replace: true });
+          return;
+        }
+        navigate("/auth/otp", { state: { purpose: "login", next }, replace: true });
+        return;
+      }
       toast.success("Login concluído.");
       navigate(next, { replace: true });
     };
@@ -40,7 +52,7 @@ const AuthCallbackScreen = () => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         window.clearTimeout(failTimer);
-        finish();
+        void finish(session.user?.id);
       }
     });
 
@@ -53,7 +65,7 @@ const AuthCallbackScreen = () => {
       }
       if (data.session) {
         window.clearTimeout(failTimer);
-        finish();
+        void finish(data.session.user?.id);
       }
     });
 

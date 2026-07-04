@@ -70,6 +70,7 @@ import { Navigate } from "react-router-dom";
 import { installSessionTracker } from "./lib/sessionTracker";
 import StealthExpiryBanner from "./components/StealthExpiryBanner";
 import KwendiChatScreen from "./screens/KwendiChatScreen";
+import AuthOtpScreen from "./screens/AuthOtpScreen";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const PUBLIC_ROUTES = new Set([
   "/auth/callback",
   "/verify-email",
   "/verify-otp",
+  "/auth/otp",
   "/stealth",
   "/fronteiras-intro",
 ]);
@@ -132,6 +134,7 @@ const AnimatedRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/auth/callback" element={<AuthCallbackScreen />} />
+        <Route path="/auth/otp" element={<AuthOtpScreen />} />
         <Route path="/verify-email" element={<VerifyEmailScreen />} />
         <Route path="/verify-otp" element={<VerifyEmailScreen />} />
         <Route path="/processing" element={<ProcessingResultsScreen />} />
