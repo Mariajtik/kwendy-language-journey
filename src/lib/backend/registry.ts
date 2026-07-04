@@ -110,17 +110,17 @@ registerMirror({
   decode: (r: any) => (r.flags && Object.keys(r.flags).length ? r.flags : null),
 });
 
-// Notificações
+// Notificações — chave "kwendi.def.notif"
 registerMirror({
-  key: "kwendi.notificacoes",
+  key: "kwendi.def.notif",
   table: "user_preferencias",
   encode: (s: any) => ({ notificacoes: s ?? {} }),
   decode: (r: any) => (r.notificacoes && Object.keys(r.notificacoes).length ? r.notificacoes : null),
 });
 
-// Acessibilidade
+// Acessibilidade — chave "kwendi:acessibilidade"
 registerMirror({
-  key: "kwendi.acess",
+  key: "kwendi:acessibilidade",
   table: "user_preferencias",
   encode: (s: any) => ({ acessibilidade: s ?? {} }),
   decode: (r: any) => (r.acessibilidade && Object.keys(r.acessibilidade).length ? r.acessibilidade : null),
