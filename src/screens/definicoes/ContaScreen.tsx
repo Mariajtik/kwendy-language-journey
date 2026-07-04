@@ -337,21 +337,22 @@ const SimpleModal = ({
 );
 
 const AlterarPasswordForm = ({ onPronto }: { onPronto: () => void }) => {
-  const [atual, setAtual] = useState("");
+  const nav = useNavigate();
   const [nova, setNova] = useState("");
   const [conf, setConf] = useState("");
 
   const submeter = () => {
-    if (nova.length < 6) return toast("A nova palavra-passe deve ter pelo menos 6 caracteres.");
-    if (nova !== conf) return toast("A confirmação não coincide.");
-    if (!atual) return toast("Indica a palavra-passe atual.");
-    toast("Palavra-passe atualizada");
+    if (nova.length < 8) return toast.error("A nova palavra-passe deve ter pelo menos 8 caracteres.");
+    if (nova !== conf) return toast.error("A confirmação não coincide.");
     onPronto();
+    nav("/auth/otp", { state: { purpose: "password_change", newPassword: nova, next: "/profile/conta" } });
   };
 
   return (
     <div className="space-y-3">
-      <Field icon={<Lock className="w-4 h-4" />} label="Atual" value={atual} onChange={setAtual} type="password" />
+      <p className="text-xs text-muted-foreground">
+        Vais receber um código de 6 dígitos no e-mail para confirmar.
+      </p>
       <Field icon={<Lock className="w-4 h-4" />} label="Nova" value={nova} onChange={setNova} type="password" />
       <Field icon={<Lock className="w-4 h-4" />} label="Confirmar nova" value={conf} onChange={setConf} type="password" />
       <button
@@ -359,7 +360,7 @@ const AlterarPasswordForm = ({ onPronto }: { onPronto: () => void }) => {
         className="w-full rounded-2xl py-3 font-extrabold text-white"
         style={{ background: "hsl(var(--primary))", boxShadow: "0 4px 0 hsl(var(--kwendi-red-dark))" }}
       >
-        Atualizar
+        Continuar
       </button>
     </div>
   );
