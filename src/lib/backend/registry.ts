@@ -110,9 +110,9 @@ registerMirror({
   decode: (r: any) => (r.flags && Object.keys(r.flags).length ? r.flags : null),
 });
 
-// Notificações
+// Notificações — chave "kwendi.def.notif"
 registerMirror({
-  key: "kwendi.notificacoes",
+  key: "kwendi.def.notif",
   table: "user_preferencias",
   encode: (s: any) => ({ notificacoes: s ?? {} }),
   decode: (r: any) => (r.notificacoes && Object.keys(r.notificacoes).length ? r.notificacoes : null),
