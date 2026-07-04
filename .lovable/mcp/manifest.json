@@ -3,11 +3,7 @@
   "sdk_version": "0.20.0",
   "path": "/functions/v1/mcp",
   "auth": {
-    "type": "oauth",
-    "issuer": "https://hrbltonpknsxfwdyzykz.supabase.co/auth/v1",
-    "accepted_audiences": [
-      "authenticated"
-    ]
+    "type": "none"
   },
   "mcp": {
     "server": {
@@ -109,22 +105,6 @@
           },
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
-        },
-        "outputSchema": null
-      },
-      {
-        "name": "get_my_progress",
-        "title": "Get my Kwendi progress",
-        "description": "Return the signed-in user's Kwendi learning progress: XP, diamonds, streak, completed sections and premium status.",
-        "annotations": {
-          "readOnlyHint": true,
-          "idempotentHint": true,
-          "openWorldHint": false
-        },
-        "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
-          "type": "object",
-          "properties": {}
         },
         "outputSchema": null
       }

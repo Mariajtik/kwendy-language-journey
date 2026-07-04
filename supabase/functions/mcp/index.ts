@@ -3,7 +3,7 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/search-dictionary.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
@@ -95,56 +95,13 @@ var list_curiosities_default = defineTool3({
   }
 });
 
-// src/lib/mcp/tools/get-my-progress.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
-function supabaseForUser(ctx) {
-  return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
-var get_my_progress_default = defineTool4({
-  name: "get_my_progress",
-  title: "Get my Kwendi progress",
-  description: "Return the signed-in user's Kwendi learning progress: XP, diamonds, streak, completed sections and premium status.",
-  inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async (_input, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return {
-        content: [{ type: "text", text: "Not authenticated." }],
-        isError: true
-      };
-    }
-    const supa = supabaseForUser(ctx);
-    const { data, error } = await supa.from("progresso").select("*").eq("user_id", ctx.getUserId()).maybeSingle();
-    if (error) {
-      return { content: [{ type: "text", text: error.message }], isError: true };
-    }
-    return {
-      content: [{ type: "text", text: JSON.stringify(data ?? {}, null, 2) }],
-      structuredContent: { progress: data ?? null }
-    };
-  }
-});
-
 // src/lib/mcp/index.ts
-var projectRef = "hrbltonpknsxfwdyzykz";
 var mcp_default = defineMcp({
   name: "kwendi-mcp",
   title: "Kwendi MCP",
   version: "0.1.0",
-  instructions: "Tools for Kwendi, an app to learn the Umbundu language and Angolan culture. Use `search_dictionary` for PT \u21C4 Umbundu lookups, `list_stories` for Angolan tales, `list_curiosities` for cultural facts, and `get_my_progress` to read the signed-in learner's XP, streak and progress.",
-  auth: auth.oauth.issuer({
-    issuer: `https://${projectRef}.supabase.co/auth/v1`,
-    acceptedAudiences: "authenticated"
-  }),
-  tools: [search_dictionary_default, list_stories_default, list_curiosities_default, get_my_progress_default]
+  instructions: "Tools for Kwendi, an app to learn the Umbundu language and Angolan culture. Use `search_dictionary` for PT \u21C4 Umbundu lookups, `list_stories` for Angolan tales, and `list_curiosities` for cultural facts about Angola.",
+  tools: [search_dictionary_default, list_stories_default, list_curiosities_default]
 });
 
 // lovable-mcp-supabase-entry.ts
