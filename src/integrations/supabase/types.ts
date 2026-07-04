@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_mensagens: {
+        Row: {
+          criado_em: string
+          id: string
+          parts: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          parts?: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          parts?: Json
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mensagens_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          titulo?: string
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       eventos: {
         Row: {
           criado_em: string
@@ -53,6 +112,7 @@ export type Database = {
           objetivo_diario: string | null
           pais: string | null
           provincia: string | null
+          stealth_avisado_em: string | null
           stealth_expira_em: string | null
           tipo: string
         }
@@ -70,6 +130,7 @@ export type Database = {
           objetivo_diario?: string | null
           pais?: string | null
           provincia?: string | null
+          stealth_avisado_em?: string | null
           stealth_expira_em?: string | null
           tipo?: string
         }
@@ -87,6 +148,7 @@ export type Database = {
           objetivo_diario?: string | null
           pais?: string | null
           provincia?: string | null
+          stealth_avisado_em?: string | null
           stealth_expira_em?: string | null
           tipo?: string
         }
@@ -94,11 +156,13 @@ export type Database = {
       }
       progresso: {
         Row: {
+          ads_off: boolean
           ancao: boolean
           atualizado_em: string
           diamantes: number
           nivelamento_percentagem: number | null
           premium: boolean
+          premium_expira_em: string | null
           seccoes_completas: string[]
           streak: number
           unidade_atual: string | null
@@ -106,11 +170,13 @@ export type Database = {
           xp: number
         }
         Insert: {
+          ads_off?: boolean
           ancao?: boolean
           atualizado_em?: string
           diamantes?: number
           nivelamento_percentagem?: number | null
           premium?: boolean
+          premium_expira_em?: string | null
           seccoes_completas?: string[]
           streak?: number
           unidade_atual?: string | null
@@ -118,11 +184,13 @@ export type Database = {
           xp?: number
         }
         Update: {
+          ads_off?: boolean
           ancao?: boolean
           atualizado_em?: string
           diamantes?: number
           nivelamento_percentagem?: number | null
           premium?: boolean
+          premium_expira_em?: string | null
           seccoes_completas?: string[]
           streak?: number
           unidade_atual?: string | null
@@ -155,6 +223,132 @@ export type Database = {
         }
         Relationships: []
       }
+      user_inventario: {
+        Row: {
+          atualizado_em: string
+          desbloqueios: string[]
+          power_ups: Json
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          desbloqueios?: string[]
+          power_ups?: Json
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          desbloqueios?: string[]
+          power_ups?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_missoes: {
+        Row: {
+          atualizado_em: string
+          conquistas: Json
+          missoes: Json
+          ultimo_reset: Json
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          conquistas?: Json
+          missoes?: Json
+          ultimo_reset?: Json
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          conquistas?: Json
+          missoes?: Json
+          ultimo_reset?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_nivelamento: {
+        Row: {
+          acertos: number
+          ancao: boolean
+          atualizado_em: string
+          fez: boolean
+          percentagem: number
+          popup_pendente: string | null
+          todos_desbloqueados: boolean
+          total: number
+          unidade_sugerida: string | null
+          user_id: string
+        }
+        Insert: {
+          acertos?: number
+          ancao?: boolean
+          atualizado_em?: string
+          fez?: boolean
+          percentagem?: number
+          popup_pendente?: string | null
+          todos_desbloqueados?: boolean
+          total?: number
+          unidade_sugerida?: string | null
+          user_id: string
+        }
+        Update: {
+          acertos?: number
+          ancao?: boolean
+          atualizado_em?: string
+          fez?: boolean
+          percentagem?: number
+          popup_pendente?: string | null
+          todos_desbloqueados?: boolean
+          total?: number
+          unidade_sugerida?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_passaporte: {
+        Row: {
+          atualizado_em: string
+          estado: Json
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          estado?: Json
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          estado?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferencias: {
+        Row: {
+          acessibilidade: Json
+          atualizado_em: string
+          flags: Json
+          notificacoes: Json
+          user_id: string
+        }
+        Insert: {
+          acessibilidade?: Json
+          atualizado_em?: string
+          flags?: Json
+          notificacoes?: Json
+          user_id: string
+        }
+        Update: {
+          acessibilidade?: Json
+          atualizado_em?: string
+          flags?: Json
+          notificacoes?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           criado_em: string
@@ -173,6 +367,48 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_saldo: {
+        Row: {
+          atualizado_em: string
+          baus: Json
+          curiosidades_lidas: string[]
+          diamantes: number
+          fragmentos: number
+          ofensiva: number
+          ultimo_dia_ativo: string
+          user_id: string
+          vidas: number
+          vidas_extra: number
+          xp: number
+        }
+        Insert: {
+          atualizado_em?: string
+          baus?: Json
+          curiosidades_lidas?: string[]
+          diamantes?: number
+          fragmentos?: number
+          ofensiva?: number
+          ultimo_dia_ativo?: string
+          user_id: string
+          vidas?: number
+          vidas_extra?: number
+          xp?: number
+        }
+        Update: {
+          atualizado_em?: string
+          baus?: Json
+          curiosidades_lidas?: string[]
+          diamantes?: number
+          fragmentos?: number
+          ofensiva?: number
+          ultimo_dia_ativo?: string
+          user_id?: string
+          vidas?: number
+          vidas_extra?: number
+          xp?: number
         }
         Relationships: []
       }
