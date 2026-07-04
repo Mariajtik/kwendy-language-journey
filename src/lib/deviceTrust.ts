@@ -58,10 +58,21 @@ export async function isDeviceTrusted(userId: string): Promise<boolean> {
 export async function trustDevice(userId: string): Promise<void> {
   const deviceId = getOrCreateDeviceId();
   const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 120) : null;
-  await supabase
+  const now = new Date().toISOString();
+  const { data: existing } = await supabase
     .from("user_devices")
-    .upsert(
-      { user_id: userId, device_id: deviceId, device_name: ua, ultimo_uso: new Date().toISOString() },
-      { onConflict: "user_id,device_id" as any },
-    );
+    .select("id")
+    .eq("user_id", userId)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (existing?.id) {
+    await supabase
+      .from("user_devices")
+      .update({ ultimo_uso: now, device_name: ua })
+      .eq("id", existing.id);
+  } else {
+    await supabase
+      .from("user_devices")
+      .insert({ user_id: userId, device_id: deviceId, device_name: ua, ultimo_uso: now });
+  }
 }
