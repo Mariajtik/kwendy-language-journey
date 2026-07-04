@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import { Bell, Users, Mail, Clock } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
+import { pushKey } from "@/lib/backend/mirror";
 
 const KEY = "kwendi.def.notif";
 
@@ -37,7 +38,7 @@ const NotificacoesScreen = () => {
     }
   }, []);
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(n));
+    pushKey(KEY, n);
   }, [n]);
 
   const items: { key: keyof Notif; label: string; desc: string; Icon?: typeof Bell; kwendiIcon?: "chamaAcesa" }[] = [
