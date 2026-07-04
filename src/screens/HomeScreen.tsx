@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getLegacyFlag } from "@/lib/backend/prefsFlags";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Play, Lock, BookOpen, Check } from "lucide-react";

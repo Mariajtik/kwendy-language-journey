@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import { Volume2, VolumeX } from "lucide-react";
 import fronteirasAsset from "@/assets/fronteiras.mp4.asset.json";
 import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";

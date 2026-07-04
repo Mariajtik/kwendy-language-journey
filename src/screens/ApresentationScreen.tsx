@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import mountainAsset from "@/assets/mountain.mp4.asset.json";

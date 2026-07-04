@@ -8,6 +8,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import {
   ArrowLeft,
 } from "lucide-react";
