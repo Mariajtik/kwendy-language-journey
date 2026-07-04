@@ -3,6 +3,7 @@
  * pelo utilizador no jogo Para Além de Fronteiras.
  */
 import { useCallback, useEffect, useState } from "react";
+import { pushKey } from "@/lib/backend/mirror";
 
 const KEY = "kwendi:fronteiras:passaporte";
 
@@ -27,7 +28,7 @@ function load(): PassaporteState {
 
 function save(s: PassaporteState) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(s));
+  pushKey(KEY, s);
 }
 
 export function usePassaporte() {

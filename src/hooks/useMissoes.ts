@@ -17,6 +17,7 @@ import {
 import { CONQUISTAS, type ConquistaDef } from "@/data/conquistas";
 import { BAUS, type DropItem } from "@/data/recompensas";
 import { getStat, STATS } from "@/lib/stats";
+import { pushKey } from "@/lib/backend/mirror";
 
 const STORAGE_KEY = "kwendi_missoes_v1";
 
@@ -121,7 +122,7 @@ export function useMissoes() {
   const { saldo } = useSaldo();
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    pushKey(STORAGE_KEY, state);
   }, [state]);
 
   // recheca resets ao montar

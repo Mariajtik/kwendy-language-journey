@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { premiumAtivoStatic } from "@/contexts/PremiumContext";
+import { pushKey } from "@/lib/backend/mirror";
 
 export type Raridade = "comum" | "raro" | "lendario";
 
@@ -64,7 +65,7 @@ function load(): Saldo {
 
 function save(s: Saldo) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(s));
+  pushKey(KEY, s);
   window.dispatchEvent(new CustomEvent(EVT));
 }
 
