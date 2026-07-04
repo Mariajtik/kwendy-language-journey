@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ItemId } from "@/data/loja";
 import { premiumAtivoStatic } from "@/contexts/PremiumContext";
 import { ITENS_LOJA } from "@/data/loja";
+import { pushKey } from "@/lib/backend/mirror";
 
 export interface PowerUpAtivo {
   itemId: ItemId;
@@ -40,7 +41,7 @@ function load(): Inventario {
 
 function save(inv: Inventario) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(inv));
+  pushKey(KEY, inv);
   window.dispatchEvent(new CustomEvent(EVT));
 }
 

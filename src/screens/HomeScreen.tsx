@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { getLegacyFlag } from "@/lib/backend/prefsFlags";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Play, Lock, BookOpen, Check } from "lucide-react";
@@ -465,7 +466,7 @@ const HomeScreen = () => {
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             aria-label="Mapa de África"
             onClick={() => {
-              const seen = localStorage.getItem("kwendi_seen_fronteiras_intro");
+              const seen = getLegacyFlag("kwendi_seen_fronteiras_intro");
               navigate(seen ? "/para-alem-fronteiras" : "/fronteiras-intro");
             }}
           >

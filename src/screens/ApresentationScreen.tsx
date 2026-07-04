@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import mountainAsset from "@/assets/mountain.mp4.asset.json";
@@ -101,14 +102,14 @@ const ApresentationScreen = () => {
   };
 
   const handleSkip = () => {
-    localStorage.setItem("kwendi_seen_apresentation", "1");
+    setFlag("kwendi_seen_apresentation");
     navigate("/features", { replace: true });
   };
 
   const handleGo = () => {
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem("kwendi_seen_apresentation", "1");
+      setFlag("kwendi_seen_apresentation");
       navigate("/features", { replace: true });
     }, 900);
   };

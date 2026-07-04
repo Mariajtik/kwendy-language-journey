@@ -68,6 +68,8 @@ import { useAdminShortcut } from "./hooks/useAdminShortcut";
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { installSessionTracker } from "./lib/sessionTracker";
+import StealthExpiryBanner from "./components/StealthExpiryBanner";
+import KwendiChatScreen from "./screens/KwendiChatScreen";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +85,7 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <AdminTestingBanner />
+      <StealthExpiryBanner />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<SplashScreen />} />
         <Route path="/apresentation" element={<ApresentationScreen />} />
@@ -116,6 +119,8 @@ const AnimatedRoutes = () => {
         <Route path="/loja" element={<LojaScreen />} />
         <Route path="/dicionario" element={<DicionarioScreen />} />
         <Route path="/secao/caderno" element={<CadernoScreen />} />
+        <Route path="/kwendi-ia" element={<KwendiChatScreen />} />
+        <Route path="/kwendi-ia/:threadId" element={<KwendiChatScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
         <Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />

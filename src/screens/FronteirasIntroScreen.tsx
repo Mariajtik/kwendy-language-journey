@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import { Volume2, VolumeX } from "lucide-react";
 import fronteirasAsset from "@/assets/fronteiras.mp4.asset.json";
 import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
@@ -41,7 +42,7 @@ const SLIDES: Slide[] = [
 ];
 
 const SLIDE_DURATION = 6500;
-const STORAGE_KEY = "kwendi_seen_fronteiras_intro";
+const FLAG = "kwendi_seen_fronteiras_intro";
 
 const FronteirasIntroScreen = () => {
   const navigate = useNavigate();
@@ -82,14 +83,14 @@ const FronteirasIntroScreen = () => {
   };
 
   const handleSkip = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+    setFlag(FLAG);
     navigate("/para-alem-fronteiras", { replace: true });
   };
 
   const handleGo = () => {
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, "1");
+      setFlag(FLAG);
       navigate("/para-alem-fronteiras", { replace: true });
     }, 900);
   };

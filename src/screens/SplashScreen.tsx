@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getLegacyFlag } from "@/lib/backend/prefsFlags";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +43,7 @@ const SplashScreen = () => {
     /* Após mais 1s, segue para a próxima tela.
        Primeira visita → /apresentation; depois → /welcome. */
     const navTimer = setTimeout(() => {
-      const seenApresentation = localStorage.getItem("kwendi_seen_apresentation");
+      const seenApresentation = getLegacyFlag("kwendi_seen_apresentation");
       const next = seenApresentation ? "/welcome" : "/apresentation";
       navigate(next, { replace: true });
     }, 2000);

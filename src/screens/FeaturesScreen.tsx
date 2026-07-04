@@ -8,6 +8,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { setFlag } from "@/lib/backend/prefsFlags";
 import {
   ArrowLeft,
 } from "lucide-react";
@@ -85,7 +86,7 @@ const FeaturesScreen = () => {
   const navigate = useNavigate();
 
   const handleContinue = () => {
-    localStorage.setItem("kwendi_seen_features", "1");
+    setFlag("kwendi_seen_features");
     navigate("/welcome", { replace: true });
   };
 

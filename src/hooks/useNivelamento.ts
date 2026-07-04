@@ -5,6 +5,7 @@
  * a HomeScreen mostrar a mensagem apenas uma vez após o teste.
  */
 import { useCallback, useEffect, useState } from "react";
+import { pushKey } from "@/lib/backend/mirror";
 
 const KEY = "kwendi:nivelamento";
 const EVT = "kwendi:nivelamento-changed";
@@ -44,7 +45,7 @@ function load(): NivelamentoEstado {
 
 function save(e: NivelamentoEstado) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(e));
+  pushKey(KEY, e);
   window.dispatchEvent(new CustomEvent(EVT));
 }
 
