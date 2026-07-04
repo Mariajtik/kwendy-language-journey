@@ -125,11 +125,3 @@ registerMirror({
   encode: (s: any) => ({ acessibilidade: s ?? {} }),
   decode: (r: any) => (r.acessibilidade && Object.keys(r.acessibilidade).length ? r.acessibilidade : null),
 });
-
-registerMirror({
-  key: "kwendi:acessibilidade:event",
-  table: "user_preferencias",
-  event: "kwendi:acess-changed",
-  encode: () => ({}),
-  decode: () => null,
-});
