@@ -9,6 +9,8 @@ import { Camera, Lock, Mail, Trash2, User as UserIcon, X } from "lucide-react";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import defaultAvatar from "@/assets/avatar.jpg";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const KEY = "kwendi.def.conta";
 
@@ -16,10 +18,12 @@ type Conta = { nome: string; email: string; foto?: string };
 
 const ContaScreen = () => {
   const nav = useNavigate();
+  const { user, signOut } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [conta, setConta] = useState<Conta>({ nome: "Angola", email: "membro@kwendi.xyz" });
+  const [conta, setConta] = useState<Conta>({ nome: "", email: "" });
   const [pwdAberto, setPwdAberto] = useState(false);
   const [eliminarAberto, setEliminarAberto] = useState(false);
+  const [aEliminar, setAEliminar] = useState(false);
 
   useEffect(() => {
     try {
@@ -29,6 +33,17 @@ const ContaScreen = () => {
       /* noop */
     }
   }, []);
+
+  // Sincronizar com o utilizador autenticado (fonte da verdade para o e-mail)
+  useEffect(() => {
+    if (!user) return;
+    const meta = (user.user_metadata ?? {}) as Record<string, any>;
+    setConta((c) => ({
+      ...c,
+      email: user.email ?? c.email,
+      nome: c.nome || meta.nome || user.email?.split("@")[0] || "",
+    }));
+  }, [user]);
 
   const persist = (next: Conta) => {
     setConta(next);
@@ -50,9 +65,41 @@ const ContaScreen = () => {
     reader.readAsDataURL(f);
   };
 
-  const guardarNome = () => {
+  const guardarNome = async () => {
     persist(conta);
-    toast("Nome guardado");
+    if (user) {
+      const { error } = await supabase.auth.updateUser({ data: { nome: conta.nome } });
+      if (error) return toast.error(error.message);
+      try {
+        await supabase.from("profiles").update({ nome: conta.nome }).eq("id", user.id);
+      } catch { /* noop */ }
+    }
+    toast.success("Nome guardado");
+  };
+
+  const eliminarConta = async () => {
+    if (aEliminar) return;
+    setAEliminar(true);
+    try {
+      if (user) {
+        const { error } = await supabase.functions.invoke("delete-account");
+        if (error) {
+          setAEliminar(false);
+          toast.error("Não foi possível eliminar a conta. Tenta de novo.");
+          return;
+        }
+      }
+      await signOut().catch(() => {});
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("kwendi"))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch { /* noop */ }
+      toast.success("Conta eliminada");
+      nav("/", { replace: true });
+    } finally {
+      setAEliminar(false);
+    }
   };
 
   return (
@@ -182,24 +229,15 @@ const ContaScreen = () => {
             Cancelar
           </button>
           <button
-            onClick={() => {
-              try {
-                Object.keys(localStorage)
-                  .filter((k) => k.startsWith("kwendi"))
-                  .forEach((k) => localStorage.removeItem(k));
-              } catch {
-                /* noop */
-              }
-              toast("Conta eliminada");
-              nav("/");
-            }}
+            onClick={eliminarConta}
+            disabled={aEliminar}
             className="flex-1 rounded-2xl py-3 font-extrabold text-white"
             style={{
               background: "hsl(var(--destructive))",
               boxShadow: "0 4px 0 hsl(var(--destructive) / 0.6)",
             }}
           >
-            Eliminar
+            {aEliminar ? "A eliminar…" : "Eliminar"}
           </button>
         </div>
       </SimpleModal>

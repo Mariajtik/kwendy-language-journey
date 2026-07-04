@@ -28,6 +28,12 @@ const LoginScreen = () => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
+      const msg = `${error.message}`.toLowerCase();
+      if (msg.includes("confirm") || msg.includes("not confirmed")) {
+        toast.error("O teu e-mail ainda não foi confirmado. Insere o código.");
+        navigate("/verify-otp", { state: { email, next: "/home" } });
+        return;
+      }
       toast.error(error.message || "Credenciais inválidas.");
       return;
     }

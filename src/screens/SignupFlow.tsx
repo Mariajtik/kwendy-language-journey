@@ -253,13 +253,28 @@ const SignupFlow = () => {
           return;
         }
         const redirect = `${window.location.origin}/home`;
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: redirect, data: metadata },
         });
-        if (error && !`${error.message}`.toLowerCase().includes("already")) {
+        if (error) {
+          const msg = `${error.message}`.toLowerCase();
+          if (msg.includes("already") || msg.includes("registered")) {
+            toast.error("Este e-mail já está registado. Faz login.");
+            navigate("/login");
+            return;
+          }
           toast.error(error.message || "Não foi possível criar a conta.");
+          return;
+        }
+        // Se não houver sessão, o Supabase enviou e-mail de confirmação (OTP).
+        if (!signUpData.session) {
+          try { sessionStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+          const nextRoute = level === "Iniciante"
+            ? "/home"
+            : "/nivelamento";
+          navigate("/verify-otp", { state: { email, next: nextRoute } });
           return;
         }
       }

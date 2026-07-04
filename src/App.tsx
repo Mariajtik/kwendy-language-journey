@@ -30,6 +30,7 @@ import StealthModeScreen from "./screens/StealthModeScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import VerifyOtpScreen from "./screens/VerifyOtpScreen";
 import ProcessingResultsScreen from "./screens/ProcessingResultsScreen";
 import NivelamentoScreen from "./screens/NivelamentoScreen";
 import LessonScreen from "./screens/LessonScreen";
@@ -90,6 +91,7 @@ const AnimatedRoutes = () => {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/reset-password" element={<ResetPasswordScreen />} />
+        <Route path="/verify-otp" element={<VerifyOtpScreen />} />
         <Route path="/processing" element={<ProcessingResultsScreen />} />
         <Route path="/nivelamento" element={<NivelamentoScreen />} />
         <Route path="/stealth" element={<StealthModeScreen />} />
