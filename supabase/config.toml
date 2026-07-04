@@ -5,5 +5,7 @@ project_id = "hrbltonpknsxfwdyzykz"
     verify_jwt = false
   [functions.bootstrap-admin]
     verify_jwt = false
+  [functions.delete-account]
+    verify_jwt = false
   [functions.moderate-profile]
     verify_jwt = true
