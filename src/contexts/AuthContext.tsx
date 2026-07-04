@@ -9,6 +9,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+// Regista todos os espelhos localStorage ⇄ Supabase (side-effect import).
+import "@/lib/backend/registry";
+import { clearAllLocal, hydrateAll } from "@/lib/backend/mirror";
 
 type AuthContextValue = {
   session: Session | null;
@@ -23,26 +26,6 @@ const AuthContext = createContext<AuthContextValue>({
   loading: true,
   signOut: async () => {},
 });
-
-function syncLegacyLocal(user: User | null) {
-  try {
-    if (!user) {
-      // não apaga automaticamente para não quebrar flows existentes
-      return;
-    }
-    const m = (user.user_metadata ?? {}) as Record<string, any>;
-    const legacy = {
-      id: user.id,
-      email: user.email,
-      nome: m.nome ?? user.email?.split("@")[0] ?? "Utilizador",
-      nivel: m.nivel_declarado ?? m.nivel ?? null,
-      cadastradoEm: user.created_at,
-    };
-    localStorage.setItem("kwendi.auth.user", JSON.stringify(legacy));
-  } catch {
-    /* noop */
-  }
-}
 
 function getProfileName(user: User) {
   const m = (user.user_metadata ?? {}) as Record<string, any>;
@@ -69,19 +52,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Regista listener PRIMEIRO
+    // Regista listener PRIMEIRO. Callback síncrono: nunca await aqui
+    // (evita deadlocks nos eventos do Supabase).
     const { data: sub } = supabase.auth.onAuthStateChange((_ev, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-      syncLegacyLocal(s?.user ?? null);
-      void syncBackendUser(s?.user ?? null);
+      if (s?.user) {
+        // fire-and-forget
+        setTimeout(() => {
+          void syncBackendUser(s.user);
+          void hydrateAll(s.user.id);
+        }, 0);
+      } else {
+        clearAllLocal();
+      }
     });
     // Depois lê sessão existente
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
-      syncLegacyLocal(data.session?.user ?? null);
-      void syncBackendUser(data.session?.user ?? null);
+      if (data.session?.user) {
+        void syncBackendUser(data.session.user);
+        void hydrateAll(data.session.user.id);
+      }
       setLoading(false);
     });
     return () => {
@@ -96,11 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loading,
       signOut: async () => {
         await supabase.auth.signOut();
-        try {
-          localStorage.removeItem("kwendi.auth.user");
-        } catch {
-          /* noop */
-        }
+        clearAllLocal();
       },
     }),
     [session, user, loading],
