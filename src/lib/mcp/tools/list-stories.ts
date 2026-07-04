@@ -1,6 +1,37 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { HISTORIAS } from "../../../data/historias";
+
+// Minimal inline catalog (kept in sync with src/data/historias.ts). Inline to
+// avoid pulling asset imports into the Deno bundle for the MCP function.
+const STORIES = [
+  {
+    id: "jacare-bangao",
+    titulo: "O Jacaré Bangão",
+    subtitulo: "Uma lenda do rio Dande",
+    regiao: "Caxito, Província do Bengo",
+    epoca: "Século XIX — Angola colonial",
+    duracaoMin: 7,
+    nivel: "Iniciante" as const,
+  },
+  {
+    id: "kianda",
+    titulo: "A Kianda do Mar",
+    subtitulo: "Mistérios da baía de Luanda",
+    regiao: "Luanda",
+    epoca: "Lenda atemporal",
+    duracaoMin: 6,
+    nivel: "Iniciante" as const,
+  },
+  {
+    id: "sumbi",
+    titulo: "Sumbi, a tartaruga sábia",
+    subtitulo: "Um conto de astúcia",
+    regiao: "Planalto Central",
+    epoca: "Tradição Ovimbundu",
+    duracaoMin: 5,
+    nivel: "Iniciante" as const,
+  },
+];
 
 export default defineTool({
   name: "list_stories",
@@ -12,15 +43,7 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ nivel }) => {
-    const items = HISTORIAS.filter((h) => !nivel || h.nivel === nivel).map((h) => ({
-      id: h.id,
-      titulo: h.titulo,
-      subtitulo: h.subtitulo,
-      regiao: h.regiao,
-      epoca: h.epoca,
-      nivel: h.nivel,
-      duracaoMin: h.duracaoMin,
-    }));
+    const items = STORIES.filter((h) => !nivel || h.nivel === nivel);
     return {
       content: [{ type: "text", text: JSON.stringify(items, null, 2) }],
       structuredContent: { items, count: items.length },

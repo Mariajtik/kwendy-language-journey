@@ -122,10 +122,7 @@ var search_dictionary_default = defineTool({
 // src/lib/mcp/tools/list-stories.ts
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z2 } from "npm:zod@^3.25.76";
-
-// src/data/historias.ts
-import bangaoAsset from "npm:@/assets/bangao.jpg.asset.json";
-var HISTORIAS = [
+var STORIES = [
   {
     id: "jacare-bangao",
     titulo: "O Jacar\xE9 Bang\xE3o",
@@ -133,121 +130,7 @@ var HISTORIAS = [
     regiao: "Caxito, Prov\xEDncia do Bengo",
     epoca: "S\xE9culo XIX \u2014 Angola colonial",
     duracaoMin: 7,
-    nivel: "Iniciante",
-    imagem: bangaoAsset.url,
-    cor: "28 55% 42%",
-    corEscura: "28 55% 28%",
-    sinopse: "Diz-se que, h\xE1 muito tempo, nas margens do rio Dande, vivia um jacar\xE9 chamado Sr. Ngandu. Cansado da crueldade de um chefe de posto colonial, decidiu ele pr\xF3prio ir pagar o imposto \u2014 e dar uma li\xE7\xE3o que Caxito nunca mais esqueceu.",
-    desbloqueada: true,
-    capitulos: [
-      {
-        id: "c1",
-        titulo: "As margens do Dande",
-        paragrafos: [
-          "Em Caxito, pequena cidade da prov\xEDncia do Bengo, corre o rio Dande, sereno e antigo. Foi nas suas margens que, h\xE1 mais de cem anos, viveu um jacar\xE9 enorme, de escamas escuras, conhecido por toda a gente como Sr. Ngandu.",
-          "Diziam os mais velhos que ele era irasc\xEDvel, brig\xE3o, sempre zangado \u2014 at\xE9 com a pr\xF3pria sombra. Mas Ngandu n\xE3o era apenas um animal qualquer: era um crocodilo da mais alta linhagem do Dande, e por isso o respeitavam."
-        ],
-        vocabulario: [
-          { umbundu: "Ongandu", pt: "Jacar\xE9, crocodilo" },
-          { umbundu: "Olui", pt: "Rio" },
-          { umbundu: "Imbo", pt: "Aldeia, terra" },
-          { umbundu: "Ukulu", pt: "Anci\xE3o, mais velho" },
-          { umbundu: "Otembo", pt: "Tempo, \xE9poca" }
-        ]
-      },
-      {
-        id: "c2",
-        titulo: "O Imposto Geral M\xEDnimo",
-        paragrafos: [
-          "Naqueles tempos, as autoridades coloniais portuguesas obrigavam cada angolano a pagar o Imposto Geral M\xEDnimo. Quem n\xE3o pagasse era espancado, humilhado, levado \xE0 for\xE7a para o trabalho contratado.",
-          "Em Caxito, o Chefe de Posto era implac\xE1vel. Feroz e desumano, batia nos mais velhos, atemorizava as m\xE3es, arrancava as \xFAltimas moedas das m\xE3os das crian\xE7as. O povo sofria em sil\xEAncio, mas o rio escutava."
-        ],
-        vocabulario: [
-          { umbundu: "Olombongo", pt: "Dinheiro" },
-          { umbundu: "Soma", pt: "Chefe, autoridade" },
-          { umbundu: "Omanu", pt: "Pessoas, povo" },
-          { umbundu: "Ohali", pt: "Sofrimento" }
-        ]
-      },
-      {
-        id: "c3",
-        titulo: "A vingan\xE7a do jacar\xE9",
-        paragrafos: [
-          "J\xE1 tinha o Sr. Ngandu, em tempos idos, escapado por pouco de ca\xE7adores que queriam mandar a sua pele para o Putu, para se fazerem carteiras. N\xE3o esqueceu a humilha\xE7\xE3o.",
-          "Numa certa manh\xE3, quando o sol mal beijava o Dande, Ngandu saiu da \xE1gua com uma moeda presa entre os dentes. Atravessou a estrada, subiu os degraus da Administra\xE7\xE3o e bateu \xE0 porta do Chefe de Posto. Vinha \u2014 disse-se depois \u2014 pagar o seu imposto."
-        ],
-        vocabulario: [
-          { umbundu: "Okuenda", pt: "Caminhar, ir" },
-          { umbundu: "Onjo", pt: "Casa" },
-          { umbundu: "Ekumbi", pt: "Sol" }
-        ]
-      },
-      {
-        id: "c4",
-        titulo: "A fuga do Sipaio",
-        paragrafos: [
-          "O Sipaio que guardava a porta deu um grito e fugiu de imediato. O Chefe de Posto, ao ver aquele jacar\xE9 enorme no seu gabinete, saltou pela janela e correu pelas ruas de Caxito, branco como a cal.",
-          "Alertados pelo Sipaio, os populares juntaram-se \xE0 porta da Administra\xE7\xE3o e a tudo assistiram, rindo-se \xE0s gargalhadas. Aquele dia, o medo trocou de lado."
-        ],
-        vocabulario: [
-          { umbundu: "Okuyuvuka", pt: "Fugir" },
-          { umbundu: "Oyembu", pt: "Riso, alegria" },
-          { umbundu: "Usumba", pt: "Medo" }
-        ]
-      },
-      {
-        id: "c5",
-        titulo: "Lenda que virou est\xE1tua",
-        paragrafos: [
-          "A hist\xF3ria do Sr. Ngandu correu de boca em boca, de av\xF3 para neto, de aldeia em aldeia. Tornou-se uma das lendas mais conhecidas de Angola \u2014 uma oratura de combate, que prenunciava a luta pela liberta\xE7\xE3o do povo.",
-          "Hoje, em Caxito, ergue-se uma est\xE1tua: um grande jacar\xE9 com uma moeda entre os dentes, sustentado por figuras do povo de bra\xE7os erguidos. \xC9 o Jacar\xE9 Bang\xE3o, lembrando a todos que mesmo o mais fraco pode fazer o opressor fugir pela janela."
-        ],
-        vocabulario: [
-          { umbundu: "Esanju", pt: "Alegria, vit\xF3ria" },
-          { umbundu: "Ekanga", pt: "Liberdade" },
-          { umbundu: "Ukulu wetu", pt: "A nossa tradi\xE7\xE3o" }
-        ]
-      }
-    ],
-    curiosidade: {
-      titulo: "A est\xE1tua do Jacar\xE9 Bang\xE3o",
-      texto: "Na entrada da cidade de Caxito, prov\xEDncia do Bengo, ergue-se uma est\xE1tua que homenageia esta lenda: um enorme jacar\xE9 de pedra, com uma moeda entre os dentes, sustentado por figuras do povo de bra\xE7os levantados. \xC9 a \xFAnica lenda angolana com monumento pr\xF3prio numa cidade do pa\xEDs, sinal da import\xE2ncia que a tradi\xE7\xE3o oral tem para a identidade do Bengo e de Angola.",
-      imagem: bangaoAsset.url
-    },
-    quiz: [
-      {
-        pergunta: "Em que rio vivia o Sr. Ngandu?",
-        opcoes: ["Kwanza", "Dande", "Cunene", "Cuango"],
-        correta: 1
-      },
-      {
-        pergunta: "O que foi o Sr. Ngandu fazer \xE0 Administra\xE7\xE3o?",
-        opcoes: [
-          "Pedir um emprego",
-          "Roubar comida",
-          "Pagar o Imposto Geral M\xEDnimo",
-          "Visitar o Sipaio"
-        ],
-        correta: 2
-      },
-      {
-        pergunta: "Como reagiu o Chefe de Posto ao ver o jacar\xE9?",
-        opcoes: [
-          "Cumprimentou-o",
-          "Saltou pela janela e fugiu",
-          "Chamou o ex\xE9rcito",
-          "Pediu desculpa ao povo"
-        ],
-        correta: 1
-      },
-      {
-        pergunta: 'Em Umbundu, o que significa "Ongandu"?',
-        opcoes: ["Rio", "Chefe", "Jacar\xE9", "Dinheiro"],
-        correta: 2
-      }
-    ],
-    recompensa: { xp: 80, diamantes: 20 },
-    referencia: 'Adaptado livremente de S\xE9rgio de Carvalho Rodrigues, "O Jacar\xE9 Bang\xE3o: uma lenda da oratura angolana", Revista Ecos, vol. 23, n.\xBA 02, 2017, e da tradi\xE7\xE3o oral do Bengo.'
+    nivel: "Iniciante"
   },
   {
     id: "kianda",
@@ -256,16 +139,7 @@ var HISTORIAS = [
     regiao: "Luanda",
     epoca: "Lenda atemporal",
     duracaoMin: 6,
-    nivel: "Iniciante",
-    imagem: "",
-    cor: "200 70% 45%",
-    corEscura: "200 70% 30%",
-    sinopse: "Em breve \u2014 a sereia das \xE1guas angolanas chega \xE0 Kwendi.",
-    desbloqueada: false,
-    capitulos: [],
-    curiosidade: { titulo: "", texto: "" },
-    quiz: [],
-    recompensa: { xp: 0, diamantes: 0 }
+    nivel: "Iniciante"
   },
   {
     id: "sumbi",
@@ -274,20 +148,9 @@ var HISTORIAS = [
     regiao: "Planalto Central",
     epoca: "Tradi\xE7\xE3o Ovimbundu",
     duracaoMin: 5,
-    nivel: "Iniciante",
-    imagem: "",
-    cor: "90 45% 38%",
-    corEscura: "90 45% 25%",
-    sinopse: "Em breve \u2014 uma f\xE1bula sobre paci\xEAncia e intelig\xEAncia.",
-    desbloqueada: false,
-    capitulos: [],
-    curiosidade: { titulo: "", texto: "" },
-    quiz: [],
-    recompensa: { xp: 0, diamantes: 0 }
+    nivel: "Iniciante"
   }
 ];
-
-// src/lib/mcp/tools/list-stories.ts
 var list_stories_default = defineTool2({
   name: "list_stories",
   title: "List Kwendi stories",
@@ -297,15 +160,7 @@ var list_stories_default = defineTool2({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ nivel }) => {
-    const items = HISTORIAS.filter((h) => !nivel || h.nivel === nivel).map((h) => ({
-      id: h.id,
-      titulo: h.titulo,
-      subtitulo: h.subtitulo,
-      regiao: h.regiao,
-      epoca: h.epoca,
-      nivel: h.nivel,
-      duracaoMin: h.duracaoMin
-    }));
+    const items = STORIES.filter((h) => !nivel || h.nivel === nivel);
     return {
       content: [{ type: "text", text: JSON.stringify(items, null, 2) }],
       structuredContent: { items, count: items.length }
