@@ -6,8 +6,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { buildOAuthRedirectTo, rememberOAuthNext } from "@/lib/authRedirect";
+import { lovable } from "@/integrations/lovable";
+import { rememberOAuthNext } from "@/lib/authRedirect";
 
 interface Props {
   /** Action verb shown in the toast — "Login" or "Cadastro" */
@@ -23,16 +23,16 @@ const SocialAuthButtons = ({ mode = "login", onProvider }: Props) => {
     setBusyProvider(provider);
     try {
       rememberOAuthNext("/home");
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: buildOAuthRedirectTo("/home") },
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin + "/auth/callback",
       });
-      if (error) {
-        toast.error(
-          `Provedor não configurado. Ative ${provider} no Supabase → Authentication → Providers.`,
-        );
+      if (result.error) {
+        toast.error(result.error.message || "Não foi possível iniciar o login social.");
         setBusyProvider(null);
+        return;
       }
+      // Se redirected=true, o browser está a navegar; se não, a sessão já foi
+      // gravada por lovable.auth.setSession — o AuthContext irá reagir.
     } catch {
       toast.error("Não foi possível iniciar o login social.");
       setBusyProvider(null);
