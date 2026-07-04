@@ -73,25 +73,22 @@ const StealthModeScreen = () => {
       const ativadoEm = new Date().toISOString();
       const expiraEm = new Date(Date.now() + 7 * 86400000).toISOString();
 
-      // 1) Cria conta furtiva no backend PRIMEIRO — dessa forma temos um JWT
-      //    válido para autenticar a chamada de moderação (evita abuso de custo
-      //    por chamadas anónimas ao gateway de IA).
-      const uid = crypto.randomUUID();
-      const email = `stealth-${uid}@kwendi.local`;
-      const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
+      // 1) Cria utilizador anónimo real (Supabase Anonymous Sign-in). O trigger
+      //    handle_new_user marca o profile como stealth com expiração 7d.
+      const { data: anonData, error: signUpError } = await supabase.auth.signInAnonymously({
         options: {
           data: {
             nome: username,
-            tipo: "stealth",
-            stealth_expira_em: expiraEm,
             pais: "Angola",
           },
         },
       });
       if (signUpError) throw signUpError;
+      const uid = anonData.user?.id;
+      if (uid) {
+        // Garante que o nome escolhido fica no perfil (o trigger usou default).
+        await supabase.from("profiles").update({ nome: username, pais: "Angola" }).eq("id", uid);
+      }
 
       // 2) Agora, com sessão activa, chama a moderação (função requer JWT).
       const { data, error } = await supabase.functions.invoke("moderate-profile", {
