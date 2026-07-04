@@ -10,14 +10,32 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { consumeOAuthNext, getOAuthErrorFromUrl } from "@/lib/authRedirect";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
+  const { session, loading } = useAuth();
 
   /** false = vermelho puro; true = vermelho + palavra "Kwendi" */
   const [showWordmark, setShowWordmark] = useState(false);
 
   useEffect(() => {
+    const oauthError = getOAuthErrorFromUrl();
+    if (oauthError) {
+      toast.error(oauthError);
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    if (loading) return;
+
+    if (session) {
+      navigate(consumeOAuthNext("/home"), { replace: true });
+      return;
+    }
+
     /* Fase 1 (1s vermelho puro) → Fase 2 (1s com wordmark). */
     const wordmarkTimer = setTimeout(() => setShowWordmark(true), 1000);
 
@@ -33,7 +51,7 @@ const SplashScreen = () => {
       clearTimeout(wordmarkTimer);
       clearTimeout(navTimer);
     };
-  }, [navigate]);
+  }, [loading, navigate, session]);
 
   return (
     <motion.div

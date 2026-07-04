@@ -44,6 +44,25 @@ function syncLegacyLocal(user: User | null) {
   }
 }
 
+function getProfileName(user: User) {
+  const m = (user.user_metadata ?? {}) as Record<string, any>;
+  return m.nome ?? m.full_name ?? m.name ?? user.email?.split("@")[0] ?? "Utilizador";
+}
+
+async function syncBackendUser(user: User | null) {
+  if (!user) return;
+  const nome = getProfileName(user);
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email ?? null,
+      nome,
+    },
+    { onConflict: "id" },
+  );
+  await supabase.from("progresso").upsert({ user_id: user.id }, { onConflict: "user_id" });
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -55,12 +74,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(s);
       setUser(s?.user ?? null);
       syncLegacyLocal(s?.user ?? null);
+      void syncBackendUser(s?.user ?? null);
     });
     // Depois lê sessão existente
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       syncLegacyLocal(data.session?.user ?? null);
+      void syncBackendUser(data.session?.user ?? null);
       setLoading(false);
     });
     return () => {

@@ -8,8 +8,10 @@
 
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import logo from "@/assets/logo.jpg";
 import natureRoad from "@/assets/nature-road.jpg";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* Staggered animation container */
 const container = {
@@ -28,6 +30,11 @@ const item = {
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();
+  const { session, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && session) navigate("/home", { replace: true });
+  }, [loading, navigate, session]);
 
   return (
     <motion.div
