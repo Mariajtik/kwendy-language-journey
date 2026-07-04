@@ -118,10 +118,18 @@ registerMirror({
   decode: (r: any) => (r.notificacoes && Object.keys(r.notificacoes).length ? r.notificacoes : null),
 });
 
-// Acessibilidade
+// Acessibilidade — chave "kwendi:acessibilidade"
 registerMirror({
-  key: "kwendi.acess",
+  key: "kwendi:acessibilidade",
   table: "user_preferencias",
   encode: (s: any) => ({ acessibilidade: s ?? {} }),
   decode: (r: any) => (r.acessibilidade && Object.keys(r.acessibilidade).length ? r.acessibilidade : null),
+});
+
+registerMirror({
+  key: "kwendi:acessibilidade:event",
+  table: "user_preferencias",
+  event: "kwendi:acess-changed",
+  encode: () => ({}),
+  decode: () => null,
 });
