@@ -8,7 +8,86 @@ import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 // src/lib/mcp/tools/search-dictionary.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z } from "npm:zod@^3.25.76";
-import { DICIONARIO } from "npm:@/data/dicionario";
+
+// src/data/dicionario.ts
+var DICIONARIO = [
+  // Saudações
+  { id: "d1", pt: "ol\xE1", umbundu: "wakolelepo", categoria: "saudacoes" },
+  { id: "d2", pt: "bom dia", umbundu: "uteke uwa", categoria: "saudacoes" },
+  { id: "d3", pt: "boa tarde", umbundu: "ekumbi liwa", categoria: "saudacoes" },
+  { id: "d4", pt: "boa noite", umbundu: "uteke uwa", categoria: "saudacoes" },
+  { id: "d5", pt: "obrigado", umbundu: "ndapandula", categoria: "saudacoes" },
+  { id: "d6", pt: "muito obrigado", umbundu: "ndapandula calwa", categoria: "saudacoes" },
+  { id: "d7", pt: "como est\xE1s?", umbundu: "wakola?", categoria: "saudacoes" },
+  { id: "d8", pt: "estou bem", umbundu: "ndakola", categoria: "saudacoes" },
+  { id: "d9", pt: "adeus", umbundu: "kalapo ciwa", categoria: "saudacoes" },
+  { id: "d10", pt: "sim", umbundu: "ee", categoria: "saudacoes" },
+  { id: "d11", pt: "n\xE3o", umbundu: "sili", categoria: "saudacoes" },
+  // Família
+  { id: "d20", pt: "pai", umbundu: "tate", categoria: "familia" },
+  { id: "d21", pt: "m\xE3e", umbundu: "mama", categoria: "familia" },
+  { id: "d22", pt: "irm\xE3o", umbundu: "manu", categoria: "familia" },
+  { id: "d23", pt: "irm\xE3", umbundu: "manjange", categoria: "familia" },
+  { id: "d24", pt: "filho", umbundu: "om\xF5la", categoria: "familia" },
+  { id: "d25", pt: "av\xF4", umbundu: "kuku", categoria: "familia" },
+  { id: "d26", pt: "av\xF3", umbundu: "kuku uk\xE3i", categoria: "familia" },
+  { id: "d27", pt: "amigo", umbundu: "ekamba", categoria: "familia" },
+  { id: "d28", pt: "pessoa", umbundu: "omunu", categoria: "familia" },
+  // Números
+  { id: "d40", pt: "um", umbundu: "mosi", categoria: "numeros" },
+  { id: "d41", pt: "dois", umbundu: "vali", categoria: "numeros" },
+  { id: "d42", pt: "tr\xEAs", umbundu: "tatu", categoria: "numeros" },
+  { id: "d43", pt: "quatro", umbundu: "kwala", categoria: "numeros" },
+  { id: "d44", pt: "cinco", umbundu: "t\xE3lo", categoria: "numeros" },
+  { id: "d45", pt: "seis", umbundu: "epandu", categoria: "numeros" },
+  { id: "d46", pt: "sete", umbundu: "epandu-vali", categoria: "numeros" },
+  { id: "d47", pt: "oito", umbundu: "ecel\xE3l\xE3", categoria: "numeros" },
+  { id: "d48", pt: "nove", umbundu: "ecea", categoria: "numeros" },
+  { id: "d49", pt: "dez", umbundu: "ekwi", categoria: "numeros" },
+  // Tempo
+  { id: "d60", pt: "dia", umbundu: "eteke", categoria: "tempo" },
+  { id: "d61", pt: "noite", umbundu: "uteke", categoria: "tempo" },
+  { id: "d62", pt: "hoje", umbundu: "etekeli", categoria: "tempo" },
+  { id: "d63", pt: "amanh\xE3", umbundu: "hela", categoria: "tempo" },
+  { id: "d64", pt: "ontem", umbundu: "eteke liaeya", categoria: "tempo" },
+  { id: "d65", pt: "ano", umbundu: "unyamo", categoria: "tempo" },
+  { id: "d66", pt: "m\xEAs", umbundu: "os\xE3i", categoria: "tempo" },
+  { id: "d67", pt: "semana", umbundu: "sumanu", categoria: "tempo" },
+  // Corpo
+  { id: "d80", pt: "cabe\xE7a", umbundu: "utwe", categoria: "corpo" },
+  { id: "d81", pt: "olho", umbundu: "iso", categoria: "corpo" },
+  { id: "d82", pt: "boca", umbundu: "om\u1EBDla", categoria: "corpo" },
+  { id: "d83", pt: "m\xE3o", umbundu: "eka", categoria: "corpo" },
+  { id: "d84", pt: "p\xE9", umbundu: "ompindi", categoria: "corpo" },
+  { id: "d85", pt: "cora\xE7\xE3o", umbundu: "utima", categoria: "corpo" },
+  // Natureza
+  { id: "d100", pt: "sol", umbundu: "ekumbi", categoria: "natureza" },
+  { id: "d101", pt: "lua", umbundu: "os\xE3i", categoria: "natureza" },
+  { id: "d102", pt: "\xE1gua", umbundu: "ovava", categoria: "natureza" },
+  { id: "d103", pt: "fogo", umbundu: "ondalu", categoria: "natureza" },
+  { id: "d104", pt: "\xE1rvore", umbundu: "uti", categoria: "natureza" },
+  { id: "d105", pt: "chuva", umbundu: "ombela", categoria: "natureza" },
+  { id: "d106", pt: "vento", umbundu: "ofela", categoria: "natureza" },
+  { id: "d107", pt: "mel", umbundu: "owiki", categoria: "natureza" },
+  // Cultura (livro de referência)
+  { id: "d120", pt: "palavra", umbundu: "ondaka", categoria: "cultura" },
+  { id: "d121", pt: "gesto", umbundu: "ondimbu", categoria: "cultura" },
+  { id: "d122", pt: "som", umbundu: "ocile\xF1gi", categoria: "cultura" },
+  { id: "d123", pt: "sentimento", umbundu: "ovisimilo", categoria: "cultura" },
+  { id: "d124", pt: "palha\xE7os", umbundu: "ovinganji", categoria: "cultura" },
+  { id: "d125", pt: "soba (chefe)", umbundu: "soba", categoria: "cultura" },
+  // Verbos
+  { id: "d140", pt: "ser / estar", umbundu: "okukala", categoria: "verbos" },
+  { id: "d141", pt: "agarrar", umbundu: "okukwata", categoria: "verbos" },
+  { id: "d142", pt: "comer", umbundu: "okulia", categoria: "verbos" },
+  { id: "d143", pt: "beber", umbundu: "okunua", categoria: "verbos" },
+  { id: "d144", pt: "ir", umbundu: "okuenda", categoria: "verbos" },
+  { id: "d145", pt: "ver", umbundu: "okum\xF5la", categoria: "verbos" },
+  { id: "d146", pt: "ouvir", umbundu: "okuyeva", categoria: "verbos" },
+  { id: "d147", pt: "falar", umbundu: "okupopia", categoria: "verbos" }
+];
+
+// src/lib/mcp/tools/search-dictionary.ts
 var search_dictionary_default = defineTool({
   name: "search_dictionary",
   title: "Search Umbundu \u21C4 Portuguese dictionary",
@@ -43,7 +122,172 @@ var search_dictionary_default = defineTool({
 // src/lib/mcp/tools/list-stories.ts
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z2 } from "npm:zod@^3.25.76";
-import { HISTORIAS } from "npm:@/data/historias";
+
+// src/data/historias.ts
+import bangaoAsset from "npm:@/assets/bangao.jpg.asset.json";
+var HISTORIAS = [
+  {
+    id: "jacare-bangao",
+    titulo: "O Jacar\xE9 Bang\xE3o",
+    subtitulo: "Uma lenda do rio Dande",
+    regiao: "Caxito, Prov\xEDncia do Bengo",
+    epoca: "S\xE9culo XIX \u2014 Angola colonial",
+    duracaoMin: 7,
+    nivel: "Iniciante",
+    imagem: bangaoAsset.url,
+    cor: "28 55% 42%",
+    corEscura: "28 55% 28%",
+    sinopse: "Diz-se que, h\xE1 muito tempo, nas margens do rio Dande, vivia um jacar\xE9 chamado Sr. Ngandu. Cansado da crueldade de um chefe de posto colonial, decidiu ele pr\xF3prio ir pagar o imposto \u2014 e dar uma li\xE7\xE3o que Caxito nunca mais esqueceu.",
+    desbloqueada: true,
+    capitulos: [
+      {
+        id: "c1",
+        titulo: "As margens do Dande",
+        paragrafos: [
+          "Em Caxito, pequena cidade da prov\xEDncia do Bengo, corre o rio Dande, sereno e antigo. Foi nas suas margens que, h\xE1 mais de cem anos, viveu um jacar\xE9 enorme, de escamas escuras, conhecido por toda a gente como Sr. Ngandu.",
+          "Diziam os mais velhos que ele era irasc\xEDvel, brig\xE3o, sempre zangado \u2014 at\xE9 com a pr\xF3pria sombra. Mas Ngandu n\xE3o era apenas um animal qualquer: era um crocodilo da mais alta linhagem do Dande, e por isso o respeitavam."
+        ],
+        vocabulario: [
+          { umbundu: "Ongandu", pt: "Jacar\xE9, crocodilo" },
+          { umbundu: "Olui", pt: "Rio" },
+          { umbundu: "Imbo", pt: "Aldeia, terra" },
+          { umbundu: "Ukulu", pt: "Anci\xE3o, mais velho" },
+          { umbundu: "Otembo", pt: "Tempo, \xE9poca" }
+        ]
+      },
+      {
+        id: "c2",
+        titulo: "O Imposto Geral M\xEDnimo",
+        paragrafos: [
+          "Naqueles tempos, as autoridades coloniais portuguesas obrigavam cada angolano a pagar o Imposto Geral M\xEDnimo. Quem n\xE3o pagasse era espancado, humilhado, levado \xE0 for\xE7a para o trabalho contratado.",
+          "Em Caxito, o Chefe de Posto era implac\xE1vel. Feroz e desumano, batia nos mais velhos, atemorizava as m\xE3es, arrancava as \xFAltimas moedas das m\xE3os das crian\xE7as. O povo sofria em sil\xEAncio, mas o rio escutava."
+        ],
+        vocabulario: [
+          { umbundu: "Olombongo", pt: "Dinheiro" },
+          { umbundu: "Soma", pt: "Chefe, autoridade" },
+          { umbundu: "Omanu", pt: "Pessoas, povo" },
+          { umbundu: "Ohali", pt: "Sofrimento" }
+        ]
+      },
+      {
+        id: "c3",
+        titulo: "A vingan\xE7a do jacar\xE9",
+        paragrafos: [
+          "J\xE1 tinha o Sr. Ngandu, em tempos idos, escapado por pouco de ca\xE7adores que queriam mandar a sua pele para o Putu, para se fazerem carteiras. N\xE3o esqueceu a humilha\xE7\xE3o.",
+          "Numa certa manh\xE3, quando o sol mal beijava o Dande, Ngandu saiu da \xE1gua com uma moeda presa entre os dentes. Atravessou a estrada, subiu os degraus da Administra\xE7\xE3o e bateu \xE0 porta do Chefe de Posto. Vinha \u2014 disse-se depois \u2014 pagar o seu imposto."
+        ],
+        vocabulario: [
+          { umbundu: "Okuenda", pt: "Caminhar, ir" },
+          { umbundu: "Onjo", pt: "Casa" },
+          { umbundu: "Ekumbi", pt: "Sol" }
+        ]
+      },
+      {
+        id: "c4",
+        titulo: "A fuga do Sipaio",
+        paragrafos: [
+          "O Sipaio que guardava a porta deu um grito e fugiu de imediato. O Chefe de Posto, ao ver aquele jacar\xE9 enorme no seu gabinete, saltou pela janela e correu pelas ruas de Caxito, branco como a cal.",
+          "Alertados pelo Sipaio, os populares juntaram-se \xE0 porta da Administra\xE7\xE3o e a tudo assistiram, rindo-se \xE0s gargalhadas. Aquele dia, o medo trocou de lado."
+        ],
+        vocabulario: [
+          { umbundu: "Okuyuvuka", pt: "Fugir" },
+          { umbundu: "Oyembu", pt: "Riso, alegria" },
+          { umbundu: "Usumba", pt: "Medo" }
+        ]
+      },
+      {
+        id: "c5",
+        titulo: "Lenda que virou est\xE1tua",
+        paragrafos: [
+          "A hist\xF3ria do Sr. Ngandu correu de boca em boca, de av\xF3 para neto, de aldeia em aldeia. Tornou-se uma das lendas mais conhecidas de Angola \u2014 uma oratura de combate, que prenunciava a luta pela liberta\xE7\xE3o do povo.",
+          "Hoje, em Caxito, ergue-se uma est\xE1tua: um grande jacar\xE9 com uma moeda entre os dentes, sustentado por figuras do povo de bra\xE7os erguidos. \xC9 o Jacar\xE9 Bang\xE3o, lembrando a todos que mesmo o mais fraco pode fazer o opressor fugir pela janela."
+        ],
+        vocabulario: [
+          { umbundu: "Esanju", pt: "Alegria, vit\xF3ria" },
+          { umbundu: "Ekanga", pt: "Liberdade" },
+          { umbundu: "Ukulu wetu", pt: "A nossa tradi\xE7\xE3o" }
+        ]
+      }
+    ],
+    curiosidade: {
+      titulo: "A est\xE1tua do Jacar\xE9 Bang\xE3o",
+      texto: "Na entrada da cidade de Caxito, prov\xEDncia do Bengo, ergue-se uma est\xE1tua que homenageia esta lenda: um enorme jacar\xE9 de pedra, com uma moeda entre os dentes, sustentado por figuras do povo de bra\xE7os levantados. \xC9 a \xFAnica lenda angolana com monumento pr\xF3prio numa cidade do pa\xEDs, sinal da import\xE2ncia que a tradi\xE7\xE3o oral tem para a identidade do Bengo e de Angola.",
+      imagem: bangaoAsset.url
+    },
+    quiz: [
+      {
+        pergunta: "Em que rio vivia o Sr. Ngandu?",
+        opcoes: ["Kwanza", "Dande", "Cunene", "Cuango"],
+        correta: 1
+      },
+      {
+        pergunta: "O que foi o Sr. Ngandu fazer \xE0 Administra\xE7\xE3o?",
+        opcoes: [
+          "Pedir um emprego",
+          "Roubar comida",
+          "Pagar o Imposto Geral M\xEDnimo",
+          "Visitar o Sipaio"
+        ],
+        correta: 2
+      },
+      {
+        pergunta: "Como reagiu o Chefe de Posto ao ver o jacar\xE9?",
+        opcoes: [
+          "Cumprimentou-o",
+          "Saltou pela janela e fugiu",
+          "Chamou o ex\xE9rcito",
+          "Pediu desculpa ao povo"
+        ],
+        correta: 1
+      },
+      {
+        pergunta: 'Em Umbundu, o que significa "Ongandu"?',
+        opcoes: ["Rio", "Chefe", "Jacar\xE9", "Dinheiro"],
+        correta: 2
+      }
+    ],
+    recompensa: { xp: 80, diamantes: 20 },
+    referencia: 'Adaptado livremente de S\xE9rgio de Carvalho Rodrigues, "O Jacar\xE9 Bang\xE3o: uma lenda da oratura angolana", Revista Ecos, vol. 23, n.\xBA 02, 2017, e da tradi\xE7\xE3o oral do Bengo.'
+  },
+  {
+    id: "kianda",
+    titulo: "A Kianda do Mar",
+    subtitulo: "Mist\xE9rios da ba\xEDa de Luanda",
+    regiao: "Luanda",
+    epoca: "Lenda atemporal",
+    duracaoMin: 6,
+    nivel: "Iniciante",
+    imagem: "",
+    cor: "200 70% 45%",
+    corEscura: "200 70% 30%",
+    sinopse: "Em breve \u2014 a sereia das \xE1guas angolanas chega \xE0 Kwendi.",
+    desbloqueada: false,
+    capitulos: [],
+    curiosidade: { titulo: "", texto: "" },
+    quiz: [],
+    recompensa: { xp: 0, diamantes: 0 }
+  },
+  {
+    id: "sumbi",
+    titulo: "Sumbi, a tartaruga s\xE1bia",
+    subtitulo: "Um conto de ast\xFAcia",
+    regiao: "Planalto Central",
+    epoca: "Tradi\xE7\xE3o Ovimbundu",
+    duracaoMin: 5,
+    nivel: "Iniciante",
+    imagem: "",
+    cor: "90 45% 38%",
+    corEscura: "90 45% 25%",
+    sinopse: "Em breve \u2014 uma f\xE1bula sobre paci\xEAncia e intelig\xEAncia.",
+    desbloqueada: false,
+    capitulos: [],
+    curiosidade: { titulo: "", texto: "" },
+    quiz: [],
+    recompensa: { xp: 0, diamantes: 0 }
+  }
+];
+
+// src/lib/mcp/tools/list-stories.ts
 var list_stories_default = defineTool2({
   name: "list_stories",
   title: "List Kwendi stories",
@@ -72,7 +316,406 @@ var list_stories_default = defineTool2({
 // src/lib/mcp/tools/list-curiosities.ts
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z3 } from "npm:zod@^3.25.76";
-import { curiosidades } from "npm:@/data/curiosidades";
+
+// src/data/curiosidades.ts
+import imbondeiroImg from "npm:@/assets/curiosidades/imbondeiro.jpg.asset.json";
+import nzingaImg from "npm:@/assets/curiosidades/nzinga.jpg.asset.json";
+import palancaImg from "npm:@/assets/curiosidades/palanca.jpg.asset.json";
+import welwitschiaImg from "npm:@/assets/curiosidades/welwitschia.jpg.asset.json";
+import agostinhoImg from "npm:@/assets/curiosidades/agostinho-neto.jpg.asset.json";
+import nontombiImg from "npm:@/assets/curiosidades/nontombi.jpg.asset.json";
+import tundavalaImg from "npm:@/assets/curiosidades/tundavala.jpg.asset.json";
+import kalandulaImg from "npm:@/assets/curiosidades/kalandula.jpg.asset.json";
+import pensadorImg from "npm:@/assets/curiosidades/pensador.jpg.asset.json";
+import mufeteImg from "npm:@/assets/curiosidades/mufete.jpg.asset.json";
+import umbunduImg from "npm:@/assets/curiosidades/umbundu.png.asset.json";
+import maiombeImg from "npm:@/assets/curiosidades/maiombe.jpg.asset.json";
+import mussiviImg from "npm:@/assets/curiosidades/mussivi.jpg.asset.json";
+var curiosidades = [
+  {
+    id: "imbondeiro",
+    imagem: imbondeiroImg.url,
+    categoria: "natureza",
+    titulo: "O Imbondeiro",
+    subtitulo: "A \xE1rvore que cresce ao contr\xE1rio",
+    resumo: "S\xEDmbolo de resist\xEAncia e espiritualidade, o imbondeiro \xE9 uma das \xE1rvores mais emblem\xE1ticas de Angola.",
+    sections: [
+      {
+        heading: "Introdu\xE7\xE3o",
+        body: "Imponente, ancestral, inconfund\xEDvel. O imbondeiro \u2014 tamb\xE9m conhecido como baob\xE1 \u2014 atravessa o c\xE9u angolano com uma silhueta que parece desafiar a pr\xF3pria gravidade."
+      },
+      {
+        heading: "Lenda e simbolismo",
+        body: "Diz-se que Deus o plantou ao contr\xE1rio, com as ra\xEDzes apontadas para o c\xE9u. A lenda nasce e renasce em cada regi\xE3o do pa\xEDs, lembrando-nos da liga\xE7\xE3o profunda entre o povo angolano e a terra."
+      },
+      {
+        heading: "Usos tradicionais",
+        body: "Os seus frutos alimentam comunidades inteiras e d\xE3o origem a bebidas tradicionais. Os troncos servem por vezes de abrigo, e folhas e cascas entram em rituais e pr\xE1ticas medicinais que atravessam gera\xE7\xF5es."
+      },
+      {
+        heading: "Import\xE2ncia cultural",
+        body: "Mais do que \xE1rvore, \xE9 guardi\xE3o. \xC0 sua sombra contam-se hist\xF3rias, juntam-se fam\xEDlias e celebra-se a vida \u2014 uma presen\xE7a viva da espiritualidade angolana."
+      }
+    ],
+    destaque: "O baob\xE1 pode viver milhares de anos."
+  },
+  {
+    id: "nzinga",
+    imagem: nzingaImg.url,
+    categoria: "historia",
+    titulo: "Rainha Nzinga",
+    subtitulo: "A guerreira que enfrentou imp\xE9rios",
+    resumo: "Uma das figuras mais poderosas da hist\xF3ria africana e s\xEDmbolo eterno da resist\xEAncia angolana.",
+    sections: [
+      {
+        heading: "Quem foi Nzinga",
+        body: "Nascida por volta de 1582, Nzinga Mbandi reinou sobre Ndongo e Matamba no s\xE9culo XVII. L\xEDder destemida e estratega militar, tornou-se a voz da soberania angolana num tempo de imp\xE9rios."
+      },
+      {
+        heading: "Diplomacia",
+        body: "Em 1623, foi enviada como embaixadora para negociar com os portugueses. A sua presen\xE7a, firme e elegante, redesenhou o que se esperava de uma mulher africana numa mesa de poder."
+      },
+      {
+        heading: "Resist\xEAncia",
+        body: "Quando a diplomacia falhou, escolheu a guerrilha. Forjou alian\xE7as, comandou ex\xE9rcitos e manteve viva a chama da independ\xEAncia durante d\xE9cadas."
+      },
+      {
+        heading: "Legado cultural",
+        body: "O seu nome atravessou o Atl\xE2ntico: na capoeira, em festas afro-brasileiras, nas mem\xF3rias de quem resiste. Nzinga \xE9 orgulho que n\xE3o se ensina \u2014 herda-se."
+      },
+      {
+        heading: "Reconhecimento",
+        body: "Em 2014, o Banco Nacional de Angola emitiu uma moeda de 20 kwanzas em sua homenagem. Document\xE1rios, ruas e monumentos continuam a contar a sua hist\xF3ria."
+      }
+    ]
+  },
+  {
+    id: "pensador",
+    imagem: pensadorImg.url,
+    categoria: "cultura",
+    titulo: "O Pensador",
+    subtitulo: "O s\xEDmbolo da sabedoria angolana",
+    resumo: "Uma das esculturas mais importantes da identidade cultural de Angola.",
+    sections: [
+      {
+        heading: "Origem Chokwe",
+        body: "Nascido das m\xE3os dos artistas Chokwe, no leste de Angola, O Pensador \xE9 talhado em madeira com a precis\xE3o de quem esculpe n\xE3o uma figura, mas uma ideia."
+      },
+      {
+        heading: "Significado da postura",
+        body: "Curvado, de pernas cruzadas e m\xE3os apoiadas na cabe\xE7a, representa o anci\xE3o \u2014 aquele cuja experi\xEAncia guia a comunidade. Em Angola, ouvir os mais velhos \xE9 uma forma de ora\xE7\xE3o."
+      },
+      {
+        heading: "Hist\xF3ria da descoberta",
+        body: "Em 1932, o etn\xF3logo su\xED\xE7o Th\xE9odore Delachaux encontrou uma destas estatuetas durante uma expedi\xE7\xE3o e batizou-a 'O Pensador', em homenagem \xE0 obra de Rodin."
+      },
+      {
+        heading: "Reconhecimento nacional",
+        body: "Em 1984, o governo angolano consagrou-o s\xEDmbolo nacional da cultura. Em 2000, foi oferecido \xE0s Na\xE7\xF5es Unidas como gesto de partilha do esp\xEDrito angolano com o mundo."
+      },
+      {
+        heading: "Museu do Dundo",
+        body: "A estatueta original repousa no Museu do Dundo, na Lunda Norte \u2014 um santu\xE1rio do patrim\xF3nio Chokwe e da mem\xF3ria do leste angolano."
+      }
+    ]
+  },
+  {
+    id: "palanca",
+    imagem: palancaImg.url,
+    categoria: "natureza",
+    titulo: "Palanca Negra Gigante",
+    subtitulo: "O s\xEDmbolo vivo de Angola",
+    resumo: "Um dos animais mais raros do mundo e orgulho nacional angolano.",
+    sections: [
+      {
+        heading: "Habitat",
+        body: "End\xE9mica de Angola, a Palanca Negra Gigante vive sobretudo no Parque Nacional de Cangandala e na Reserva do Luando, em Malanje. Os seus cornos curvos podem chegar a 1,65 m."
+      },
+      {
+        heading: "Estado de conserva\xE7\xE3o",
+        body: "Anos de guerra empurraram-na quase para o sil\xEAncio. Foi dada como extinta \u2014 at\xE9 que o tempo provou que continuava l\xE1, paciente."
+      },
+      {
+        heading: "Redescoberta",
+        body: "Em 2004, uma expedi\xE7\xE3o liderada por Pedro Vaz Pinto captou as primeiras imagens em d\xE9cadas. Foi como reencontrar um peda\xE7o perdido da alma do pa\xEDs."
+      },
+      {
+        heading: "S\xEDmbolo nacional",
+        body: "Hoje d\xE1 nome \xE0 selec\xE7\xE3o nacional de futebol \u2014 as Palancas Negras \u2014 e atravessa moedas, bras\xF5es e bairros. \xC9 Angola em forma de animal."
+      },
+      {
+        heading: "Conserva\xE7\xE3o",
+        body: "A Funda\xE7\xE3o Kissama e parceiros internacionais trabalham para proteger os cerca de 300 exemplares que restam. Cada cria que nasce \xE9 uma vit\xF3ria colectiva."
+      }
+    ]
+  },
+  {
+    id: "welwitschia",
+    imagem: welwitschiaImg.url,
+    categoria: "natureza",
+    titulo: "Welwitschia Mirabilis",
+    subtitulo: "A planta que desafia o tempo",
+    resumo: "Uma das plantas mais antigas e resistentes do planeta, nascida no deserto angolano.",
+    sections: [
+      {
+        heading: "Caracter\xEDsticas \xFAnicas",
+        body: "Tem apenas duas folhas em toda a vida \u2014 e elas crescem para sempre. Podem atingir quatro metros, retorcidas pelo vento e pelo tempo, como filamentos de uma mem\xF3ria antiga."
+      },
+      {
+        heading: "Adapta\xE7\xE3o ao deserto",
+        body: "Bebe da neblina matinal que sobe do Atl\xE2ntico. As suas ra\xEDzes profundas guardam cada gota como se fosse a \xFAltima."
+      },
+      {
+        heading: "Longevidade",
+        body: "Considerada um f\xF3ssil vivo, atravessa s\xE9culos enquanto imp\xE9rios sobem e caem. H\xE1 exemplares que viram nascer o reino do Kongo."
+      },
+      {
+        heading: "Import\xE2ncia cient\xEDfica",
+        body: "Bot\xE2nicos do mundo inteiro estudam-na para entender como a vida persiste onde quase tudo seca. \xC9 a aula de resist\xEAncia que Angola d\xE1 ao planeta."
+      }
+    ],
+    destaque: "Pode viver mais de mil anos."
+  },
+  {
+    id: "mufete",
+    imagem: mufeteImg.url,
+    categoria: "gastronomia",
+    titulo: "Mufete",
+    subtitulo: "O sabor tradicional de Luanda",
+    resumo: "Um dos pratos mais celebrados da culin\xE1ria angolana, alma das mesas de s\xE1bado.",
+    sections: [
+      {
+        heading: "O que \xE9 o mufete",
+        body: "Origin\xE1rio da ilha de Luanda, o mufete \xE9 prato de celebra\xE7\xE3o. Anivers\xE1rios, noivados, casamentos \u2014 tudo cabe \xE0 volta de uma travessa generosa partilhada entre fam\xEDlias."
+      },
+      {
+        heading: "Ingredientes",
+        body: "Peixe grelhado (carapau, peixe-galo ou cacusso), feij\xE3o de \xF3leo de palma alaranjado, banana-p\xE3o, batata-doce, mandioca cozida e farinha musseque torrada."
+      },
+      {
+        heading: "Como preparar",
+        body: "Tempera-se o peixe com sal, alho e lim\xE3o e grelha-se em brasas. Coze-se o feij\xE3o com \xF3leo de palma, cebola e sal. Rega-se tudo com molho de cebola, vinagre, azeite e gindungo."
+      },
+      {
+        heading: "Origem do nome",
+        body: "Diz-se que vem de 'kufeta' em kimbundu \u2014 'segredar' \u2014 talvez pelo som suave do peixe a estalar nas brasas, como uma confid\xEAncia."
+      },
+      {
+        heading: "Import\xE2ncia cultural",
+        body: "Mais do que refei\xE7\xE3o, \xE9 ritual. Comer mufete \xE9 juntar-se \xE0 mesa de Angola."
+      }
+    ]
+  },
+  {
+    id: "agostinho-neto",
+    imagem: agostinhoImg.url,
+    categoria: "historia",
+    titulo: "Agostinho Neto",
+    subtitulo: "Manguxi Kilamba",
+    resumo: "Poeta, l\xEDder revolucion\xE1rio e primeiro presidente de Angola.",
+    sections: [
+      {
+        heading: "Pseud\xF3nimo de guerra",
+        body: "Manguxi \u2014 'guia imortal', 'o mais s\xE1bio entre os homens'. Kilamba \u2014 'aquele que comanda com coragem'. Dois nomes em kimbundu para uma s\xF3 miss\xE3o."
+      },
+      {
+        heading: "Literatura",
+        body: "Antes do poder, a palavra. 'Sagrada Esperan\xE7a' continua a ser bandeira de identidade e resist\xEAncia, lida em escolas, recitada em com\xEDcios."
+      },
+      {
+        heading: "Independ\xEAncia",
+        body: "A 11 de Novembro de 1975, l\xEA a proclama\xE7\xE3o que muda para sempre o destino do pa\xEDs. Angola passa a pertencer aos angolanos."
+      },
+      {
+        heading: "Reconhecimentos",
+        body: "Recebeu o Pr\xE9mio Lenin da Paz em 1975-76, em reconhecimento internacional do seu papel na luta pela independ\xEAncia."
+      },
+      {
+        heading: "Legado nacional",
+        body: "A Universidade Agostinho Neto e a centralidade do Kilamba mant\xEAm o seu nome vivo no quotidiano do pa\xEDs que ajudou a libertar."
+      }
+    ]
+  },
+  {
+    id: "nontombi",
+    imagem: nontombiImg.url,
+    categoria: "cultura",
+    titulo: "Nontombi",
+    subtitulo: "O penteado ancestral africano",
+    resumo: "Uma tradi\xE7\xE3o cultural dos povos Mwila e Mucubal que atravessa gera\xE7\xF5es.",
+    sections: [
+      {
+        heading: "Povos Mwila e Mucubal",
+        body: "No sul de Angola, entre paisagens secas e horizontes vermelhos, vivem os Mwila e os Mucubal. As suas mulheres trazem na cabe\xE7a uma das mais belas formas de arte viva do continente."
+      },
+      {
+        heading: "Como \xE9 feito",
+        body: "O nontombi \xE9 modelado com uma mistura tradicional de ocre, ervas, manteiga, \xF3leo e estrume de vaca seco, que actua como selante natural. Cada fio \xE9 gesto, cada gesto \xE9 mem\xF3ria."
+      },
+      {
+        heading: "Significado social",
+        body: "Funciona como um cart\xE3o de identidade vis\xEDvel: revela idade, papel social e, por vezes, o estado civil. Um penteado que fala antes da boca."
+      },
+      {
+        heading: "Rela\xE7\xE3o com dreadlocks",
+        body: "Muitos historiadores apontam-no como uma das ra\xEDzes ancestrais dos dreadlocks contempor\xE2neos \u2014 uma travessia est\xE9tica com origem em \xC1frica."
+      },
+      {
+        heading: "Import\xE2ncia cultural",
+        body: "\xC9 beleza, \xE9 perten\xE7a, \xE9 resist\xEAncia. Cada nontombi \xE9 uma forma de dizer: estamos aqui, somos n\xF3s, e a nossa hist\xF3ria continua."
+      }
+    ]
+  },
+  {
+    id: "umbundu",
+    imagem: umbunduImg.url,
+    categoria: "linguas",
+    titulo: "Umbundu",
+    subtitulo: "A l\xEDngua mais falada de Angola",
+    resumo: "Uma l\xEDngua bantu carregada de hist\xF3ria, ancestralidade e identidade cultural.",
+    sections: [
+      {
+        heading: "O que \xE9 o umbundu",
+        body: "L\xEDngua bantu falada por mais de sete milh\xF5es de pessoas, \xE9 a l\xEDngua nacional mais difundida em Angola. Sem ser oficial, \xE9 oficialmente da fam\xEDlia \u2014 falada em casa, no mercado, na lavra."
+      },
+      {
+        heading: "Povos Ovimbundu",
+        body: "Os Ovimbundu, seus falantes naturais, representam cerca de um ter\xE7o da popula\xE7\xE3o angolana e mant\xEAm vivas tradi\xE7\xF5es, prov\xE9rbios e cantigas que nasceram no planalto."
+      },
+      {
+        heading: "Regi\xF5es falantes",
+        body: "Nasce e respira no Planalto Central \u2014 Huambo, Bi\xE9, Benguela \u2014 e estende-se pela faixa costeira ocidental, em cidades como Lobito e Benguela."
+      },
+      {
+        heading: "Influ\xEAncia cultural",
+        body: "O umbundu moldou o portugu\xEAs falado em Angola e at\xE9 no Brasil, deixando palavras que cruzaram o Atl\xE2ntico carregadas de hist\xF3ria."
+      },
+      {
+        heading: "Palavras influentes",
+        body: "Termos como 'quilombo' e 'fub\xE1' t\xEAm ra\xEDzes que ecoam no umbundu. Cada palavra \xE9 uma pequena rota da di\xE1spora."
+      }
+    ]
+  },
+  {
+    id: "tundavala",
+    imagem: tundavalaImg.url,
+    categoria: "monumentos",
+    titulo: "Fenda da Tundavala",
+    subtitulo: "O abismo natural da Hu\xEDla",
+    resumo: "Uma das paisagens mais impressionantes de Angola.",
+    sections: [
+      {
+        heading: "Introdu\xE7\xE3o",
+        body: "Imagine olhar para baixo e ver o mundo abrir-se. A Fenda da Tundavala, no planalto da Hu\xEDla, \xE9 uma falha geol\xF3gica que mergulha mais de mil metros e devolve o sil\xEAncio em ecos."
+      },
+      {
+        heading: "A paisagem",
+        body: "Penhascos vertiginosos, vento que carrega hist\xF3rias e um horizonte sem fim. Dizem que daqui se v\xEA metade de Angola \u2014 talvez seja verdade."
+      },
+      {
+        heading: "Import\xE2ncia cultural",
+        body: "Lugar de contempla\xE7\xE3o e de respeito. Para o povo Nyaneka-Humbi, \xE9 territ\xF3rio sagrado, presente em rituais e na mem\xF3ria colectiva."
+      },
+      {
+        heading: "Curiosidade",
+        body: "Nos dias claros, \xE9 poss\xEDvel ver da borda at\xE9 o Lubango l\xE1 em baixo. A neblina, quando sobe, transforma a fenda num mar de nuvens."
+      }
+    ]
+  },
+  {
+    id: "maiombe",
+    imagem: maiombeImg.url,
+    categoria: "natureza",
+    titulo: "Floresta do Maiombe",
+    subtitulo: "O pulm\xE3o verde de Cabinda",
+    resumo: "Uma das florestas tropicais mais ricas em biodiversidade de \xC1frica.",
+    sections: [
+      {
+        heading: "Biodiversidade",
+        body: "Considerada um dos pulm\xF5es verdes do continente, abriga milhares de esp\xE9cies de plantas e animais \u2014 muitas ainda por inventariar. Cada hectare \xE9 uma biblioteca viva."
+      },
+      {
+        heading: "Animais",
+        body: "Gorilas, chimpanz\xE9s, elefantes-da-floresta, b\xFAfalos e dezenas de esp\xE9cies de aves cruzam as suas copas densas, longe do olhar humano."
+      },
+      {
+        heading: "Clima",
+        body: "Quente, h\xFAmido, fechado. A floresta cria o seu pr\xF3prio microclima, com chuvas frequentes e nevoeiros que dan\xE7am entre os troncos."
+      },
+      {
+        heading: "Povos locais",
+        body: "Os povos de Cabinda mant\xEAm com o Maiombe uma rela\xE7\xE3o ancestral, marcada por respeito, conhecimento tradicional e uma profunda espiritualidade."
+      },
+      {
+        heading: "Conserva\xE7\xE3o",
+        body: "Amea\xE7ada pela explora\xE7\xE3o madeireira, \xE9 hoje \xE1rea priorit\xE1ria para projectos de conserva\xE7\xE3o transnacionais que unem Angola, Congo e RDC."
+      }
+    ]
+  },
+  {
+    id: "kalandula",
+    imagem: kalandulaImg.url,
+    categoria: "monumentos",
+    titulo: "Quedas de Kalandula",
+    subtitulo: "A for\xE7a das \xE1guas angolanas",
+    resumo: "Uma das maiores quedas de \xE1gua de \xC1frica em volume.",
+    sections: [
+      {
+        heading: "Altura e dimens\xE3o",
+        body: "Com cerca de 105 metros de altura e 400 metros de largura, as quedas do Lucala desabam num espect\xE1culo que se sente no peito antes de se ver."
+      },
+      {
+        heading: "Hist\xF3ria",
+        body: "J\xE1 foram conhecidas como Quedas Duque de Bragan\xE7a. Em 1975 voltaram ao nome original, Kalandula \u2014 devolvendo \xE0 terra aquilo que lhe pertencia."
+      },
+      {
+        heading: "Turismo",
+        body: "Em Malanje, s\xE3o um dos destinos mais procurados do pa\xEDs. O melhor miradouro \xE9 o do lado oposto, onde o arco-\xEDris aparece quase em sil\xEAncio."
+      },
+      {
+        heading: "Ecossistema",
+        body: "\xC0 volta, mata densa, aves raras e uma humidade constante que faz crescer musgos antigos em cada pedra."
+      },
+      {
+        heading: "Curiosidades",
+        body: "Na esta\xE7\xE3o das chuvas, o estrondo \xE9 t\xE3o grande que pode ser ouvido a quil\xF3metros de dist\xE2ncia. \xC9 como se a terra cantasse."
+      }
+    ]
+  },
+  {
+    id: "mussivi",
+    imagem: mussiviImg.url,
+    categoria: "natureza",
+    titulo: "Mussivi",
+    subtitulo: "A j\xF3ia das florestas de Angola",
+    resumo: "Madeira nobre e preciosa, nativa do Cuando Cubango e do Moxico, s\xEDmbolo de riqueza natural e de responsabilidade.",
+    sections: [
+      {
+        heading: "O que \xE9 o mussivi",
+        body: "Cientificamente Guibourtia coleosperma, tamb\xE9m conhecida como pau-ferro ou pau-rosa, \xE9 uma das madeiras mais preciosas das florestas angolanas \u2014 densa, perfumada, com tonalidades quentes."
+      },
+      {
+        heading: "Valor e procura",
+        body: "\xC9 chamada 'j\xF3ia das florestas' do Cuando Cubango. Procurada no mercado internacional pela sua durabilidade, alimenta uma ind\xFAstria que precisa de equil\xEDbrio entre uso e respeito."
+      },
+      {
+        heading: "Crescimento lento",
+        body: "Demora entre 80 e 100 anos a atingir a maturidade. Cada \xE1rvore cortada \xE9 quase um s\xE9culo de paci\xEAncia da terra."
+      },
+      {
+        heading: "Amea\xE7a de extin\xE7\xE3o",
+        body: "A explora\xE7\xE3o desordenada empurrou-a para o risco. O governo angolano interdita periodicamente a sua explora\xE7\xE3o para travar o avan\xE7o da desfloresta\xE7\xE3o."
+      },
+      {
+        heading: "Import\xE2ncia cultural",
+        body: "Usada em carpintaria e marcenaria de alta qualidade, o mussivi atravessa casas, instrumentos e objectos rituais \u2014 uma heran\xE7a que merece ser preservada."
+      }
+    ],
+    destaque: "Quase um s\xE9culo para crescer. Apenas alguns minutos para cair."
+  }
+];
+
+// src/lib/mcp/tools/list-curiosities.ts
 var list_curiosities_default = defineTool3({
   name: "list_curiosities",
   title: "List Angolan culture curiosities",

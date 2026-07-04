@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { DICIONARIO } from "@/data/dicionario";
+import { DICIONARIO } from "../../../data/dicionario";
 
 export default defineTool({
   name: "search_dictionary",

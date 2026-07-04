@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { curiosidades } from "@/data/curiosidades";
+import { curiosidades } from "../../../data/curiosidades";
 
 export default defineTool({
   name: "list_curiosities",

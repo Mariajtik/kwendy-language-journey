@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { HISTORIAS } from "@/data/historias";
+import { HISTORIAS } from "../../../data/historias";
 
 export default defineTool({
   name: "list_stories",
