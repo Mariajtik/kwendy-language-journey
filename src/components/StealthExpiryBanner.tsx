@@ -32,8 +32,9 @@ export default function StealthExpiryBanner() {
       .maybeSingle()
       .then(({ data }) => {
         if (cancel) return;
-        if (data?.tipo === "stealth" && data.stealth_expira_em) {
-          setExpiraEm(data.stealth_expira_em);
+        const exp = data?.stealth_expira_em ?? null;
+        if (data?.tipo === "stealth" && exp) {
+          setExpiraEm(exp);
         } else {
           setExpiraEm(null);
         }
