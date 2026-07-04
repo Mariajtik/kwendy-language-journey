@@ -22,8 +22,9 @@ function writeCookie(name: string, value: string, days: number) {
 
 function uuidv4(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  const g = globalThis.crypto;
   const b = new Uint8Array(16);
-  crypto.getRandomValues(b);
+  g.getRandomValues(b);
   b[6] = (b[6] & 0x0f) | 0x40;
   b[8] = (b[8] & 0x3f) | 0x80;
   const h = Array.from(b).map((x) => x.toString(16).padStart(2, "0"));
