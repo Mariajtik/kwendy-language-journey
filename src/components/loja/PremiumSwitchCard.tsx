@@ -5,7 +5,8 @@
  * indeterminado, portanto sem preço.
  */
 import { motion } from "framer-motion";
-import { Crown, Sparkles } from "lucide-react";
+import { Crown, Sparkles, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { usePremium } from "@/contexts/PremiumContext";
 
 const BENEFICIOS_ATIVOS = [
@@ -19,8 +20,6 @@ const BENEFICIOS_ATIVOS = [
 ];
 
 const EM_BREVE = [
-  "IA Kwendi com sotaque angolano",
-  "Conversa, chama e mensagens com a IA Kwendi",
   "Dicionário IA ilimitado",
   "Inglês e espanhol além do português",
   "Eventos exclusivos",
@@ -29,6 +28,7 @@ const EM_BREVE = [
 
 const PremiumSwitchCard = () => {
   const { ativo, toggle } = usePremium();
+  const nav = useNavigate();
 
   return (
     <motion.div
@@ -119,6 +119,22 @@ const PremiumSwitchCard = () => {
             </li>
           ))}
         </ul>
+
+        {/* Chat Kwendi IA */}
+        {ativo && (
+          <button
+            type="button"
+            onClick={() => nav("/kwendi-ia")}
+            className="w-full rounded-2xl bg-white/15 backdrop-blur border border-white/30 p-3 flex items-center gap-3 mb-4"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-left flex-1">
+              <span className="block text-[13px] font-extrabold">Conversar com Kwendi IA</span>
+              <span className="block text-[11px] opacity-85">Tutor pessoal de Umbundu</span>
+            </span>
+            <span className="text-lg">→</span>
+          </button>
+        )}
 
         {/* Em breve */}
         <div className="rounded-2xl bg-white/10 p-3 border border-white/20">
