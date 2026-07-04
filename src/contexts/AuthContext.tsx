@@ -10,8 +10,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 // Regista todos os espelhos localStorage ⇄ Supabase (side-effect import).
-import "@/lib/backend/registry";
-import { clearAllLocal, hydrateAll } from "@/lib/backend/mirror";
+import { clearAllLocal } from "@/lib/backend/mirror";
 
 type AuthContextValue = {
   session: Session | null;
@@ -43,7 +42,6 @@ async function syncBackendUser(user: User | null) {
     },
     { onConflict: "id" },
   );
-  await supabase.from("progresso").upsert({ user_id: user.id }, { onConflict: "user_id" });
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -61,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // fire-and-forget
         setTimeout(() => {
           void syncBackendUser(s.user);
-          void hydrateAll(s.user.id);
         }, 0);
       } else {
         clearAllLocal();
@@ -73,7 +70,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(data.session?.user ?? null);
       if (data.session?.user) {
         void syncBackendUser(data.session.user);
-        void hydrateAll(data.session.user.id);
       }
       setLoading(false);
     });
