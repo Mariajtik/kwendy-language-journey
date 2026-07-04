@@ -14,6 +14,7 @@ import PasswordInput from "@/components/PasswordInput";
 import SocialAuthButtons from "@/components/SocialAuthButtons";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isDeviceTrusted, trustDevice } from "@/lib/deviceTrust";
 
 const LoginScreen = () => {
   const navigate = useNavigate();
@@ -60,9 +61,16 @@ const LoginScreen = () => {
       toast.error("Sessão não estabelecida. Tente novamente.");
       return;
     }
-    setSuccess(true);
-    // Navegar automaticamente após breve feedback
-    setTimeout(() => navigate("/home", { replace: true }), 600);
+    // Se o dispositivo já foi validado nos últimos 30d, vai direto para /home.
+    const trusted = await isDeviceTrusted(data.session.user.id);
+    if (trusted) {
+      await trustDevice(data.session.user.id).catch(() => {});
+      setSuccess(true);
+      setTimeout(() => navigate("/home", { replace: true }), 600);
+      return;
+    }
+    // Caso contrário, exige OTP.
+    navigate("/auth/otp", { state: { purpose: "login", next: "/home" }, replace: true });
   };
 
   /* ---- SUCCESS STATE ---- */
