@@ -14,16 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      auth_otp: {
+        Row: {
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: Database["public"]["Enums"]["otp_purpose"]
+          tentativas: number
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: Database["public"]["Enums"]["otp_purpose"]
+          tentativas?: number
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: Database["public"]["Enums"]["otp_purpose"]
+          tentativas?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          chokwe: boolean
+          created_at: string
+          email: string | null
+          fonte_kwendi: string | null
+          id: string
+          motivacao: string | null
+          nivel_declarado: string | null
+          nome: string | null
+          objetivo_diario: number | null
+          pais: string | null
+          provincia: string | null
+          stealth_avisado_em: string | null
+          stealth_expira_em: string | null
+          tipo: Database["public"]["Enums"]["profile_tipo"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          chokwe?: boolean
+          created_at?: string
+          email?: string | null
+          fonte_kwendi?: string | null
+          id: string
+          motivacao?: string | null
+          nivel_declarado?: string | null
+          nome?: string | null
+          objetivo_diario?: number | null
+          pais?: string | null
+          provincia?: string | null
+          stealth_avisado_em?: string | null
+          stealth_expira_em?: string | null
+          tipo?: Database["public"]["Enums"]["profile_tipo"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          chokwe?: boolean
+          created_at?: string
+          email?: string | null
+          fonte_kwendi?: string | null
+          id?: string
+          motivacao?: string | null
+          nivel_declarado?: string | null
+          nome?: string | null
+          objetivo_diario?: number | null
+          pais?: string | null
+          provincia?: string | null
+          stealth_avisado_em?: string | null
+          stealth_expira_em?: string | null
+          tipo?: Database["public"]["Enums"]["profile_tipo"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_devices: {
+        Row: {
+          created_at: string
+          device_id: string
+          device_name: string | null
+          id: string
+          ultimo_uso: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          device_name?: string | null
+          id?: string
+          ultimo_uso?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          device_name?: string | null
+          id?: string
+          ultimo_uso?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      otp_purpose:
+        | "login"
+        | "password_change"
+        | "email_change"
+        | "account_delete"
+      profile_tipo: "signup" | "stealth"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +299,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      otp_purpose: [
+        "login",
+        "password_change",
+        "email_change",
+        "account_delete",
+      ],
+      profile_tipo: ["signup", "stealth"],
+    },
   },
 } as const

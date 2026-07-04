@@ -41,32 +41,12 @@ function gravarLocal(v: boolean) {
   }
 }
 
-/** Empurra o novo valor para o Supabase (fonte da verdade em `progresso.premium`). */
-async function gravarBackend(v: boolean) {
-  const { data: sess } = await supabase.auth.getSession();
-  const uid = sess.session?.user?.id;
-  if (!uid) return;
-  await supabase
-    .from("progresso")
-    .update({ premium: v })
-    .eq("user_id", uid);
+/** Fase 4: persistência em `progresso.premium`. Por agora fica local. */
+async function gravarBackend(_v: boolean) {
+  /* noop */
 }
-
-/** Lê o Premium a partir de `progresso.premium` e sincroniza a cache local. */
 async function hidratarDoBackend() {
-  const { data: sess } = await supabase.auth.getSession();
-  const uid = sess.session?.user?.id;
-  if (!uid) return;
-  const { data } = await supabase
-    .from("progresso")
-    .select("premium, premium_expira_em")
-    .eq("user_id", uid)
-    .maybeSingle();
-  if (!data) return;
-  const expirou =
-    data.premium_expira_em != null && new Date(data.premium_expira_em).getTime() < Date.now();
-  const ativo = !!data.premium && !expirou;
-  gravarLocal(ativo);
+  /* noop */
 }
 
 /** Leitura estática — para uso fora de componentes React. */

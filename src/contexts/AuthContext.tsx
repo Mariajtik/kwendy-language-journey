@@ -10,12 +10,14 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 // Regista todos os espelhos localStorage ⇄ Supabase (side-effect import).
-import "@/lib/backend/registry";
-import { clearAllLocal, hydrateAll } from "@/lib/backend/mirror";
+import { clearAllLocal } from "@/lib/backend/mirror";
 
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
+  isStealth: boolean;
+  stealthValido: boolean;
+  stealthExpiraEm: string | null;
   loading: boolean;
   signOut: () => Promise<void>;
 };
@@ -23,6 +25,9 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
+  isStealth: false,
+  stealthValido: false,
+  stealthExpiraEm: null,
   loading: true,
   signOut: async () => {},
 });
@@ -43,13 +48,24 @@ async function syncBackendUser(user: User | null) {
     },
     { onConflict: "id" },
   );
-  await supabase.from("progresso").upsert({ user_id: user.id }, { onConflict: "user_id" });
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileTipo, setProfileTipo] = useState<"signup" | "stealth" | null>(null);
+  const [stealthExpiraEm, setStealthExpiraEm] = useState<string | null>(null);
+
+  async function loadProfileMeta(uid: string) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("tipo, stealth_expira_em")
+      .eq("id", uid)
+      .maybeSingle();
+    setProfileTipo((data?.tipo as "signup" | "stealth") ?? "signup");
+    setStealthExpiraEm(data?.stealth_expira_em ?? null);
+  }
 
   useEffect(() => {
     // Regista listener PRIMEIRO. Callback síncrono: nunca await aqui
@@ -61,9 +77,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // fire-and-forget
         setTimeout(() => {
           void syncBackendUser(s.user);
-          void hydrateAll(s.user.id);
+          void loadProfileMeta(s.user.id);
         }, 0);
       } else {
+        setProfileTipo(null);
+        setStealthExpiraEm(null);
         clearAllLocal();
       }
     });
@@ -73,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(data.session?.user ?? null);
       if (data.session?.user) {
         void syncBackendUser(data.session.user);
-        void hydrateAll(data.session.user.id);
+        void loadProfileMeta(data.session.user.id);
       }
       setLoading(false);
     });
@@ -82,17 +100,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  const isStealth = profileTipo === "stealth";
+  const stealthValido = !!(
+    isStealth &&
+    stealthExpiraEm &&
+    new Date(stealthExpiraEm).getTime() > Date.now()
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
       user,
+      isStealth,
+      stealthValido,
+      stealthExpiraEm,
       loading,
       signOut: async () => {
         await supabase.auth.signOut();
         clearAllLocal();
       },
     }),
-    [session, user, loading],
+    [session, user, isStealth, stealthValido, stealthExpiraEm, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
