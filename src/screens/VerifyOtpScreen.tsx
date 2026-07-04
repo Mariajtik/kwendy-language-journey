@@ -41,11 +41,23 @@ const VerifyOtpScreen = () => {
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim(),
       token,
-      type: "email",
+      type: "signup",
     });
     setBusy(false);
-    if (error || !data.session) {
-      toast.error(error?.message || "Código inválido ou expirado.");
+    if (error) {
+      const msg = `${error.message}`.toLowerCase();
+      if (msg.includes("expired")) {
+        toast.error("Código expirado. Pede um novo.");
+      } else if (msg.includes("invalid") || msg.includes("token")) {
+        toast.error("Código inválido. Verifica os 6 dígitos.");
+      } else {
+        toast.error(error.message);
+      }
+      setCode("");
+      return;
+    }
+    if (!data.session) {
+      toast.error("Sessão não estabelecida. Tenta iniciar sessão.");
       setCode("");
       return;
     }
