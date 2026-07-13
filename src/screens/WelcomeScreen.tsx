@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import logo from "@/assets/logo.jpg";
 import natureRoad from "@/assets/nature-road.jpg";
 import { useAuth } from "@/contexts/AuthContext";
+import RouteSeo from "@/components/seo/RouteSeo";
 
 /* Staggered animation container */
 const container = {
@@ -37,6 +38,12 @@ const WelcomeScreen = () => {
   }, [loading, navigate, session]);
 
   return (
+    <>
+    <RouteSeo
+      title="Bem-vindo ao Kwendi — Comece a aprender Umbundu"
+      description="Crie a sua conta ou entre no modo furtivo para começar a aprender Umbundu e explorar a cultura angolana com o Kwendi."
+      path="/welcome"
+    />
     <motion.div
       className="app-shell flex flex-col items-center px-6 py-8"
       style={{ minHeight: "100dvh" }}
@@ -119,6 +126,7 @@ const WelcomeScreen = () => {
         </motion.div>
       </motion.div>
     </motion.div>
+    </>
   );
 };
 

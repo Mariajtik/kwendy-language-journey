@@ -11,12 +11,46 @@ import defaultAvatar from "@/assets/avatar.jpg";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import StealthContaPanel from "@/screens/definicoes/StealthContaPanel";
 
 const KEY = "kwendi.def.conta";
 
 type Conta = { nome: string; email: string; foto?: string };
 
+/**
+ * Downscale + JPEG-compress an uploaded image and return a small data URL.
+ * Keeps avatars under ~40KB so we can safely store them in profiles.avatar_url.
+ */
+async function compressAvatar(file: File, size = 256, quality = 0.82): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d")!;
+    // cover-crop to square
+    const s = Math.min(img.width, img.height);
+    const sx = (img.width - s) / 2;
+    const sy = (img.height - s) / 2;
+    ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+    return canvas.toDataURL("image/jpeg", quality);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 const ContaScreen = () => {
+  const { isStealth } = useAuth();
+  return isStealth ? <StealthContaPanel /> : <SignupContaScreen />;
+};
+
+const SignupContaScreen = () => {
   const nav = useNavigate();
   const { user, signOut } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -24,6 +58,7 @@ const ContaScreen = () => {
   const [pwdAberto, setPwdAberto] = useState(false);
   const [eliminarAberto, setEliminarAberto] = useState(false);
   const [aEliminar, setAEliminar] = useState(false);
+  const [aGuardarFoto, setAGuardarFoto] = useState(false);
 
   useEffect(() => {
     try {
@@ -34,7 +69,7 @@ const ContaScreen = () => {
     }
   }, []);
 
-  // Sincronizar com o utilizador autenticado (fonte da verdade para o e-mail)
+  // Sincronizar com o utilizador autenticado e com o perfil na base de dados.
   useEffect(() => {
     if (!user) return;
     const meta = (user.user_metadata ?? {}) as Record<string, any>;
@@ -42,7 +77,25 @@ const ContaScreen = () => {
       ...c,
       email: user.email ?? c.email,
       nome: c.nome || meta.nome || user.email?.split("@")[0] || "",
+      foto: c.foto || meta.avatar_url || meta.picture || undefined,
     }));
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("nome, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      setConta((c) => ({
+        ...c,
+        nome: data.nome ?? c.nome,
+        foto: data.avatar_url ?? c.foto,
+      }));
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const persist = (next: Conta) => {
@@ -54,15 +107,32 @@ const ContaScreen = () => {
     }
   };
 
-  const onPickFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onPickFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      persist({ ...conta, foto: String(reader.result) });
-      toast("Foto atualizada");
-    };
-    reader.readAsDataURL(f);
+    if (aGuardarFoto) return;
+    setAGuardarFoto(true);
+    try {
+      const dataUrl = await compressAvatar(f);
+      persist({ ...conta, foto: dataUrl });
+      if (user) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ avatar_url: dataUrl })
+          .eq("id", user.id);
+        if (error) {
+          toast.error("Não foi possível guardar a foto: " + error.message);
+          return;
+        }
+        await supabase.auth.updateUser({ data: { avatar_url: dataUrl } });
+      }
+      toast.success("Foto atualizada");
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao processar a imagem.");
+    } finally {
+      setAGuardarFoto(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   const guardarNome = async () => {

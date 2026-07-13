@@ -5,6 +5,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Props {
   aberto: boolean;
@@ -13,15 +17,25 @@ interface Props {
 
 const SairConfirmModal = ({ aberto, onFechar }: Props) => {
   const nav = useNavigate();
+  const { t } = useTranslation();
+  const { signOut } = useAuth();
+  const [aSair, setASair] = useState(false);
 
-  const confirmar = () => {
+  const confirmar = async () => {
+    if (aSair) return;
+    setASair(true);
     try {
-      localStorage.removeItem("kwendi.auth.user");
-    } catch {
-      /* noop */
+      await signOut();
+      try {
+        localStorage.removeItem("kwendi.auth.user");
+      } catch { /* noop */ }
+      onFechar();
+      nav("/welcome", { replace: true });
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível terminar a sessão.");
+    } finally {
+      setASair(false);
     }
-    onFechar();
-    nav("/");
   };
 
   return (
@@ -44,7 +58,7 @@ const SairConfirmModal = ({ aberto, onFechar }: Props) => {
           >
             <button
               onClick={onFechar}
-              aria-label="Fechar"
+              aria-label={t("sair.fechar", "Fechar")}
               className="absolute top-3 right-3 w-9 h-9 rounded-xl grid place-items-center text-muted-foreground"
             >
               <X className="w-4 h-4" />
@@ -55,26 +69,27 @@ const SairConfirmModal = ({ aberto, onFechar }: Props) => {
             >
               <LogOut className="w-7 h-7" style={{ color: "hsl(var(--destructive))" }} />
             </div>
-            <h3 className="text-lg font-extrabold text-foreground">Queres mesmo sair?</h3>
+            <h3 className="text-lg font-extrabold text-foreground">{t("sair.titulo", "Queres mesmo sair?")}</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-5">
-              Os teus dados ficam guardados. Podes voltar quando quiseres.
+              {t("sair.descricao", "Os teus dados ficam guardados. Podes voltar quando quiseres.")}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={onFechar}
                 className="flex-1 rounded-2xl py-3 font-extrabold border-2 border-border text-foreground"
               >
-                Ficar
+                {t("sair.ficar", "Ficar")}
               </button>
               <button
                 onClick={confirmar}
+                disabled={aSair}
                 className="flex-1 rounded-2xl py-3 font-extrabold text-white"
                 style={{
                   background: "hsl(var(--destructive))",
                   boxShadow: "0 4px 0 hsl(var(--destructive) / 0.6)",
                 }}
               >
-                Sair
+                {aSair ? t("sair.aSair", "A sair…") : t("sair.sair", "Sair")}
               </button>
             </div>
           </motion.div>

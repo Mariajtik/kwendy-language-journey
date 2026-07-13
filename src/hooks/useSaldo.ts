@@ -32,10 +32,10 @@ export const VIDAS_MAX = 5;
 
 const DEFAULT: Saldo = {
   xp: 0,
-  diamantes: 1000,
+  diamantes: 0,
   baus: { comum: 0, raro: 0, lendario: 0 },
   fragmentos: 0,
-  ofensiva: 3,
+  ofensiva: 0,
   ultimoDiaAtivo: "",
   curiosidadesLidas: [],
   vidas: VIDAS_MAX,

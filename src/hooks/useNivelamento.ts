@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { pushKey } from "@/lib/backend/mirror";
+import type { Cefr, Categoria } from "@/data/nivelamento/banco";
 
 const KEY = "kwendi:nivelamento";
 const EVT = "kwendi:nivelamento-changed";
@@ -19,6 +20,10 @@ export type NivelamentoEstado = {
   unidadeSugerida: string | null;
   todosDesbloqueados: boolean;
   popupPendente: null | "ancao" | "posicionado";
+  cefr: Cefr | null;
+  pontosFortes: Categoria[];
+  pontosFracos: Categoria[];
+  trilhaSugerida: string[];
 };
 
 const DEFAULT: NivelamentoEstado = {
@@ -30,6 +35,10 @@ const DEFAULT: NivelamentoEstado = {
   unidadeSugerida: null,
   todosDesbloqueados: false,
   popupPendente: null,
+  cefr: null,
+  pontosFortes: [],
+  pontosFracos: [],
+  trilhaSugerida: [],
 };
 
 function load(): NivelamentoEstado {

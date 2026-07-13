@@ -10,7 +10,9 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 // Regista todos os espelhos localStorage ⇄ Supabase (side-effect import).
-import { clearAllLocal } from "@/lib/backend/mirror";
+import { clearAllLocal, hydrateAll } from "@/lib/backend/mirror";
+// Regista todos os espelhos localStorage ⇄ Supabase (side-effect import).
+import "@/lib/backend/registry";
 
 type AuthContextValue = {
   session: Session | null;
@@ -40,11 +42,15 @@ function getProfileName(user: User) {
 async function syncBackendUser(user: User | null) {
   if (!user) return;
   const nome = getProfileName(user);
+  const meta = (user.user_metadata ?? {}) as Record<string, any>;
+  const avatarUrl: string | null =
+    meta.avatar_url ?? meta.picture ?? meta.foto ?? null;
   await supabase.from("profiles").upsert(
     {
       id: user.id,
       email: user.email ?? null,
       nome,
+      ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
     },
     { onConflict: "id" },
   );
@@ -78,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           void syncBackendUser(s.user);
           void loadProfileMeta(s.user.id);
+          void hydrateAll(s.user.id);
         }, 0);
       } else {
         setProfileTipo(null);
@@ -92,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.session?.user) {
         void syncBackendUser(data.session.user);
         void loadProfileMeta(data.session.user.id);
+        void hydrateAll(data.session.user.id);
       }
       setLoading(false);
     });

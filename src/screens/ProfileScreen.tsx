@@ -5,7 +5,7 @@
  * Perfil, Comunidade, Definições. UI only — data is mocked.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Share2,
@@ -20,7 +20,8 @@ import {
   Lock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import avatar from "@/assets/avatar.jpg";
+import { useTranslation } from "react-i18next";
+import defaultAvatar from "@/assets/avatar.jpg";
 import BottomNav from "@/components/BottomNav";
 import CommunityFeed from "@/components/CommunityFeed";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
@@ -34,14 +35,15 @@ import type { ConquistaView } from "@/hooks/useMissoes";
 import { CONQUISTAS } from "@/data/conquistas";
 import trofeu30dias from "@/assets/missoes/trofeu.png";
 import { getStat, STATS } from "@/lib/stats";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const TOTAL_LETRAS = 23;
 
-/* ----- Mocked profile data ----- */
+/* ----- Base defaults (overridden by real profile data below) ----- */
 const profileBase = {
-  username: "Angola",
   level: 1,
-  memberSince: "Junho 2026",
   following: 0,
   followers: 0,
   moduleProgress: { current: 1, total: 5, name: "Saúda a tua comunidade" },
@@ -53,11 +55,55 @@ type Tab = "perfil" | "comunidade";
 
 const ProfileScreen = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("perfil");
   const [conquistaAberta, setConquistaAberta] = useState<ConquistaView | null>(null);
+  const [dbProfile, setDbProfile] = useState<{
+    nome: string | null;
+    avatar_url: string | null;
+    created_at: string | null;
+  }>({ nome: null, avatar_url: null, created_at: null });
+  const [counts, setCounts] = useState({ seguidores: 0, seguindo: 0 });
+  const [amigos, setAmigos] = useState<
+    { id: string; nome: string | null; avatar_url: string | null; xp: number }[]
+  >([]);
+  const [amigosOpen, setAmigosOpen] = useState<null | "seguidores" | "seguindo">(null);
   const { saldo } = useSaldo();
   const { ativo: premium } = usePremium();
   const { conquistas, resgatarConquista } = useMissoes();
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("nome, avatar_url, created_at")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && data) {
+        setDbProfile({
+          nome: data.nome ?? null,
+          avatar_url: data.avatar_url ?? null,
+          created_at: data.created_at ?? null,
+        });
+      }
+      const { data: c } = await supabase.rpc("contar_amizades", { _uid: user.id });
+      if (!cancelled && c && c.length > 0) {
+        setCounts({
+          seguidores: (c[0] as any).seguidores ?? 0,
+          seguindo: (c[0] as any).seguindo ?? 0,
+        });
+      }
+      const { data: lst } = await supabase.rpc("listar_amigos", { _uid: user.id });
+      if (!cancelled) setAmigos((lst ?? []) as any);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const desbloqueadas = useMemo(
     () => conquistas.filter((c) => c.desbloqueada),
     [conquistas]
@@ -76,17 +122,39 @@ const ProfileScreen = () => {
     })();
     const alfabeto = getStat(STATS.alfabetoEscutas);
     return [
-      { label: "Nv 5",       unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
-      { label: "Nv 10",      unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
-      { label: "Módulo 1",   unlocked: completo,         trophy: undefined as string | undefined },
-      { label: "30 dias",    unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias },
-      { label: "Caderno 50", unlocked: guardadas >= 50,    trophy: undefined },
-      { label: "Alfabeto",   unlocked: alfabeto >= TOTAL_LETRAS, trophy: undefined },
+      { label: `${t("profile.nvPrefix", "Nv")} 5`,  unlocked: saldo.xp >= 2000, trophy: undefined as string | undefined },
+      { label: `${t("profile.nvPrefix", "Nv")} 10`, unlocked: saldo.xp >= 5000, trophy: undefined as string | undefined },
+      { label: t("profile.modulo1", "Módulo 1"),    unlocked: completo,         trophy: undefined as string | undefined },
+      { label: `30 ${t("profile.diasSuf", "dias")}`,unlocked: saldo.ofensiva >= 30, trophy: trofeu30dias },
+      { label: t("profile.caderno50", "Caderno 50"),unlocked: guardadas >= 50,    trophy: undefined },
+      { label: t("profile.alfabetoMarco", "Alfabeto"), unlocked: alfabeto >= TOTAL_LETRAS, trophy: undefined },
     ];
-  }, [saldo.xp, saldo.ofensiva]);
+  }, [saldo.xp, saldo.ofensiva, t]);
 
+  const meta = (user?.user_metadata ?? {}) as Record<string, any>;
+  const username =
+    dbProfile.nome ??
+    meta.nome ??
+    meta.full_name ??
+    meta.name ??
+    user?.email?.split("@")[0] ??
+    "Convidado";
+  const avatarSrc = dbProfile.avatar_url || meta.avatar_url || meta.picture || defaultAvatar;
+  const memberSince = (() => {
+    const iso = dbProfile.created_at ?? user?.created_at ?? null;
+    if (!iso) return "—";
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    } catch {
+      return "—";
+    }
+  })();
   const profile = {
     ...profileBase,
+    following: counts.seguindo,
+    followers: counts.seguidores,
+    username,
+    memberSinceKey: memberSince,
     streak: premium ? Math.max(saldo.ofensiva, 1) : saldo.ofensiva,
     xp: saldo.xp,
     diamonds: saldo.diamantes,
@@ -120,19 +188,19 @@ const ProfileScreen = () => {
             {premium && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold tracking-widest uppercase"
-                title="Membro Premium (degustação)"
+                title={t("profile.membroPremiumTitle", "Membro Premium (degustação)")}
               >
                 <span aria-hidden>👑</span>
-                Premium
+                {t("profile.premium", "Premium")}
               </span>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button aria-label="Partilhar" className="p-1.5">
+            <button aria-label={t("profile.partilhar", "Partilhar")} className="p-1.5">
               <Share2 className="w-5 h-5" />
             </button>
             <button
-              aria-label="Definições"
+              aria-label={t("profile.definicoes", "Definições")}
               onClick={() => navigate("/profile/definicoes")}
               className="p-1.5"
             >
@@ -144,7 +212,7 @@ const ProfileScreen = () => {
         {/* Avatar floating bottom-right of header */}
         <div className="absolute right-6 -bottom-10">
           <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden shadow-lg">
-            <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+            <img src={avatarSrc} alt={t("profile.avatar", "Avatar")} className="w-full h-full object-cover" />
           </div>
         </div>
       </header>
@@ -153,8 +221,8 @@ const ProfileScreen = () => {
       <div className="px-6 mt-14">
         <div className="flex items-center gap-6 border-b border-border">
           {([
-            { id: "perfil", label: "Perfil" },
-            { id: "comunidade", label: "Comunidade" },
+            { id: "perfil", label: t("profile.tabPerfil", "Perfil") },
+            { id: "comunidade", label: t("profile.tabComunidade", "Comunidade") },
           ] as { id: Tab; label: string }[]).map((t) => {
             const active = tab === t.id;
             return (
@@ -185,7 +253,7 @@ const ProfileScreen = () => {
             {/* Visão geral */}
             <section>
               <h2 className="text-lg font-extrabold text-foreground mb-3">
-                Visão geral
+                {t("profile.visaoGeral", "Visão geral")}
               </h2>
               <div className="grid grid-cols-3 gap-2">
                 <StatCard
@@ -196,38 +264,42 @@ const ProfileScreen = () => {
                     />
                   }
                   value={premium ? "∞" : profile.streak}
-                  label={premium ? "Chama eterna" : "Sequência"}
+                  label={premium ? t("profile.chamaEterna", "Chama eterna") : t("profile.sequencia", "Sequência")}
                 />
-                <StatCard icon={<KwendiIcon name="raioxp" className="w-6 h-6" />} value={`${profile.xp} XP`} label="Experiência" />
-                <StatCard icon={<Trophy className="w-5 h-5" style={{ color: "hsl(var(--primary))" }} />} value={`Nv ${profile.level}`} label="Nível" />
+                <StatCard icon={<KwendiIcon name="raioxp" className="w-6 h-6" />} value={`${profile.xp} XP`} label={t("profile.experiencia", "Experiência")} />
+                <StatCard icon={<Trophy className="w-5 h-5" style={{ color: "hsl(var(--primary))" }} />} value={`${t("profile.nvPrefix", "Nv")} ${profile.level}`} label={t("profile.nivelLabel", "Nível")} />
               </div>
             </section>
 
             {/* Info */}
             <section className="rounded-2xl border-2 border-border p-4 bg-card">
-              <InfoRow icon={<UserIcon className="w-4 h-4 text-muted-foreground" />} label="Nome" value={profile.username} />
-              <InfoRow icon={<Diamond className="w-4 h-4" />} label="Diamantes" value={profile.diamonds.toLocaleString()} />
-              <InfoRow icon={<Calendar className="w-4 h-4 text-muted-foreground" />} label="Membro desde" value={profile.memberSince} last />
+              <InfoRow icon={<UserIcon className="w-4 h-4 text-muted-foreground" />} label={t("profile.nome", "Nome")} value={profile.username} />
+              <InfoRow icon={<Diamond className="w-4 h-4" />} label={t("profile.diamantes", "Diamantes")} value={profile.diamonds.toLocaleString()} />
+              <InfoRow icon={<Calendar className="w-4 h-4 text-muted-foreground" />} label={t("profile.membroDesde", "Membro desde")} value={profile.memberSinceKey} last />
             </section>
 
             {/* Seguir / Seguindo */}
             <section className="rounded-2xl border-2 border-border p-4 bg-card flex items-center justify-between">
               <div className="flex gap-6">
-                <Counter value={profile.followers} label="Seguidores" />
-                <Counter value={profile.following} label="Seguindo" />
+                <button onClick={() => setAmigosOpen("seguidores")} className="text-left">
+                  <Counter value={profile.followers} label={t("profile.seguidores", "Seguidores")} />
+                </button>
+                <button onClick={() => setAmigosOpen("seguindo")} className="text-left">
+                  <Counter value={profile.following} label={t("profile.seguindo", "Seguindo")} />
+                </button>
               </div>
               <button
-                className="px-4 py-2 rounded-full text-sm font-extrabold text-white opacity-60 cursor-not-allowed"
+                onClick={() => setTab("comunidade")}
+                className="px-4 py-2 rounded-full text-sm font-extrabold text-white"
                 style={{ background: "hsl(var(--primary))" }}
-                disabled
               >
-                Seguir
+                {t("profile.encontrar", "Encontrar amigos")}
               </button>
             </section>
 
             {/* Progresso */}
             <section>
-              <h2 className="text-lg font-extrabold text-foreground mb-3">Progresso</h2>
+              <h2 className="text-lg font-extrabold text-foreground mb-3">{t("profile.progresso", "Progresso")}</h2>
               <div className="rounded-2xl border-2 border-border p-4 bg-card">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold text-foreground">
@@ -248,9 +320,9 @@ const ProfileScreen = () => {
 
             {/* Marcos */}
             <section>
-              <h2 className="text-lg font-extrabold text-foreground mb-1">Marcos</h2>
+              <h2 className="text-lg font-extrabold text-foreground mb-1">{t("profile.marcos", "Marcos")}</h2>
               <p className="text-xs text-muted-foreground mb-3">
-                Patamares da tua jornada.
+                {t("profile.marcosSub", "Patamares da tua jornada.")}
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {marcos.map((mk, i) => (
@@ -297,9 +369,9 @@ const ProfileScreen = () => {
             <section>
               <div className="flex items-end justify-between mb-3">
                 <div>
-                  <h2 className="text-lg font-extrabold text-foreground leading-tight">Conquistas</h2>
+                  <h2 className="text-lg font-extrabold text-foreground leading-tight">{t("profile.conquistas", "Conquistas")}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {desbloqueadas.length} de {totalConquistas} desbloqueadas
+                    {desbloqueadas.length} {t("profile.de", "de")} {totalConquistas} {t("profile.desbloqueadas", "desbloqueadas")}
                   </p>
                 </div>
                 <button
@@ -307,7 +379,7 @@ const ProfileScreen = () => {
                   className="text-xs font-extrabold flex items-center gap-0.5"
                   style={{ color: "hsl(var(--primary))" }}
                 >
-                  Ver todas <ChevronRight className="w-3.5 h-3.5" />
+                  {t("profile.verTodas", "Ver todas")} <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -315,10 +387,10 @@ const ProfileScreen = () => {
                 <div className="rounded-2xl border-2 border-dashed border-border p-6 text-center">
                   <Lock className="w-6 h-6 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm font-bold text-foreground">
-                    Ainda sem conquistas
+                    {t("profile.semConquistas", "Ainda sem conquistas")}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Desbloqueia a tua primeira em Missões → Conquistas.
+                    {t("profile.semConquistasSub", "Desbloqueia a tua primeira em Missões → Conquistas.")}
                   </p>
                 </div>
               ) : (
@@ -355,6 +427,49 @@ const ProfileScreen = () => {
           setConquistaAberta(null);
         }}
       />
+
+      <Dialog open={!!amigosOpen} onOpenChange={(o) => { if (!o) setAmigosOpen(null); }}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              {amigosOpen === "seguidores"
+                ? t("profile.seguidores", "Seguidores")
+                : t("profile.seguindo", "Seguindo")}
+            </DialogTitle>
+          </DialogHeader>
+          {amigos.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              {t("profile.semAmigos", "Ainda sem amigos. Encontra pessoas na aba Comunidade → Ranking.")}
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {amigos.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex items-center gap-3 rounded-xl border-2 border-border px-3 py-2"
+                >
+                  {a.avatar_url ? (
+                    <img src={a.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full grid place-items-center text-white font-extrabold text-sm"
+                      style={{ background: "hsl(var(--primary))" }}
+                    >
+                      {(a.nome ?? "K")[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-extrabold text-sm text-foreground truncate">
+                      {a.nome ?? "Kwendian"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">{a.xp} XP</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </motion.div>
   );

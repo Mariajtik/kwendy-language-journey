@@ -3,10 +3,19 @@
  */
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import { Bell, Users, Mail, Clock } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import { pushKey } from "@/lib/backend/mirror";
+import {
+  cancelDailyReminder,
+  isNotificationGranted,
+  requestNotificationPermission,
+  scheduleDailyReminder,
+} from "@/lib/notifications";
+import { activarPushRemoto, desactivarPushRemoto, pushSupported } from "@/lib/pushClient";
+import { toast } from "@/hooks/use-toast";
 
 const KEY = "kwendi.def.notif";
 
@@ -27,7 +36,13 @@ const DEFAULT: Notif = {
 };
 
 const NotificacoesScreen = () => {
+  const { t } = useTranslation();
   const [n, setN] = useState<Notif>(DEFAULT);
+  const [permissao, setPermissao] = useState<"granted" | "denied" | "default">(
+    typeof window !== "undefined" && "Notification" in window
+      ? (Notification.permission as "granted" | "denied" | "default")
+      : "denied",
+  );
 
   useEffect(() => {
     try {
@@ -39,13 +54,46 @@ const NotificacoesScreen = () => {
   }, []);
   useEffect(() => {
     pushKey(KEY, n);
-  }, [n]);
+    if (n.lembretes && isNotificationGranted()) {
+      scheduleDailyReminder(
+        n.horario,
+        "Kwendi",
+        t("notif.lembreteTexto", "Vamos manter a chama viva? Volta e faz uma lição rápida."),
+      );
+    } else {
+      cancelDailyReminder();
+    }
+  }, [n, t]);
+
+  // Sincroniza push server-side quando o toggle "ofensiva" muda ou o horário é ajustado.
+  useEffect(() => {
+    if (!pushSupported()) return;
+    const hh = parseInt((n.horario || "20:00").split(":")[0], 10) || 20;
+    if (n.ofensiva && permissao === "granted") {
+      void activarPushRemoto(hh);
+    } else if (!n.ofensiva) {
+      void desactivarPushRemoto();
+    }
+  }, [n.ofensiva, n.horario, permissao]);
+
+  const pedirPermissao = async () => {
+    const res = await requestNotificationPermission();
+    setPermissao(res);
+    if (res === "granted") {
+      toast({ title: t("notif.ativadasTitulo", "Notificações ativadas"), description: t("notif.ativadasDesc", "Vais receber os teus lembretes.") });
+    } else if (res === "denied") {
+      toast({
+        title: t("notif.bloqueadasTitulo", "Notificações bloqueadas"),
+        description: t("notif.bloqueadasDesc", "Ativa nas definições do teu browser para receber lembretes."),
+      });
+    }
+  };
 
   const items: { key: keyof Notif; label: string; desc: string; Icon?: typeof Bell; kwendiIcon?: "chamaAcesa" }[] = [
-    { key: "lembretes", label: "Lembretes diários", desc: "Empurra-te a praticar todos os dias.", Icon: Bell },
-    { key: "ofensiva",  label: "Ofensiva em risco", desc: "Avisa-te antes da chama apagar.", kwendiIcon: "chamaAcesa" },
-    { key: "comunidade",label: "Comunidade", desc: "Comentários e respostas no teu feed.", Icon: Users },
-    { key: "marketing", label: "E-mail marketing", desc: "Novidades e promoções por e-mail.", Icon: Mail },
+    { key: "lembretes", label: t("notif.lembretesLabel", "Lembretes diários"), desc: t("notif.lembretesDesc", "Empurra-te a praticar todos os dias."), Icon: Bell },
+    { key: "ofensiva",  label: t("notif.ofensivaLabel", "Ofensiva em risco"), desc: t("notif.ofensivaDesc", "Avisa-te antes da chama apagar."), kwendiIcon: "chamaAcesa" },
+    { key: "comunidade",label: t("notif.comunidadeLabel", "Comunidade"), desc: t("notif.comunidadeDesc", "Comentários e respostas no teu feed."), Icon: Users },
+    { key: "marketing", label: t("notif.marketingLabel", "E-mail marketing"), desc: t("notif.marketingDesc", "Novidades e promoções por e-mail."), Icon: Mail },
   ];
 
   return (
@@ -55,8 +103,22 @@ const NotificacoesScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <DefHeader titulo="Notificações" subtitulo="Como queres que te avisemos" />
+      <DefHeader titulo={t("notif.titulo", "Notificações")} subtitulo={t("notif.subtitulo", "Como queres que te avisemos")} />
       <div className="px-4 py-5 pb-32 space-y-3">
+        {permissao !== "granted" && (
+          <button
+            onClick={pedirPermissao}
+            className="w-full rounded-2xl py-3 font-extrabold text-white"
+            style={{
+              background: "hsl(var(--primary))",
+              boxShadow: "0 4px 0 hsl(var(--kwendi-red-dark))",
+            }}
+          >
+            {permissao === "denied"
+              ? t("notif.bloqueadas", "Notificações bloqueadas — ativa no browser")
+              : t("notif.ativar", "Ativar notificações")}
+          </button>
+        )}
         {items.map(({ key, label, desc, Icon, kwendiIcon }) => (
           <label
             key={key}
@@ -95,8 +157,8 @@ const NotificacoesScreen = () => {
             <Clock className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <p className="font-extrabold text-foreground leading-tight">Horário do lembrete</p>
-            <p className="text-xs text-muted-foreground">Hora a que te lembramos.</p>
+            <p className="font-extrabold text-foreground leading-tight">{t("notif.horarioLabel", "Horário do lembrete")}</p>
+            <p className="text-xs text-muted-foreground">{t("notif.horarioDesc", "Hora a que te lembramos.")}</p>
           </div>
           <input
             type="time"

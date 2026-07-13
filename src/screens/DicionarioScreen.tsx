@@ -6,6 +6,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -18,9 +19,11 @@ import {
   X,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import AvaliadorPronuncia from "@/components/AvaliadorPronuncia";
 import { DICIONARIO, pesquisar, type EntradaDic } from "@/data/dicionario";
 import { bumpStat, STATS } from "@/lib/stats";
 import { toast } from "sonner";
+import { falarKwendi } from "@/lib/kwendiVoice";
 
 const FAV_KEY = "kwendi.caderno.guardadas";
 const LEGACY_FAV_KEY = "kwendi.dicionario.favoritos";
@@ -39,6 +42,7 @@ type SR = {
 
 const DicionarioScreen = () => {
   const nav = useNavigate();
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [favoritos, setFavoritos] = useState<string[]>(() => {
     try {
@@ -83,23 +87,18 @@ const DicionarioScreen = () => {
   const toggleFav = (id: string) =>
     setFavoritos((prev) => {
       if (prev.includes(id)) {
-        toast("Removida do Caderno");
+        toast(t("dicionario.removida"));
         return prev.filter((x) => x !== id);
       }
-      toast("Guardada no Caderno", {
-        description: "Vê a tua coleção em Caderno → Guardadas.",
-        action: { label: "Abrir", onClick: () => nav("/secao/caderno") },
+      toast(t("dicionario.guardada"), {
+        description: t("dicionario.guardadaDesc"),
+        action: { label: t("dicionario.abrir"), onClick: () => nav("/secao/caderno") },
       });
       return [...prev, id];
     });
 
-  const falar = (texto: string, lang = "pt-PT") => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(texto);
-    u.lang = lang;
-    u.rate = 0.95;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+  const falar = (texto: string) => {
+    void falarKwendi(texto, { contexto: "vocab" });
   };
 
   const iniciarVoz = () => {
@@ -152,15 +151,15 @@ const DicionarioScreen = () => {
         <div className="flex items-center gap-3 mb-3">
           <button
             onClick={() => nav(-1)}
-            aria-label="Voltar"
+            aria-label={t("comum.voltar")}
             className="w-10 h-10 rounded-xl border-2 border-border bg-card grid place-items-center"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-extrabold text-foreground leading-none">Dicionário</h1>
+            <h1 className="text-xl font-extrabold text-foreground leading-none">{t("dicionario.titulo")}</h1>
             <p className="text-[11px] text-muted-foreground mt-1">
-              PT ⇄ Umbundu · busca, fala ou ditado
+              {t("dicionario.subtitulo")}
             </p>
           </div>
         </div>
@@ -174,13 +173,13 @@ const DicionarioScreen = () => {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Procura em umbundu ou português…"
+            placeholder={t("dicionario.placeholder")}
             className="flex-1 bg-transparent outline-none text-base font-semibold placeholder:text-muted-foreground"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              aria-label="Limpar"
+              aria-label={t("comum.fechar")}
               className="w-7 h-7 rounded-lg grid place-items-center text-muted-foreground"
             >
               <X className="w-4 h-4" />
@@ -188,7 +187,7 @@ const DicionarioScreen = () => {
           )}
           <button
             onClick={escutando ? pararVoz : iniciarVoz}
-            aria-label="Ditado por voz"
+            aria-label={t("dicionario.praticar")}
             className="w-10 h-10 rounded-xl grid place-items-center text-white flex-shrink-0"
             style={{
               background: escutando ? "hsl(var(--primary))" : "hsl(160 60% 35%)",
@@ -207,10 +206,10 @@ const DicionarioScreen = () => {
         {query.trim() && resultados.length === 0 && (
           <div className="rounded-2xl border-2 border-dashed border-border p-4 text-center">
             <p className="text-sm font-bold text-foreground">
-              Sem resultados para “{query}”
+              {t("dicionario.semResultados")} “{query}”
             </p>
             <p className="text-xs text-muted-foreground mt-1 mb-3">
-              A IA Kwendi pode tentar adivinhar.
+              {t("dicionario.iaSugerir")}
             </p>
             <button
               onClick={pedirIA}
@@ -220,7 +219,7 @@ const DicionarioScreen = () => {
                 boxShadow: "0 3px 0 hsl(280 70% 40%)",
               }}
             >
-              <Sparkles className="w-4 h-4" /> Pedir à IA
+              <Sparkles className="w-4 h-4" /> {t("dicionario.pedirIa")}
             </button>
             {iaResposta && (
               <p className="text-sm text-foreground mt-3 italic">{iaResposta}</p>
@@ -231,13 +230,13 @@ const DicionarioScreen = () => {
         {!query.trim() && (
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-extrabold tracking-widest text-muted-foreground">
-              EXPLORAR
+              {t("dicionario.explorar")}
             </p>
             <button
               onClick={() => nav("/secao/caderno")}
               className="text-[11px] font-extrabold text-foreground/70 underline"
             >
-              Ver Caderno →
+              {t("dicionario.verCaderno")}
             </button>
           </div>
         )}
@@ -264,16 +263,17 @@ const DicionarioScreen = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => falar(e.umbundu, "pt-PT")}
-                  aria-label="Ouvir"
+                  onClick={() => falar(e.umbundu)}
+                  aria-label={t("dicionario.ouvir")}
                   className="w-10 h-10 rounded-xl grid place-items-center"
                   style={{ background: "hsl(202 100% 74% / 0.2)", color: "hsl(202 80% 45%)" }}
                 >
                   <Volume2 className="w-5 h-5" />
                 </button>
+                <AvaliadorPronuncia alvo={e.umbundu} compact />
                 <button
                   onClick={() => toggleFav(e.id)}
-                  aria-label={fav ? "Remover dos favoritos" : "Guardar"}
+                  aria-label={fav ? t("dicionario.removida") : t("dicionario.guardada")}
                   className="w-10 h-10 rounded-xl grid place-items-center"
                   style={{
                     background: fav ? "hsl(45 96% 53% / 0.25)" : "hsl(var(--muted))",

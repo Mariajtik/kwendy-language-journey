@@ -6,6 +6,7 @@
  */
 import { motion } from "framer-motion";
 import { Eye, Moon, Volume2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 
@@ -49,6 +50,7 @@ const Linha = ({ icon: Icon, titulo, descricao, valor, onToggle }: LinhaProps) =
 );
 
 const AcessibilidadeScreen = () => {
+  const { t } = useTranslation();
   const {
     temaEscuro,
     fundoBranco,
@@ -65,27 +67,27 @@ const AcessibilidadeScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <DefHeader titulo="Acessibilidade" subtitulo="Aparência, fundo e áudio" />
+      <DefHeader titulo={t("acess.titulo", "Acessibilidade")} subtitulo={t("acess.subtitulo", "Aparência, fundo e áudio")} />
       <main className="px-4 py-5 pb-32">
         <div className="rounded-2xl border-2 border-border bg-card overflow-hidden divide-y divide-border">
           <Linha
             icon={Moon}
-            titulo="Tema escuro"
-            descricao="Muda a app do tema claro para escuro."
+            titulo={t("acess.temaTitulo", "Tema escuro")}
+            descricao={t("acess.temaDesc", "Muda a app do tema claro para escuro.")}
             valor={temaEscuro}
             onToggle={setTemaEscuro}
           />
           <Linha
             icon={Eye}
-            titulo="Fundo transparente"
-            descricao="Substitui o fundo com relva do início por um fundo simples, de acordo ao tema e mais legível."
+            titulo={t("acess.fundoTitulo", "Fundo transparente")}
+            descricao={t("acess.fundoDesc", "Substitui o fundo com relva do início por um fundo simples, de acordo ao tema e mais legível.")}
             valor={fundoBranco}
             onToggle={setFundoBranco}
           />
           <Linha
             icon={Volume2}
-            titulo="Reprodução automática de áudio"
-            descricao="Quando desligado, todos os áudios (intros, música do jogo Para Além de Fronteiras, etc.) começam mudos. Ligue para tocar automaticamente."
+            titulo={t("acess.audioTitulo", "Reprodução automática de áudio")}
+            descricao={t("acess.audioDesc", "Quando desligado, todos os áudios (intros, música do jogo Para Além de Fronteiras, etc.) começam mudos. Ligue para tocar automaticamente.")}
             valor={autoPlayAudio}
             onToggle={setAutoPlayAudio}
           />

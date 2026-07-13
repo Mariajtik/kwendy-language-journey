@@ -10,6 +10,8 @@ interface Props {
   diamantes: number;
   baus: number;
   streak?: number;
+  chamaAcesa?: boolean;
+  onStreakClick?: () => void;
 }
 
 const Item = ({
@@ -54,8 +56,9 @@ const Item = ({
   return <div className="flex items-center gap-1.5">{inner}</div>;
 };
 
-const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => {
+const HeaderRecursos = ({ xp, diamantes, baus, streak = 0, chamaAcesa, onStreakClick }: Props) => {
   const navigate = useNavigate();
+  const acesa = chamaAcesa ?? streak > 0;
   return (
   <motion.div
     initial={{ y: -8, opacity: 0 }}
@@ -72,7 +75,13 @@ const HeaderRecursos = ({ xp, diamantes, baus, streak = 0 }: Props) => {
       ariaLabel="Abrir loja"
     />
     <Item icon={<KwendiIcon name="bau" className="w-5 h-5" />} value={baus} color="var(--kwendi-brown)" />
-    <Item icon={<KwendiIcon name={streak > 0 ? "chamaAcesa" : "chamaApagada"} className="w-5 h-5" />} value={streak} color="var(--kwendi-red)" />
+    <Item
+      icon={<KwendiIcon name={acesa ? "chamaAcesa" : "chamaApagada"} className="w-5 h-5" />}
+      value={streak}
+      color="var(--kwendi-red)"
+      onClick={onStreakClick}
+      ariaLabel="Ver sequência"
+    />
   </motion.div>
   );
 };

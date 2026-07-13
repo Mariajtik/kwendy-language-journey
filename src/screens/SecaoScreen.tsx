@@ -10,6 +10,7 @@ import { useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import { DICIONARIO } from "@/data/dicionario";
 import { bumpStat, STATS } from "@/lib/stats";
+import { falarKwendi } from "@/lib/kwendiVoice";
 
 const config: Record<
   string,
@@ -179,12 +180,7 @@ const AlfabetoView = ({ onVoltar }: { onVoltar: () => void }) => {
   const [escutadas, setEscutadas] = useState<Set<string>>(new Set());
 
   const falar = (txt: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(txt);
-    u.lang = "pt-PT";
-    u.rate = 0.85;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
+    void falarKwendi(txt, { contexto: "vocab" });
   };
 
   const exemploDe = (letra: string) =>

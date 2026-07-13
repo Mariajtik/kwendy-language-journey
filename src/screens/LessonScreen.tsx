@@ -5,7 +5,7 @@
  * feedback verde/vermelho, tela de conclusão com XP.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, X as XIcon, Lightbulb } from "lucide-react";
@@ -15,8 +15,11 @@ import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
+import { useOfensiva } from "@/hooks/useOfensiva";
+import StreakOverlay from "@/components/StreakOverlay";
 import { usePremium } from "@/contexts/PremiumContext";
 import { toast } from "@/hooks/use-toast";
+import { insertLessonEvent } from "@/lib/stats/events";
 import { getLicao as getLicaoM1 } from "@/data/licoes/m1";
 import { LICOES_BAU } from "@/data/licoes/baus";
 import {
@@ -36,6 +39,7 @@ import {
   PreencherLetrasPasso,
 } from "@/components/licao/PassoComponents";
 import type { Passo } from "@/data/licoes/tipos";
+import { sfx } from "@/lib/sfx";
 
 /**
  * Após cada passo "aprender" elegível, injeta um mini-exercício
@@ -195,6 +199,7 @@ const LessonScreen = () => {
   const { id } = useParams();
   const { registrarAcao } = useMissoes();
   const { concluirSeccao } = useProgresso();
+  const { registrarLicaoConcluida, perderVidaBackend } = useOfensiva();
   const { tempoRestante } = useInventario();
   const { ativo: premium } = usePremium();
 
@@ -216,6 +221,12 @@ const LessonScreen = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
   const [dicaAtiva, setDicaAtiva] = useState(false);
+  const [streakOverlay, setStreakOverlay] = useState<{
+    aberto: boolean;
+    modo: "acender" | "incrementar" | "manter-por-chama" | "quebrada" | "ja-hoje";
+    nova: number;
+    anterior: number;
+  }>({ aberto: false, modo: "ja-hoje", nova: 0, anterior: 0 });
   const [dicasHoje, setDicasHoje] = useState<number>(() => lerDicasHoje());
   /**
    * Flags de acessibilidade específicas desta sessão da lição.
@@ -226,6 +237,10 @@ const LessonScreen = () => {
   const [semEscuta, setSemEscuta] = useState(false);
   const { saldo } = useSaldo();
   const hearts = saldo.vidas + saldo.vidasExtra;
+
+  // Regista quando a lição começou, para calcular duração e submeter em lesson_events.
+  const startedAtRef = useRef<number>(Date.now());
+  const wrongCountRef = useRef<number>(0);
 
   // Bloqueia a entrada na lição se já não houver vidas.
   useEffect(() => {
@@ -325,6 +340,8 @@ const LessonScreen = () => {
     } else {
       // Vidas globais: consome 1 (do pool extra primeiro, depois normal).
       perderVida();
+      perderVidaBackend();
+      wrongCountRef.current += 1;
     }
   };
 
@@ -341,6 +358,30 @@ const LessonScreen = () => {
       diamantes: s.diamantes + correctCount * 2,
     }));
     if (id) concluirSeccao(id);
+    // Regista o evento para as estatísticas (heatmap, XP semanal, precisão).
+    const duracao = Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000));
+    void insertLessonEvent({
+      duracaoSeg: duracao,
+      xpGanho: xp,
+      acertos: correctCount,
+      erros: wrongCountRef.current,
+      licaoId: id ?? null,
+    });
+    // Sequência: aplica no servidor e mostra overlay.
+    (async () => {
+      const res = await registrarLicaoConcluida();
+      if (!res) return;
+      const anterior = res.ofensivaAnterior;
+      const nova = res.ofensivaNova;
+      const chamaUsada = res.chamasAnterior > res.chamasNova;
+      let modo: "acender" | "incrementar" | "manter-por-chama" | "quebrada" | "ja-hoje";
+      if (res.quebrada) modo = "quebrada";
+      else if (!res.incrementou) modo = "ja-hoje";
+      else if (chamaUsada) modo = "manter-por-chama";
+      else if (anterior === 0) modo = "acender";
+      else modo = "incrementar";
+      setStreakOverlay({ aberto: true, modo, nova, anterior });
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
@@ -348,11 +389,15 @@ const LessonScreen = () => {
   const avancarScript = (certo: boolean, contaComoAcerto: boolean) => {
     if (contaComoAcerto) {
       if (certo) {
+        sfx.correto();
         setCorrectCount((c) => c + 1);
         registrarAcao("resposta_correta_seguida", 1);
         registrarAcao("palavra_traduzida", 1);
       } else {
+        sfx.errado();
         perderVida();
+        perderVidaBackend();
+        wrongCountRef.current += 1;
       }
     }
     if (index + 1 >= totalScript) {
@@ -432,6 +477,13 @@ const LessonScreen = () => {
         >
           Continuar
         </button>
+        <StreakOverlay
+          aberto={streakOverlay.aberto}
+          modo={streakOverlay.modo}
+          ofensivaNova={streakOverlay.nova}
+          ofensivaAnterior={streakOverlay.anterior}
+          onFechar={() => setStreakOverlay((s) => ({ ...s, aberto: false }))}
+        />
       </motion.div>
     );
   }

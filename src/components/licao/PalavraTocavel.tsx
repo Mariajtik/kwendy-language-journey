@@ -6,14 +6,10 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { encontrarNoVocab, type EntradaVocab } from "@/data/licoes/vocabulario";
+import { falarKwendi } from "@/lib/kwendiVoice";
 
 function falar(texto: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(texto);
-  u.lang = "pt-PT";
-  u.rate = 0.85;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  void falarKwendi(texto, { contexto: "vocab" });
 }
 
 interface Props {

@@ -1,14 +1,10 @@
 /**
- * kwendi-chat — Streaming chat com Google Gemini API.
+ * kwendi-chat — Streaming chat com Lovable AI Gateway.
  * Espera JSON: { thread_id, messages: [{ role, content }] }.
  * Devolve corpo em stream (chunks de texto puro) para o cliente ir escrevendo.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SYSTEM_PROMPT = `És o Kwendi, um tutor amigável e paciente de Umbundu e cultura angolana.
 Responde SEMPRE em Português europeu. Sê breve (2-4 frases), didático e caloroso.
@@ -30,14 +26,7 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-
-    if (!GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
     // Validar utilizador
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -69,81 +58,61 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const messages = Array.isArray(body?.messages) ? body.messages : [];
 
-    // Converter mensagens para formato Google Generative AI
-    const contents = messages.map((msg: any) => ({
-      role: msg.role === "assistant" ? "model" : "user",
-      parts: [{ text: msg.content }],
-    }));
-
-    // Chamada Google Gemini API (streaming)
-    const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          system: {
-            parts: [{ text: SYSTEM_PROMPT }],
-          },
-          contents,
-        }),
-      }
-    );
+    // Chamada Lovable AI Gateway (streaming)
+    const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        stream: true,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages,
+        ],
+      }),
+    });
 
     if (!upstream.ok || !upstream.body) {
       const err = await upstream.text();
-      console.error("Gemini API error:", err);
-      return new Response(
-        JSON.stringify({ 
-          error: "upstream_failed", 
-          detail: err,
-          status: upstream.status 
-        }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "upstream_failed", detail: err }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Processar SSE stream do Google Gemini
+    // Converter SSE do gateway em texto puro
     const reader = upstream.body.getReader();
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
     let buffer = "";
     const outStream = new ReadableStream({
       async pull(controller) {
-        try {
-          const { done, value } = await reader.read();
-          if (done) {
+        const { done, value } = await reader.read();
+        if (done) {
+          controller.close();
+          return;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const l = line.trim();
+          if (!l.startsWith("data:")) continue;
+          const payload = l.slice(5).trim();
+          if (payload === "[DONE]") {
             controller.close();
             return;
           }
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            const l = line.trim();
-            if (!l.startsWith("data:")) continue;
-            const payload = l.slice(5).trim();
-            if (!payload) continue;
-            try {
-              const j = JSON.parse(payload);
-              // Google Generative AI structure: candidates[0].content.parts[0].text
-              const text = j?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-              if (text) {
-                controller.enqueue(encoder.encode(text));
-              }
-            } catch (e) {
-              console.error("Error parsing chunk:", e);
-              /* ignore malformed chunks */
-            }
+          try {
+            const j = JSON.parse(payload);
+            const delta = j?.choices?.[0]?.delta?.content ?? "";
+            if (delta) controller.enqueue(encoder.encode(delta));
+          } catch {
+            /* ignore */
           }
-        } catch (err) {
-          console.error("Stream error:", err);
-          controller.close();
         }
       },
     });
@@ -152,7 +121,6 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (e) {
-    console.error("kwendi-chat error:", e);
     return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

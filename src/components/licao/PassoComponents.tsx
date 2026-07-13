@@ -5,21 +5,18 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, Mic, Square, Check, X as XIcon } from "lucide-react";
+import { Volume2, Mic, Square, Check, X as XIcon, Loader2, RotateCcw } from "lucide-react";
 import type { Passo, Fala } from "@/data/licoes/tipos";
 import type { Personagem } from "@/data/licoes/tipos";
 import { normalizar } from "@/data/licoes/tipos";
 import { PERSONAGENS } from "./personagens";
 import PalavraTocavel from "./PalavraTocavel";
 import { bumpStat, STATS } from "@/lib/stats";
+import { falarKwendi } from "@/lib/kwendiVoice";
+import { useAvaliacaoPronuncia } from "@/hooks/useAvaliacaoPronuncia";
 
 function falar(texto: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(texto);
-  u.lang = "pt-PT";
-  u.rate = 0.85;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  void falarKwendi(texto, { contexto: "frase" });
 }
 
 /** Split Umbundu string into tokens preserving punctuation for tocavel words. */
@@ -477,32 +474,18 @@ export const FalarPasso = ({
   passo: Extract<Passo, { tipo: "falar" }>;
   onResolved: (certo: boolean) => void;
 }) => {
-  const [gravando, setGravando] = useState(false);
-  const [match, setMatch] = useState<number | null>(null);
-  const recRef = useRef<MediaRecorder | null>(null);
+  const { estado, resultado, iniciar, parar, limpar } = useAvaliacaoPronuncia();
+  const gravando = estado === "a-ouvir";
+  const aAvaliar = estado === "a-avaliar";
+  const match = resultado?.score ?? null;
 
-  const iniciar = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
-      rec.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        setMatch(Math.floor(70 + Math.random() * 26));
-        bumpStat(STATS.falaGravacoes);
-        setGravando(false);
-      };
-      rec.start();
-      recRef.current = rec;
-      setMatch(null);
-      setGravando(true);
-    } catch {
-      // Sem microfone — considera sucesso simbólico para não travar a lição.
-      setMatch(75);
+  const handleClique = () => {
+    if (gravando) void parar();
+    else if (estado === "idle" || estado === "pronto" || estado === "erro") {
+      void iniciar(passo.frase);
       bumpStat(STATS.falaGravacoes);
     }
   };
-
-  const parar = () => recRef.current?.stop();
 
   return (
     <div className="flex flex-col items-center text-center flex-1">
@@ -529,11 +512,12 @@ export const FalarPasso = ({
 
       <motion.button
         type="button"
-        onClick={gravando ? parar : iniciar}
+        onClick={handleClique}
+        disabled={aAvaliar}
         whileTap={{ scale: 0.94 }}
         animate={gravando ? { scale: [1, 1.06, 1] } : { scale: 1 }}
         transition={gravando ? { duration: 1.2, repeat: Infinity } : undefined}
-        className="w-24 h-24 rounded-full grid place-items-center text-white"
+        className="w-24 h-24 rounded-full grid place-items-center text-white disabled:opacity-60"
         style={{
           background: gravando ? "hsl(var(--primary))" : "hsl(160 60% 35%)",
           boxShadow: gravando
@@ -541,7 +525,13 @@ export const FalarPasso = ({
             : "0 6px 0 hsl(160 60% 25%)",
         }}
       >
-        {gravando ? <Square className="w-9 h-9" /> : <Mic className="w-10 h-10" />}
+        {aAvaliar ? (
+          <Loader2 className="w-9 h-9 animate-spin" />
+        ) : gravando ? (
+          <Square className="w-9 h-9" />
+        ) : (
+          <Mic className="w-10 h-10" />
+        )}
       </motion.button>
 
       {match !== null && (
@@ -555,17 +545,27 @@ export const FalarPasso = ({
             <span className="text-xs font-extrabold tracking-wider text-muted-foreground">
               SEMELHANÇA
             </span>
-            <span
-              className="text-sm font-extrabold flex items-center gap-1"
-              style={{ color: match >= 80 ? "#5fae3a" : "hsl(var(--primary))" }}
-            >
-              {match >= 80 ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <XIcon className="w-4 h-4" />
-              )}
-              {match}%
-            </span>
+            <div className="flex items-center gap-2">
+              <span
+                className="text-sm font-extrabold flex items-center gap-1"
+                style={{ color: match >= 60 ? "#5fae3a" : "hsl(var(--primary))" }}
+              >
+                {match >= 60 ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <XIcon className="w-4 h-4" />
+                )}
+                {match}%
+              </span>
+              <button
+                type="button"
+                onClick={limpar}
+                aria-label="Recomeçar"
+                className="w-7 h-7 rounded-lg grid place-items-center text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <div className="h-3 rounded-full bg-muted overflow-hidden">
             <motion.div
@@ -574,15 +574,20 @@ export const FalarPasso = ({
               transition={{ duration: 0.6 }}
               className="h-full rounded-full"
               style={{
-                background: match >= 80 ? "#5fae3a" : "hsl(var(--primary))",
+                background: match >= 60 ? "#5fae3a" : "hsl(var(--primary))",
               }}
             />
           </div>
+          {resultado?.transcricao && (
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              Ouvi: “{resultado.transcricao}”
+            </p>
+          )}
         </motion.div>
       )}
 
       <button
-        onClick={() => onResolved((match ?? 0) >= 70)}
+        onClick={() => onResolved((match ?? 0) >= 60)}
         disabled={match === null}
         className="btn-duo btn-duo-primary w-full mt-6 disabled:opacity-50"
       >

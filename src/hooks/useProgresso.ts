@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { pushKey } from "@/lib/backend/mirror";
 import {
   CURRICULO,
   PRIMEIRA_UNIDADE,
@@ -17,6 +18,7 @@ import {
 import { todosDesbloqueadosStatic } from "@/hooks/useNivelamento";
 
 const STORAGE_KEY = "kwendi:progresso";
+const EVT = "kwendi:progresso-changed";
 
 type Estado = {
   seccoesCompletas: string[];
@@ -60,12 +62,15 @@ export function useProgresso() {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
-    } catch {
-      /* noop */
-    }
+    pushKey(STORAGE_KEY, estado);
+    window.dispatchEvent(new CustomEvent(EVT));
   }, [estado]);
+
+  useEffect(() => {
+    const sync = () => setEstado(carregar());
+    window.addEventListener(EVT, sync as EventListener);
+    return () => window.removeEventListener(EVT, sync as EventListener);
+  }, []);
 
   const isCompleta = useCallback(
     (seccaoId: string) => estado.seccoesCompletas.includes(seccaoId),

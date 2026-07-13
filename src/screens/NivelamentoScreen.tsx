@@ -1,11 +1,11 @@
 /**
  * NivelamentoScreen.tsx
- * Teste de nivelamento baseado no Módulo 1 (~15 exercícios difíceis).
- * Reutiliza os componentes de PassoComponents. Ao final, calcula
- * acertos reais e navega para /processing com o payload.
+ * Teste de nivelamento **adaptativo** (10–15 questões, ≤5 min).
+ * Usa MotorAdaptativo (staircase CEFR A1..C2). Reutiliza PassoComponents.
+ * Ao final, envia o resumo CEFR + categorias para /processing.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { X, Clock } from "lucide-react";
@@ -25,13 +25,15 @@ import {
   EscutaMontarPasso,
   PreencherLetrasPasso,
 } from "@/components/licao/PassoComponents";
-import type { Passo } from "@/data/licoes/tipos";
 import {
-  construirTesteNivelamento,
-  calcularUnidadeSugerida,
+  MotorAdaptativo,
+  nivelInicialDeclarado,
+  MIN_PERGUNTAS,
+  MAX_PERGUNTAS,
 } from "@/data/nivelamento";
+import type { ItemNivelamento } from "@/data/nivelamento/banco";
 
-const DURACAO_MIN = 10;
+const DURACAO_MIN = 5;
 
 const NivelamentoScreen = () => {
   const navigate = useNavigate();
@@ -39,26 +41,33 @@ const NivelamentoScreen = () => {
   const state = (location.state as { level?: string; username?: string }) || {};
   const level = state.level || "Intermediário";
 
-  // Flags de acessibilidade só para esta sessão (mesmo padrão da LessonScreen).
   const [semFala, setSemFala] = useState(false);
   const [semEscuta, setSemEscuta] = useState(false);
 
-  const exercicios = useMemo(
-    () => construirTesteNivelamento({ semFala, semEscuta }),
-    [semFala, semEscuta],
+  // Motor persistente entre renders — recriado se as flags mudarem.
+  const motorRef = useRef<MotorAdaptativo | null>(null);
+  if (!motorRef.current) {
+    motorRef.current = new MotorAdaptativo({
+      nivelInicial: nivelInicialDeclarado(level),
+      semFala,
+      semEscuta,
+    });
+  }
+  const motor = motorRef.current;
+
+  // Item corrente + tick para forçar re-render após registrar resposta.
+  const [tick, setTick] = useState(0);
+  const itemAtual = useMemo<ItemNivelamento | null>(
+    () => motor.proximo(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tick, semFala, semEscuta],
   );
-  const total = exercicios.length;
 
-  const [index, setIndex] = useState(0);
-  const [acertosPorUnidade, setAcertosPorUnidade] = useState<Record<string, number>>({});
-  const [totalPorUnidade, setTotalPorUnidade] = useState<Record<string, number>>({});
-  const [acertos, setAcertos] = useState(0);
-
-  // Cronómetro de 10 min. Ao esgotar, submete com o estado atual.
+  // Cronómetro de 5 min. Ao esgotar, finaliza com o estado actual.
   const [segRestantes, setSegRestantes] = useState(DURACAO_MIN * 60);
   useEffect(() => {
     if (segRestantes <= 0) {
-      finalizar(acertos, acertosPorUnidade, totalPorUnidade);
+      finalizar();
       return;
     }
     const t = setTimeout(() => setSegRestantes((s) => s - 1), 1000);
@@ -69,49 +78,33 @@ const NivelamentoScreen = () => {
   const mm = String(Math.floor(segRestantes / 60)).padStart(2, "0");
   const ss = String(segRestantes % 60).padStart(2, "0");
 
-  const registrar = (uId: string, certo: boolean) => {
-    setTotalPorUnidade((p) => ({ ...p, [uId]: (p[uId] ?? 0) + 1 }));
-    if (certo) {
-      setAcertos((a) => a + 1);
-      setAcertosPorUnidade((p) => ({ ...p, [uId]: (p[uId] ?? 0) + 1 }));
-    }
-  };
-
-  const finalizar = (
-    acertosFinal: number,
-    aPU: Record<string, number>,
-    tPU: Record<string, number>,
-  ) => {
-    const percentagem = total > 0 ? Math.round((acertosFinal / total) * 100) : 0;
-    const unidadeSugerida =
-      percentagem === 100 ? null : calcularUnidadeSugerida(aPU, tPU);
+  const finalizar = () => {
+    const resumo = motor.resumo();
     navigate("/processing", {
       state: {
         level,
         username: state.username,
-        acertos: acertosFinal,
-        total,
-        percentagem,
-        unidadeSugerida,
-        acertosPorUnidade: aPU,
+        acertos: resumo.acertos,
+        total: resumo.total,
+        percentagem: resumo.percentagem,
+        unidadeSugerida: resumo.unidadeSugerida,
+        cefr: resumo.cefr,
+        pontosFortes: resumo.pontosFortes,
+        pontosFracos: resumo.pontosFracos,
+        trilhaSugerida: resumo.trilhaSugerida,
+        categorias: resumo.categorias,
       },
     });
   };
 
   const avancar = (certo: boolean) => {
-    const uId = exercicios[index].unidadeId;
-    registrar(uId, certo);
-    if (index + 1 >= total) {
-      // Usa valores atualizados via callback pattern.
-      const nextAcertos = certo ? acertos + 1 : acertos;
-      const nextTotalPU = { ...totalPorUnidade, [uId]: (totalPorUnidade[uId] ?? 0) + 1 };
-      const nextAcertosPU = certo
-        ? { ...acertosPorUnidade, [uId]: (acertosPorUnidade[uId] ?? 0) + 1 }
-        : acertosPorUnidade;
-      finalizar(nextAcertos, nextAcertosPU, nextTotalPU);
+    if (!itemAtual) return;
+    motor.registrar(itemAtual, certo);
+    if (motor.terminou()) {
+      finalizar();
       return;
     }
-    setIndex((i) => i + 1);
+    setTick((t) => t + 1);
   };
 
   const sair = () => {
@@ -120,8 +113,16 @@ const NivelamentoScreen = () => {
     }
   };
 
-  const passo: Passo = exercicios[index].passo;
-  const progresso = (index / total) * 100;
+  if (!itemAtual) {
+    // Banco esgotou-se antes do mínimo — finaliza defensivamente.
+    finalizar();
+    return null;
+  }
+
+  const passo = itemAtual.passo;
+  // Progresso baseado no mínimo esperado (10 questões). Se ultrapassar 10, mostra 100%.
+  const feitas = motor.respondidas;
+  const progresso = Math.min(100, (feitas / MIN_PERGUNTAS) * 100);
 
   const renderPasso = () => {
     switch (passo.tipo) {
@@ -171,6 +172,13 @@ const NivelamentoScreen = () => {
             transition={{ duration: 0.3 }}
           />
         </div>
+        <div
+          className="px-2 py-0.5 rounded-full text-[10px] font-extrabold"
+          style={{ background: "hsl(var(--primary) / 0.12)", color: "hsl(var(--primary))" }}
+          aria-label={`Nível actual: ${motor.nivelAtual}`}
+        >
+          {motor.nivelAtual}
+        </div>
         <div className="flex items-center gap-1 text-xs font-extrabold text-muted-foreground tabular-nums">
           <Clock className="w-4 h-4" />
           {mm}:{ss}
@@ -178,13 +186,13 @@ const NivelamentoScreen = () => {
       </div>
 
       {/* Banner explicativo (só na 1ª questão) */}
-      {index === 0 && (
+      {feitas === 0 && (
         <div
           className="rounded-2xl border-2 border-border bg-card p-3 mb-3 text-xs text-muted-foreground"
           style={{ boxShadow: "0 2px 0 hsl(var(--border))" }}
         >
-          <strong className="text-foreground">Teste de nivelamento</strong> · {total} exercícios difíceis
-          do Módulo 1 · até {DURACAO_MIN} minutos. Faz o teu melhor.
+          <strong className="text-foreground">Teste adaptativo</strong> · {MIN_PERGUNTAS}–{MAX_PERGUNTAS} questões
+          · escala CEFR A1–C2 · ≤{DURACAO_MIN} min. Sobe de nível a cada acerto.
         </div>
       )}
 

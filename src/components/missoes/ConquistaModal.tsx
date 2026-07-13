@@ -8,6 +8,9 @@ import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import BadgeStar from "./BadgeStar";
 import type { ConquistaView } from "@/hooks/useMissoes";
+import { useEffect } from "react";
+import { playAchievement } from "@/lib/streakFx";
+import { haptics } from "@/lib/haptics";
 
 interface Props {
   conquista: ConquistaView | null;
@@ -15,7 +18,14 @@ interface Props {
   onResgatar: (id: string) => void;
 }
 
-const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
+const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => {
+  useEffect(() => {
+    if (conquista?.desbloqueada && !conquista.resgatada) {
+      playAchievement();
+      haptics.celebrate();
+    }
+  }, [conquista?.id, conquista?.desbloqueada, conquista?.resgatada]);
+  return (
   <AnimatePresence>
     {conquista && (
       <motion.div
@@ -127,6 +137,7 @@ const ConquistaModal = ({ conquista, onClose, onResgatar }: Props) => (
       </motion.div>
     )}
   </AnimatePresence>
-);
+  );
+};
 
 export default ConquistaModal;

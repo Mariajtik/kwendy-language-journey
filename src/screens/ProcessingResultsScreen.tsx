@@ -1,8 +1,7 @@
 /**
  * ProcessingResultsScreen.tsx
- * Tela de "processamento" pós-onboarding: Kwendi pensando 4s,
- * depois revela pontuação, nível e botão Continuar.
- * Front-end apenas — valores mockados.
+ * Tela pós-teste: Kwendi pensa 4s e revela o resumo CEFR + trilha.
+ * A lógica de redirecionamento depende do (nível declarado × CEFR detectado).
  */
 
 import { useEffect, useState } from "react";
@@ -12,6 +11,12 @@ import kwendiImg from "@/assets/characters/kwendi-cutout.png";
 import { setNivelamento } from "@/hooks/useNivelamento";
 import { setSaldo } from "@/hooks/useSaldo";
 import { rotularUnidade } from "@/data/nivelamento";
+import { ehCefrAvancado, ehCefrIniciante } from "@/data/nivelamento/motor";
+import {
+  CATEGORIAS_LABEL,
+  type Categoria,
+  type Cefr,
+} from "@/data/nivelamento/banco";
 
 const ProcessingResultsScreen = () => {
   const navigate = useNavigate();
@@ -24,13 +29,31 @@ const ProcessingResultsScreen = () => {
       total?: number;
       percentagem?: number;
       unidadeSugerida?: string | null;
+      cefr?: Cefr;
+      pontosFortes?: Categoria[];
+      pontosFracos?: Categoria[];
+      trilhaSugerida?: string[];
+      categorias?: Record<Categoria, { acertos: number; total: number }>;
     }) || {};
-  const level = state.level || "Iniciante";
+  const declarado = state.level || "Iniciante";
   const acertos = state.acertos;
   const total = state.total;
   const percentagem = state.percentagem;
-  const unidadeSugerida = state.unidadeSugerida ?? null;
+  const cefr = state.cefr ?? null;
+  const pontosFortes = state.pontosFortes ?? [];
+  const pontosFracos = state.pontosFracos ?? [];
+  const trilhaSugerida = state.trilhaSugerida ?? [];
+  const categorias = state.categorias ?? null;
   const temResultado = typeof acertos === "number" && typeof total === "number";
+
+  // Regra de posicionamento: nome amigável do declarado.
+  const declaradoIsAvancado =
+    declarado.toLowerCase().startsWith("avan") || declarado.toLowerCase().startsWith("inter");
+  // Se declarou avançado/intermédio mas foi detectado iniciante → força bloqueio.
+  const forcarIniciante = !!(cefr && ehCefrIniciante(cefr) && declaradoIsAvancado);
+  const detectadoAvancado = !!(cefr && ehCefrAvancado(cefr));
+  const unidadeSugerida = forcarIniciante ? "m1u1" : state.unidadeSugerida ?? null;
+  const ancao = percentagem === 100 && temResultado;
 
   const [phase, setPhase] = useState<"thinking" | "done">("thinking");
 
@@ -41,9 +64,7 @@ const ProcessingResultsScreen = () => {
 
   const aoContinuar = () => {
     if (temResultado) {
-      const ancao = percentagem === 100;
       if (ancao) {
-        // Credita recompensa do marco Ancião: +500 diamantes e +250 XP.
         setSaldo((s) => ({ ...s, xp: s.xp + 250, diamantes: s.diamantes + 500 }));
       }
       setNivelamento(() => ({
@@ -53,12 +74,55 @@ const ProcessingResultsScreen = () => {
         acertos: acertos ?? 0,
         total: total ?? 0,
         unidadeSugerida: ancao ? null : unidadeSugerida,
-        todosDesbloqueados: ancao,
+        // Ancião ou detectado C1/C2 desbloqueiam todo o curso.
+        todosDesbloqueados: ancao || detectadoAvancado,
         popupPendente: ancao ? "ancao" : "posicionado",
+        cefr,
+        pontosFortes,
+        pontosFracos,
+        trilhaSugerida,
       }));
     }
+    // A HomeScreen já reage a `popupPendente=posicionado` e faz
+    // `completarAteUnidade(unidadeSugerida)`, colocando o utilizador na
+    // unidade certa da árvore do currículo.
     navigate("/home");
   };
+
+  /** Texto principal do resultado consoante (declarado × detectado). */
+  const mensagemResultado = () => {
+    if (!temResultado || !cefr) return null;
+    if (ancao) return <>Acertou tudo! Você executou uma proeza de poucos. 🏆</>;
+    if (forcarIniciante) {
+      return (
+        <>
+          Detectámos <strong>nível Iniciante ({cefr})</strong>. Recomendamos começar do básico
+          — segue-nos pela primeira unidade.
+        </>
+      );
+    }
+    if (detectadoAvancado) {
+      return (
+        <>
+          <strong>Nível Avançado ({cefr})</strong> detectado! Vamos abrir o curso todo para
+          revisão e começar aqui: <strong>{rotularUnidade(unidadeSugerida!)}</strong>.
+        </>
+      );
+    }
+    return (
+      <>
+        <strong>Nível {cefr}</strong> detectado. Começamos por aqui:{" "}
+        <strong>{rotularUnidade(unidadeSugerida!)}</strong>.
+      </>
+    );
+  };
+
+  const rotuloBotao =
+    forcarIniciante || (unidadeSugerida && !ancao)
+      ? "Começar a aprender"
+      : ancao
+      ? "Explorar o curso"
+      : "Continuar";
 
   /* Rabisco animado: path com strokeDasharray "desenhando e apagando" */
   const Scribble = ({
@@ -184,25 +248,37 @@ const ProcessingResultsScreen = () => {
               animate="visible"
               variants={{
                 hidden: {},
-                visible: { transition: { staggerChildren: 0.6 } },
+                visible: { transition: { staggerChildren: 0.35 } },
               }}
               className="flex flex-col items-center gap-4 w-full"
             >
+              {/* Badge CEFR grande */}
+              {temResultado && cefr && (
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.7 },
+                    visible: { opacity: 1, scale: 1, transition: { type: "spring", duration: 0.6 } },
+                  }}
+                  className="rounded-full px-5 py-1.5 text-lg font-extrabold"
+                  style={{
+                    background: "hsl(var(--primary))",
+                    color: "hsl(var(--primary-foreground))",
+                    boxShadow: "0 3px 0 hsl(var(--primary) / 0.5)",
+                  }}
+                >
+                  {cefr}
+                </motion.div>
+              )}
+
               {(temResultado
                 ? [
                     <>A sua pontuação: <strong>{acertos}/{total} ({percentagem}%)</strong></>,
-                    <>O seu nível declarado: <strong>{level}</strong></>,
-                    percentagem === 100 ? (
-                      <>Acertou tudo! Você executou uma proeza de poucos. 🏆</>
-                    ) : unidadeSugerida ? (
-                      <>Com base no teste, começaremos aqui: <strong>{rotularUnidade(unidadeSugerida)}</strong>.</>
-                    ) : (
-                      <>Bom desempenho — vamos começar pelo início do Módulo 1.</>
-                    ),
+                    <>O seu nível declarado: <strong>{declarado}</strong></>,
+                    mensagemResultado(),
                   ]
                 : [
                     <>A sua pontuação: <strong>78/100</strong></>,
-                    <>O seu nível: <strong>{level}</strong></>,
+                    <>O seu nível: <strong>{declarado}</strong></>,
                     <>Você acertou a maioria das saudações e cumprimentos, mas ainda há espaço para melhorar a pronúncia.</>,
                   ]
               ).map((content, i) => (
@@ -217,6 +293,54 @@ const ProcessingResultsScreen = () => {
                   {content}
                 </motion.p>
               ))}
+
+              {/* Categorias — pontos fortes / a melhorar */}
+              {categorias && (
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                  }}
+                  className="w-full rounded-2xl border-2 border-border bg-card p-3 text-left"
+                  style={{ boxShadow: "0 2px 0 hsl(var(--border))" }}
+                >
+                  <p className="text-xs font-extrabold text-muted-foreground mb-2">
+                    Desempenho por área
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {(Object.keys(categorias) as Categoria[])
+                      .filter((c) => categorias[c].total > 0)
+                      .map((c) => {
+                        const cat = categorias[c];
+                        const pct = Math.round((cat.acertos / cat.total) * 100);
+                        const forte = pontosFortes.includes(c);
+                        const fraco = pontosFracos.includes(c);
+                        return (
+                          <div key={c} className="flex items-center gap-2 text-xs">
+                            <span className="flex-1 truncate">{CATEGORIAS_LABEL[c]}</span>
+                            <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${pct}%`,
+                                  background: forte
+                                    ? "hsl(142 70% 45%)"
+                                    : fraco
+                                    ? "hsl(5 84% 55%)"
+                                    : "hsl(var(--primary))",
+                                }}
+                              />
+                            </div>
+                            <span className="w-8 text-right tabular-nums font-bold text-muted-foreground">
+                              {pct}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </motion.div>
+              )}
+
               <motion.button
                 variants={{
                   hidden: { opacity: 0, y: 10 },
@@ -225,7 +349,7 @@ const ProcessingResultsScreen = () => {
                 onClick={aoContinuar}
                 className="btn-duo btn-duo-primary w-full mt-4"
               >
-                Continuar
+                {rotuloBotao}
               </motion.button>
             </motion.div>
           )}

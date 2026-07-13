@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import KwendiIcon, { type KwendiIconName } from "@/components/icons/KwendiIcon";
 
 export type BottomNavKey =
@@ -29,18 +30,18 @@ type NavItem = {
   route: string;
 };
 
-const navItems: NavItem[] = [
-  { key: "home", label: "Início", icon: "home", color: "#FBBD12", route: "/home" },
-  { key: "chest", label: "Missões", icon: "bau", color: "#B87656", route: "/missoes" },
-  { key: "book", label: "Histórias", icon: "livro", color: "#FFA767", route: "/historias" },
-  { key: "search", label: "Curiosidades", icon: "lupa", color: "#78D0FF", route: "/curiosidades" },
-  { key: "user", label: "Perfil", icon: "perfilSemCoroa", activeIcon: "perfilComCoroa", color: "#FF7BBF", route: "/profile" },
+const buildNavItems = (t: (k: string, fb?: string) => string): NavItem[] => [
+  { key: "home", label: t("nav.inicio", "Início"), icon: "home", color: "#FBBD12", route: "/home" },
+  { key: "chest", label: t("nav.missoes", "Missões"), icon: "bau", color: "#B87656", route: "/missoes" },
+  { key: "book", label: t("nav.historias", "Histórias"), icon: "livro", color: "#FFA767", route: "/historias" },
+  { key: "search", label: t("nav.curiosidades", "Curiosidades"), icon: "lupa", color: "#78D0FF", route: "/curiosidades" },
+  { key: "user", label: t("nav.perfil", "Perfil"), icon: "perfilSemCoroa", activeIcon: "perfilComCoroa", color: "#FF7BBF", route: "/profile" },
 ];
 
-const moreOptions = [
-  { label: "Dicionário", route: "/dicionario" },
-  { label: "Caderno", route: "/secao/caderno" },
-  { label: "Alfabeto", route: "/secao/alfabeto" },
+const buildMoreOptions = (t: (k: string, fb?: string) => string) => [
+  { label: t("nav.dicionario", "Dicionário"), route: "/dicionario" },
+  { label: t("nav.caderno", "Caderno"), route: "/secao/caderno" },
+  { label: t("nav.alfabeto", "Alfabeto"), route: "/secao/alfabeto" },
 ];
 
 interface BottomNavProps {
@@ -49,6 +50,9 @@ interface BottomNavProps {
 
 const BottomNav = ({ active }: BottomNavProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const navItems = buildNavItems(t as any);
+  const moreOptions = buildMoreOptions(t as any);
   const [moreOpen, setMoreOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 

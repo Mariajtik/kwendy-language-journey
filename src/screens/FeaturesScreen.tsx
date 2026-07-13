@@ -7,8 +7,10 @@
  */
 
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { setFlag } from "@/lib/backend/prefsFlags";
+import RouteSeo from "@/components/seo/RouteSeo";
 import {
   ArrowLeft,
 } from "lucide-react";
@@ -74,10 +76,10 @@ const FEATURES = [
 /* ---- Personagens ---- */
 const CHARACTERS = [
   { name: "Kwendi", img: kwendiImg.url, bg: "#F8B5BD" },
-  { name: "Suzana (avó)", img: suzanaImg.url, bg: "#E8A88E" },
-  { name: "Kiame (irmã)", img: kiameImg.url, bg: "#F5F5F5" },
-  { name: "Otchali (amiga)", img: otchaliImg.url, bg: "#78D0FF" },
-  { name: "Hossy (amigo)", img: hossyImg.url, bg: "#FBBD12" },
+  { name: "Avó Suzana", img: suzanaImg.url, bg: "#E8A88E" },
+  { name: "Kiame", img: kiameImg.url, bg: "#F5F5F5" },
+  { name: "Otchali", img: otchaliImg.url, bg: "#78D0FF" },
+  { name: "Hossy", img: hossyImg.url, bg: "#FBBD12" },
   { name: "Yellen", img: yellenImg.url, bg: "#86D05D" },
   { name: "Keke & Han", img: kekeHanImg.url, bg: "#F8B5BD" },
 ];
@@ -91,6 +93,12 @@ const FeaturesScreen = () => {
   };
 
   return (
+    <>
+    <RouteSeo
+      title="Funcionalidades do Kwendi — Lições, personagens e IA"
+      description="Descubra as funcionalidades do Kwendi: lições curtas de Umbundu, personagens angolanas, histórias culturais e a IA Kwendi para tirar dúvidas."
+      path="/features"
+    />
     <motion.div
       className="app-shell flex flex-col"
       style={{
@@ -204,8 +212,18 @@ const FeaturesScreen = () => {
         >
           Continuar
         </button>
+        <p className="mt-4 text-center text-xs text-white/90 font-semibold">
+          <Link to="/privacy" className="underline hover:text-white">
+            Política de Privacidade
+          </Link>
+          {"  ·  "}
+          <Link to="/terms" className="underline hover:text-white">
+            Termos de Uso
+          </Link>
+        </p>
       </div>
     </motion.div>
+    </>
   );
 };
 

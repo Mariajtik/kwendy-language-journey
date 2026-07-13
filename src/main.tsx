@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
+import "./i18n";
 
 // Reset one-shot: elimina dados residuais do LocalStorage do backend antigo.
 try {
@@ -14,4 +16,8 @@ try {
   /* noop */
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>,
+);

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Backpack } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import ItemLojaCard from "@/components/loja/ItemLojaCard";
 import ConfirmarCompraModal from "@/components/loja/ConfirmarCompraModal";
@@ -18,6 +19,7 @@ import PremiumSwitchCard from "@/components/loja/PremiumSwitchCard";
 
 const LojaScreen = () => {
   const nav = useNavigate();
+  const { t } = useTranslation();
   const { comprar, saldo, inventario } = useLoja();
   const [tab, setTab] = useState<CategoriaLoja>("powerup");
   const [confirmar, setConfirmar] = useState<ItemLoja | null>(null);
@@ -63,21 +65,21 @@ const LojaScreen = () => {
           <button
             onClick={() => nav(-1)}
             className="w-10 h-10 rounded-xl border-2 border-border bg-card grid place-items-center"
-            aria-label="Voltar"
+            aria-label={t("comum.voltar", "Voltar")}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-extrabold text-foreground leading-none">Loja Kwendi</h1>
+            <h1 className="text-xl font-extrabold text-foreground leading-none">{t("loja.titulo", "Loja Kwendi")}</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Power-ups, baús e cultura
+              {t("loja.subtitulo", "Power-ups, baús e cultura")}
             </p>
           </div>
           <motion.button
             type="button"
             onClick={() => setMochilaAberta(true)}
             whileTap={{ scale: 0.92 }}
-            aria-label="Abrir mochila"
+            aria-label={t("loja.abrirMochila", "Abrir mochila")}
             className="relative w-10 h-10 rounded-xl border-2 border-border bg-card grid place-items-center"
           >
             <Backpack className="w-5 h-5" style={{ color: "hsl(160 60% 35%)" }} />

@@ -174,13 +174,32 @@ const SignupFlow = () => {
   const [photo, setPhoto] = useState<string>(logoImg);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /** Handle uploaded image file → preview as base64 */
-  const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /** Handle uploaded image file → downscale + compress + preview as data URL */
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPhoto(reader.result as string);
-    reader.readAsDataURL(file);
+    try {
+      const url = URL.createObjectURL(file);
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = url;
+      });
+      const size = 256;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d")!;
+      const s = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      setPhoto(canvas.toDataURL("image/jpeg", 0.82));
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => setPhoto(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   /* Whether the flow is complete */
@@ -227,6 +246,9 @@ const SignupFlow = () => {
     // se o utilizador já entrou via OAuth).
     const provincia = origin && origin !== "Outro" ? origin : null;
     const pais = origin === "Outro" ? originCountry : "Angola";
+    // Only send avatar if user picked a custom photo (data URL), not the
+    // bundled default logo which is a same-origin asset path.
+    const avatarUrl = photo.startsWith("data:") ? photo : null;
     const metadata = {
       nome: username,
       provincia,
@@ -246,6 +268,25 @@ const SignupFlow = () => {
           toast.error(error.message || "Não foi possível guardar o perfil.");
           return;
         }
+        // Persistir também no perfil da base de dados (garante que a
+        // interface e a comunidade veem o nome/foto novos).
+        try {
+          const { data: sess } = await supabase.auth.getUser();
+          const uid = sess.user?.id;
+          if (uid) {
+            await supabase
+              .from("profiles")
+              .update({
+                nome: username,
+                provincia,
+                pais,
+                motivacao: motivation || null,
+                nivel_declarado: level || null,
+                ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+              })
+              .eq("id", uid);
+          }
+        } catch { /* noop */ }
       } else {
         // Guarda defensiva contra o bug do 422 anonymous_provider_disabled
         if (!/\S+@\S+\.\S+/.test(email) || password.length < 6) {
@@ -278,6 +319,17 @@ const SignupFlow = () => {
           navigate("/verify-email", { state: { email, next: nextRoute } });
           return;
         }
+        // Sessão imediata → também escrever no perfil, pois o trigger
+        // handle_new_user pode não incluir avatar_url do metadata.
+        try {
+          const uid = signUpData.user?.id;
+          if (uid && avatarUrl) {
+            await supabase
+              .from("profiles")
+              .update({ avatar_url: avatarUrl })
+              .eq("id", uid);
+          }
+        } catch { /* noop */ }
       }
     } catch (e: any) {
       toast.error(e?.message || "Erro ao criar a conta.");

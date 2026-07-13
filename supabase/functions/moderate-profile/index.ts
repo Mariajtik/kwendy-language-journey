@@ -9,14 +9,13 @@
  * Response: { allowed: boolean, reason?: string, field?: "username" | "photo" }
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { chatWithFallback } from "../_shared/ai-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 /** Hard limits to prevent cost abuse. */
 const MAX_USERNAME_LEN = 60;
@@ -24,29 +23,23 @@ const MAX_IMAGE_BASE64_BYTES = 2 * 1024 * 1024; // ~2 MB of base64 payload
 
 type ModerationResult = { allowed: boolean; reason?: string };
 
-async function callGemini(messages: unknown[]): Promise<ModerationResult> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": LOVABLE_API_KEY!,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      response_format: { type: "json_object" },
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Response(text, { status: res.status });
+async function callModerator(messages: any[]): Promise<ModerationResult> {
+  // Nota: se houver imagem, precisamos manter o formato multimodal para o Lovable.
+  // O fallback texto-só (Gemini Interactions) só é atingido em 402/429; nesse
+  // caso a moderação de imagem degrada para "allowed" para não bloquear o app.
+  const hasImage = messages.some((m) => Array.isArray(m?.content));
+  const { text: raw, provider } = await chatWithFallback(
+    hasImage
+      ? messages
+      : messages.map((m) => ({ role: m.role, content: typeof m.content === "string" ? m.content : JSON.stringify(m.content) })),
+    { jsonMode: true },
+  );
+  if (hasImage && provider === "gemini") {
+    // Fallback não suporta imagem: permite passar (moderação degradada).
+    return { allowed: true };
   }
-
-  const data = await res.json();
-  const raw = data?.choices?.[0]?.message?.content ?? "{}";
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse((raw || "{}").replace(/```json|```/g, "").trim());
     return {
       allowed: Boolean(parsed.allowed),
       reason: typeof parsed.reason === "string" ? parsed.reason : undefined,
@@ -60,13 +53,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "Missing LOVABLE_API_KEY" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // Require a valid Supabase JWT to prevent unauthenticated cost abuse.
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.toLowerCase().startsWith("bearer ")) {
@@ -80,9 +66,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const token = authHeader.slice("bearer ".length).trim();
-    const { data: claimsData, error: claimsError } = await supa.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: userData, error: userError } = await supa.auth.getUser();
+    if (userError || !userData?.user?.id) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -107,7 +92,7 @@ Deno.serve(async (req) => {
 
     // Moderate username first if provided
     if (typeof username === "string" && username.trim().length > 0) {
-      const result = await callGemini([
+      const result = await callModerator([
         {
           role: "system",
           content:
@@ -129,7 +114,7 @@ Deno.serve(async (req) => {
         ? imageBase64
         : `data:${imageMime || "image/jpeg"};base64,${imageBase64}`;
 
-      const result = await callGemini([
+      const result = await callModerator([
         {
           role: "system",
           content:

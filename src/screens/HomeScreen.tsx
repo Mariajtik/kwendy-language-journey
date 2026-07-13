@@ -14,19 +14,25 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Play, Lock, BookOpen, Check } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
-import avatar from "@/assets/avatar.jpg";
+import defaultAvatar from "@/assets/avatar.jpg";
 import grass from "@/assets/grass.jpg.asset.json";
 import africa from "@/assets/africa.png.asset.json";
 import plane from "@/assets/plane.png.asset.json";
 import BottomNav from "@/components/BottomNav";
+import KwendiIaFloating from "@/components/KwendiIaFloating";
+// SemanaOfensiva agora vive dentro do MinhaOfensivaSheet (chama) e em Definições → Estatísticas.
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import { useSaldo } from "@/hooks/useSaldo";
 import { useProgresso } from "@/hooks/useProgresso";
+import { useOfensiva } from "@/hooks/useOfensiva";
+import MinhaOfensivaSheet from "@/components/MinhaOfensivaSheet";
 import { useAcessibilidade } from "@/contexts/AcessibilidadeContext";
 import { usePremium } from "@/contexts/PremiumContext";
 import { useNivelamento } from "@/hooks/useNivelamento";
 import { rotularUnidade } from "@/data/nivelamento";
 import { Crown, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { CURRICULO, type Modulo, type Unidade } from "@/data/curriculo";
 import UnidadeCardFechado from "@/components/UnidadeCardFechado";
 import BannerAnimacao, { type AnimacaoBanner } from "@/components/BannerAnimacao";
@@ -155,14 +161,42 @@ const HomeScreen = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const atualBannerRef = useRef<HTMLDivElement>(null);
   const { saldo } = useSaldo();
+  const { estado: ofensivaEstado } = useOfensiva();
   const { unidadeAtualInfo, statusSeccaoNa, completarAteUnidade } = useProgresso();
   const { estado: niv, consumirPopup } = useNivelamento();
   const { fundoBranco } = useAcessibilidade();
   const { ativo: premium } = usePremium();
+  const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Carrega o avatar do perfil e mantém-o sincronizado sempre que o
+  // utilizador altera a foto (Definições → Conta chama supabase updateUser
+  // com avatar_url em user_metadata, o que dispara onAuthStateChange).
+  useEffect(() => {
+    if (!user) { setAvatarUrl(null); return; }
+    const meta = (user.user_metadata ?? {}) as Record<string, any>;
+    const metaAvatar = meta.avatar_url || meta.picture || null;
+    if (metaAvatar) setAvatarUrl(metaAvatar);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && data?.avatar_url) setAvatarUrl(data.avatar_url);
+    })();
+    return () => { cancelled = true; };
+  }, [user, user?.user_metadata?.avatar_url]);
+
+  const avatarSrc = avatarUrl || defaultAvatar;
   const atual = unidadeAtualInfo();
-  const totalVidas = saldo.vidas + saldo.vidasExtra;
+  const vidasReais = ofensivaEstado.carregado ? ofensivaEstado.vidas : saldo.vidas;
+  const totalVidas = vidasReais + saldo.vidasExtra;
   const semVidas = !premium && totalVidas <= 0;
-  const semOfensiva = !premium && saldo.ofensiva <= 0;
+  const ofensivaValor = ofensivaEstado.ofensiva;
+  const chamaAcesa = premium || ofensivaEstado.chamaAcesa;
+  const semOfensiva = !premium && !chamaAcesa;
   type ActiveSec = { id: string; titulo: string; numero: number; isBau: boolean };
   const [lockedOpen, setLockedOpen] = useState(false);
   const [semVidasOpen, setSemVidasOpen] = useState(false);
@@ -170,6 +204,7 @@ const HomeScreen = () => {
   const [activeLesson, setActiveLesson] = useState<ActiveSec | null>(null);
   const [expandedUnidades, setExpandedUnidades] = useState<Set<string>>(new Set());
   const [nivelamentoOpen, setNivelamentoOpen] = useState(false);
+  const [ofensivaOpen, setOfensivaOpen] = useState(false);
 
   /** Pop-up pós-nivelamento: ancião ou posicionado. Roda uma vez. */
   useEffect(() => {
@@ -458,7 +493,7 @@ const HomeScreen = () => {
             aria-label="Perfil"
             onClick={() => navigate("/profile")}
           >
-            <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+            <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
           </button>
 
           {/* Africa map with plane departing from Angola */}
@@ -473,16 +508,22 @@ const HomeScreen = () => {
             <AfricaPlane className="w-9 h-9" />
           </button>
 
-          {/* Campfire + streak */}
-          <div className="flex items-center gap-1">
+          {/* Campfire + streak (abre sheet) */}
+          <motion.button
+            type="button"
+            onClick={() => setOfensivaOpen(true)}
+            whileTap={{ scale: 0.92 }}
+            aria-label="Ver sequência"
+            className="flex items-center gap-1 rounded-full px-1 py-0.5 hover:bg-black/5 transition-colors"
+          >
             <Campfire ativo={!semOfensiva} />
             <span
               className="font-extrabold text-sm"
               style={{ color: semOfensiva ? "#B5B5B5" : "#5E5C5C" }}
             >
-              {premium ? "∞" : saldo.ofensiva}
+              {premium ? "∞" : ofensivaValor}
             </span>
-          </div>
+          </motion.button>
 
           {/* Diamond + gems — abre a Loja */}
           <motion.button
@@ -594,6 +635,9 @@ const HomeScreen = () => {
 
       {/* ---- BOTTOM NAV ---- */}
       <BottomNav active="home" />
+
+      {/* ---- Kwendi IA flutuante (beta, Gemini) ---- */}
+      <KwendiIaFloating />
 
       {/* ---- Locked lesson dialog ---- */}
       <Dialog open={lockedOpen} onOpenChange={setLockedOpen}>
@@ -721,6 +765,14 @@ const HomeScreen = () => {
           </button>
         </DialogContent>
       </Dialog>
+
+      <MinhaOfensivaSheet
+        aberto={ofensivaOpen}
+        onFechar={() => setOfensivaOpen(false)}
+        ofensiva={ofensivaValor}
+        chamaAcesa={chamaAcesa}
+        chamasCongeladas={ofensivaEstado.chamasCongeladas}
+      />
 
     </motion.div>
   );

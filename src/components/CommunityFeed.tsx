@@ -1,13 +1,12 @@
 /**
- * CommunityFeed.tsx
- * -----------------
- * Embeddable community UI (subtabs + moderation banner + composer + feed +
- * ranking + conquistas). No own header / BottomNav — meant to be dropped
- * inside another screen (e.g. ProfileScreen's "Comunidade" tab).
- * UI only — backend later.
+ * CommunityFeed.tsx — Comunidade real, ligada ao backend.
+ *
+ * Substitui a versão mock. Todas as publicações, reacções, comentários e
+ * ranking vêm do Supabase e são actualizados em tempo real. Publicar cria
+ * um post em `pending` e chama a edge function `moderate-post` que decide
+ * se o conteúdo é aprovado/rejeitado com a IA.
  */
-
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Crown,
@@ -17,17 +16,17 @@ import {
   Send,
   ShieldCheck,
   Trophy,
+  UserPlus,
+  Check,
+  Clock,
   X,
-  Zap,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import avatar from "@/assets/avatar.jpg";
+import avatarFallback from "@/assets/avatar.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePremium } from "@/contexts/PremiumContext";
 
-/* ----- Mocked data ----- */
-const FOLLOWING_COUNT = 0; // toggle >0 to reveal "Minha Tribo"
-
-/* Comunidades por idioma nativo do usuário (todos aprendem Umbundu) */
 const LANGUAGES = [
   { key: "pt", label: "Português", flag: "🇵🇹", hint: "Falantes de português" },
   { key: "en", label: "English", flag: "🇬🇧", hint: "English speakers" },
@@ -61,12 +60,7 @@ const ONLY_LABEL: Record<LangKey, string> = {
   en: "Only content about",
   fr: "Seul le contenu sur",
 };
-
-const PUBLISH_LABEL: Record<LangKey, string> = {
-  pt: "Publicar",
-  en: "Post",
-  fr: "Publier",
-};
+const PUBLISH_LABEL: Record<LangKey, string> = { pt: "Publicar", en: "Post", fr: "Publier" };
 
 const REACTIONS = [
   { key: "malaik", label: "Okô", emoji: "😕" },
@@ -77,212 +71,296 @@ const REACTIONS = [
 ] as const;
 type ReactionKey = (typeof REACTIONS)[number]["key"];
 
-type Comment = { id: number; user: string; text: string };
-
+type Profile = { id: string; nome: string | null; avatar_url: string | null };
 type Post = {
-  id: number;
-  user: string;
-  badge: { icon: typeof Flame; label: string; color: string };
-  text: string;
-  reactions: Record<ReactionKey, number>;
-  comments: Comment[];
-  tribe?: boolean;
+  id: string;
+  user_id: string;
   lang: LangKey;
+  text: string;
+  image_url: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
+  author?: Profile;
 };
-
-const posts: Post[] = [
-  {
-    id: 1,
-    user: "Nzinga",
-    badge: { icon: Flame, label: "Sequência 7 dias", color: "#FF7A2E" },
-    text: "Acabei de aprender a saudação 'Wakolelepo!' — significa 'Olá, como estás?' em Umbundu. 🇦🇴",
-    reactions: { malaik: 14, mambo: 6, concordo: 4, discordo: 0, erreh: 0 },
-    comments: [
-      { id: 1, user: "Kiame", text: "Boa! Vou usar amanhã com a minha avó." },
-      { id: 2, user: "Suzana", text: "Wakolelepo, mana! 🙌" },
-    ],
-    lang: "pt",
-  },
-  {
-    id: 2,
-    user: "Kiame",
-    badge: { icon: Trophy, label: "Marco desbloqueado", color: "hsl(var(--primary))" },
-    text: "Completei o Módulo 1: Saúda a tua comunidade! Próximo passo: família. 💪",
-    reactions: { malaik: 20, mambo: 15, concordo: 6, discordo: 0, erreh: 0 },
-    comments: [
-      { id: 1, user: "Hossy", text: "Granda mambo, parabéns!" },
-    ],
-    lang: "pt",
-  },
-  {
-    id: 3,
-    user: "Suzana",
-    badge: { icon: Zap, label: "+250 XP esta semana", color: "#FBBD12" },
-    text: "Curiosidade: o povo Ovimbundu vive principalmente no planalto central de Angola. 🌍",
-    reactions: { malaik: 8, mambo: 4, concordo: 6, discordo: 0, erreh: 0 },
-    comments: [
-      { id: 1, user: "Yellen", text: "Adoro estas curiosidades 🙏" },
-    ],
-    lang: "pt",
-  },
-  {
-    id: 4,
-    user: "Amara",
-    badge: { icon: Flame, label: "5-day streak", color: "#FF7A2E" },
-    text: "Just learned 'Wakolelepo!' means 'Hello, how are you?' in Umbundu. Loving this journey through Angolan culture! 🌍",
-    reactions: { malaik: 6, mambo: 9, concordo: 3, discordo: 0, erreh: 0 },
-    comments: [
-      { id: 1, user: "Joseph", text: "Same here! The greetings are beautiful." },
-    ],
-    lang: "en",
-  },
-  {
-    id: 5,
-    user: "Joseph",
-    badge: { icon: Trophy, label: "Module unlocked", color: "hsl(var(--primary))" },
-    text: "Finished Module 1 today. Umbundu tones are challenging but rewarding! Anyone want to practice together?",
-    reactions: { malaik: 4, mambo: 11, concordo: 5, discordo: 0, erreh: 0 },
-    comments: [],
-    lang: "en",
-  },
-  {
-    id: 6,
-    user: "Camille",
-    badge: { icon: Zap, label: "+180 XP cette semaine", color: "#FBBD12" },
-    text: "Bonjour la communauté ! J'apprends l'Umbundu pour un voyage en Angola cet été. Des conseils ? 🇦🇴",
-    reactions: { malaik: 3, mambo: 7, concordo: 4, discordo: 0, erreh: 0 },
-    comments: [
-      { id: 1, user: "Léa", text: "Concentre-toi sur les salutations d'abord !" },
-    ],
-    lang: "fr",
-  },
-  {
-    id: 7,
-    user: "Léa",
-    badge: { icon: Flame, label: "Série de 3 jours", color: "#FF7A2E" },
-    text: "Le peuple Ovimbundu vit principalement sur le plateau central de l'Angola. Fascinant ! 🌍",
-    reactions: { malaik: 2, mambo: 5, concordo: 3, discordo: 0, erreh: 0 },
-    comments: [],
-    lang: "fr",
-  },
-];
-
-const ranking = [
-  { name: "Kiame", xp: 1240 },
-  { name: "Nzinga", xp: 980 },
-  { name: "Hossy", xp: 870 },
-  { name: "Yellen", xp: 720 },
-  { name: "Suzana", xp: 615 },
-  { name: "Otchali", xp: 540 },
-  { name: "Keke Han", xp: 410 },
-  { name: "Tu", xp: 0 },
-];
+type Comment = { id: string; post_id: string; user_id: string; text: string; author?: Profile };
+type Reactions = Record<string, Record<ReactionKey, number>>;
+type MyReactions = Record<string, ReactionKey | null>;
 
 type SubTab = "feed" | "tribo" | "ranking";
 
-type PostState = {
-  reactions: Record<ReactionKey, number>;
-  myReaction: ReactionKey | null;
-  comments: Comment[];
-  showComments: boolean;
-  draft: string;
-};
-
 const CommunityFeed = () => {
+  const { user } = useAuth();
+  const { ativo: premium } = usePremium();
   const [tab, setTab] = useState<SubTab>("feed");
   const [lang, setLang] = useState<LangKey>("pt");
   const [draft, setDraft] = useState("");
-  const { ativo: premium } = usePremium();
   const [foto, setFoto] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [state, setState] = useState<Record<number, PostState>>(() =>
-    Object.fromEntries(
-      posts.map((p) => [
-        p.id,
-        {
-          reactions: { ...p.reactions },
-          myReaction: null,
-          comments: p.comments,
-          showComments: false,
-          draft: "",
-        } as PostState,
-      ]),
-    ),
-  );
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const updatePost = (id: number, patch: Partial<PostState>) =>
-    setState((s) => ({ ...s, [id]: { ...s[id], ...patch } }));
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [reactions, setReactions] = useState<Reactions>({});
+  const [myReactions, setMyReactions] = useState<MyReactions>({});
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
+  const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
+  const [ranking, setRanking] = useState<
+    { user_id: string; nome: string | null; avatar_url: string | null; xp: number }[]
+  >([]);
+  const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
+  const [pendingOutIds, setPendingOutIds] = useState<Set<string>>(new Set());
+  const [pendingInIds, setPendingInIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
-  const toggleReaction = (id: number, key: ReactionKey) => {
-    const ps = state[id];
-    const next = { ...ps.reactions };
-    if (ps.myReaction === key) {
-      next[key] = Math.max(0, next[key] - 1);
-      updatePost(id, { reactions: next, myReaction: null });
+  const loadProfiles = useCallback(async (ids: string[]): Promise<Record<string, Profile>> => {
+    if (ids.length === 0) return {};
+    const { data } = await supabase.rpc("get_public_profiles", { _ids: ids });
+    const map: Record<string, Profile> = {};
+    (data ?? []).forEach((p: any) => (map[p.id] = p));
+    return map;
+  }, []);
+
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    const { data: rows } = await supabase
+      .from("community_posts")
+      .select("*")
+      .eq("lang", lang)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const list = (rows ?? []) as Post[];
+    const authors = await loadProfiles(Array.from(new Set(list.map((p) => p.user_id))));
+    setPosts(list.map((p) => ({ ...p, author: authors[p.user_id] })));
+
+    const ids = list.map((p) => p.id);
+    if (ids.length) {
+      const { data: rx } = await supabase
+        .from("community_reactions")
+        .select("post_id, user_id, reaction")
+        .in("post_id", ids);
+      const agg: Reactions = {};
+      const mine: MyReactions = {};
+      (rx ?? []).forEach((r: any) => {
+        const bucket = (agg[r.post_id] ??= {
+          malaik: 0, mambo: 0, concordo: 0, discordo: 0, erreh: 0,
+        });
+        bucket[r.reaction as ReactionKey] += 1;
+        if (user && r.user_id === user.id) mine[r.post_id] = r.reaction;
+      });
+      setReactions(agg);
+      setMyReactions(mine);
+
+      const { data: cs } = await supabase
+        .from("community_comments")
+        .select("*")
+        .in("post_id", ids)
+        .eq("status", "approved")
+        .order("created_at", { ascending: true });
+      const authorsC = await loadProfiles(
+        Array.from(new Set((cs ?? []).map((c: any) => c.user_id))),
+      );
+      const byPost: Record<string, Comment[]> = {};
+      (cs ?? []).forEach((c: any) => {
+        (byPost[c.post_id] ??= []).push({ ...c, author: authorsC[c.user_id] });
+      });
+      setComments(byPost);
     } else {
-      if (ps.myReaction) next[ps.myReaction] = Math.max(0, next[ps.myReaction] - 1);
-      next[key] = next[key] + 1;
-      updatePost(id, { reactions: next, myReaction: key });
+      setReactions({});
+      setMyReactions({});
+      setComments({});
+    }
+    setLoading(false);
+  }, [lang, loadProfiles, user]);
+
+  const loadRanking = useCallback(async () => {
+    const { data } = await supabase
+      .from("public_ranking")
+      .select("*")
+      .order("xp", { ascending: false })
+      .limit(20);
+    setRanking((data ?? []) as any);
+  }, []);
+
+  const loadFriends = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("friendships")
+      .select("requester_id, addressee_id, status");
+    const accepted = new Set<string>();
+    const pendingOut = new Set<string>();
+    const pendingIn = new Set<string>();
+    (data ?? []).forEach((f: any) => {
+      const other = f.requester_id === user.id ? f.addressee_id : f.requester_id;
+      if (f.status === "accepted") accepted.add(other);
+      else if (f.status === "pending") {
+        if (f.requester_id === user.id) pendingOut.add(other);
+        else pendingIn.add(other);
+      }
+    });
+    setFriendIds(accepted);
+    setPendingOutIds(pendingOut);
+    setPendingInIds(pendingIn);
+  }, [user]);
+
+  const seguir = async (alvo: string) => {
+    if (!user || alvo === user.id) return;
+    // Optimistic
+    setPendingOutIds((s) => new Set(s).add(alvo));
+    const { error } = await supabase.rpc("enviar_pedido_amizade", { _alvo: alvo });
+    if (error) {
+      setPendingOutIds((s) => {
+        const n = new Set(s); n.delete(alvo); return n;
+      });
+      toast({ title: "Erro ao seguir", description: error.message });
+      return;
+    }
+    toast({ title: "Pedido enviado", description: "Aguarda a confirmação." });
+    loadFriends();
+  };
+
+  const aceitar = async (uidOutro: string) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("friendships")
+      .select("id")
+      .eq("requester_id", uidOutro)
+      .eq("addressee_id", user.id)
+      .eq("status", "pending")
+      .maybeSingle();
+    if (!data?.id) return;
+    const { error } = await supabase.rpc("aceitar_pedido_amizade", { _id: data.id });
+    if (error) { toast({ title: "Erro", description: error.message }); return; }
+    toast({ title: "Amizade aceite" });
+    loadFriends();
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+  useEffect(() => {
+    loadRanking();
+    loadFriends();
+  }, [loadRanking, loadFriends]);
+
+  // Realtime
+  useEffect(() => {
+    const ch = supabase
+      .channel("community")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "community_posts" },
+        () => loadPosts(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "community_reactions" },
+        () => loadPosts(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "community_comments" },
+        () => loadPosts(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [loadPosts]);
+
+  const handlePublish = async () => {
+    const text = draft.trim();
+    if (!text || !user) {
+      toast({ title: "Sessão necessária", description: "Inicia sessão para publicar." });
+      return;
+    }
+    const { data, error } = await supabase
+      .from("community_posts")
+      .insert({ user_id: user.id, lang, text, image_url: foto, status: "pending" })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Erro ao publicar", description: error.message });
+      return;
+    }
+    setDraft("");
+    setFoto(null);
+    toast({
+      title: "Publicação enviada para revisão",
+      description: "A IA Kwendi irá rever antes de aparecer na comunidade.",
+    });
+    supabase.functions.invoke("moderate-post", { body: { postId: data.id, kind: "post" } });
+  };
+
+  const toggleReaction = async (postId: string, key: ReactionKey) => {
+    if (!user) return;
+    const mine = myReactions[postId];
+    // Optimistic
+    setMyReactions((m) => ({ ...m, [postId]: mine === key ? null : key }));
+    setReactions((r) => {
+      const bucket = { ...(r[postId] ?? { malaik: 0, mambo: 0, concordo: 0, discordo: 0, erreh: 0 }) };
+      if (mine && mine !== key) bucket[mine] = Math.max(0, bucket[mine] - 1);
+      if (mine === key) bucket[key] = Math.max(0, bucket[key] - 1);
+      else bucket[key] += 1;
+      return { ...r, [postId]: bucket };
+    });
+    if (mine === key) {
+      await supabase.from("community_reactions").delete().match({ post_id: postId, user_id: user.id });
+    } else {
+      await supabase
+        .from("community_reactions")
+        .upsert({ post_id: postId, user_id: user.id, reaction: key }, { onConflict: "post_id,user_id" });
     }
   };
 
-  const submitComment = (id: number) => {
-    const ps = state[id];
-    const text = ps.draft.trim();
+  const submitComment = async (postId: string) => {
+    if (!user) return;
+    const text = (commentDraft[postId] ?? "").trim();
     if (!text) return;
-    const newComment: Comment = {
-      id: Date.now(),
-      user: "Tu",
-      text,
-    };
-    updatePost(id, { comments: [...ps.comments, newComment], draft: "" });
+    const { data, error } = await supabase
+      .from("community_comments")
+      .insert({ post_id: postId, user_id: user.id, text, status: "pending" })
+      .select()
+      .single();
+    if (error) {
+      toast({ title: "Erro", description: error.message });
+      return;
+    }
+    setCommentDraft((d) => ({ ...d, [postId]: "" }));
     toast({
       title: "Comentário enviado para revisão",
-      description: "A IA Kwendi irá rever antes de aparecer publicamente.",
+      description: "A IA Kwendi irá rever antes de publicar.",
     });
+    supabase.functions.invoke("moderate-post", { body: { postId: data.id, kind: "comment" } });
+  };
+
+  const handleFotoEscolhida = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    // Upload básico para bucket público 'community' (Premium).
+    // (Bucket criado sob demanda — se não existir, guardamos como data URL.)
+    const reader = new FileReader();
+    reader.onload = () => setFoto(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const tabs = useMemo(
     () => [
       { id: "feed" as const, label: "Comunidade" },
-      ...(FOLLOWING_COUNT > 0 ? [{ id: "tribo" as const, label: "Minha Tribo" }] : []),
+      { id: "tribo" as const, label: "Minha Tribo" },
       { id: "ranking" as const, label: "Ranking" },
     ],
     [],
   );
 
-  const handlePublish = () => {
-    if (!draft.trim() && !foto) return;
-    toast({
-      title: "Publicação enviada para revisão",
-      description:
-        "A IA Kwendi irá rever a tua publicação antes de aparecer na comunidade.",
-    });
-    setDraft("");
-    setFoto(null);
-  };
-
-  const handleFotoEscolhida = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setFoto(typeof reader.result === "string" ? reader.result : null);
-    reader.readAsDataURL(file);
-    // Permite escolher a mesma foto novamente depois de remover
-    e.target.value = "";
-  };
-
-  const visiblePosts = useMemo(
-    () =>
-      (tab === "tribo" ? posts.filter((p) => p.tribe) : posts).filter(
-        (p) => p.lang === lang,
-      ),
-    [tab, lang],
-  );
+  const visiblePosts = useMemo(() => {
+    if (tab === "tribo") return posts.filter((p) => friendIds.has(p.user_id));
+    return posts;
+  }, [tab, posts, friendIds]);
 
   return (
     <div>
-      {/* Language community selector */}
+      {/* Language selector */}
       <div className="flex items-center gap-2 overflow-x-auto mb-3 -mx-1 px-1 pb-1">
         {LANGUAGES.map((l) => {
           const active = lang === l.key;
@@ -331,12 +409,8 @@ const CommunityFeed = () => {
 
       {(tab === "feed" || tab === "tribo") && (
         <>
-          {/* Moderation banner */}
           <div className="flex items-start gap-2 rounded-2xl border border-border bg-secondary/60 p-3 mb-4">
-            <ShieldCheck
-              className="w-4 h-4 mt-0.5 flex-shrink-0"
-              style={{ color: "hsl(var(--primary))" }}
-            />
+            <ShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
             <p className="text-[12px] leading-relaxed text-muted-foreground">
               {ONLY_LABEL[lang]} <strong>{MOD_BANNER[lang].strong}</strong> {MOD_BANNER[lang].body}
             </p>
@@ -345,7 +419,7 @@ const CommunityFeed = () => {
           {/* Composer */}
           <div className="rounded-2xl border-2 border-border bg-card p-3 mb-5">
             <div className="flex items-start gap-3">
-              <img src={avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+              <img src={avatarFallback} alt="" className="w-9 h-9 rounded-full object-cover" />
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -357,7 +431,7 @@ const CommunityFeed = () => {
             </div>
             {foto && (
               <div className="relative mt-2 ml-12 rounded-xl overflow-hidden border border-border">
-                <img src={foto} alt="Pré-visualização" className="w-full max-h-56 object-cover" />
+                <img src={foto} alt="" className="w-full max-h-56 object-cover" />
                 <button
                   type="button"
                   onClick={() => setFoto(null)}
@@ -374,7 +448,7 @@ const CommunityFeed = () => {
                 {premium && (
                   <>
                     <input
-                      ref={fileInputRef}
+                      ref={fileRef}
                       type="file"
                       accept="image/*"
                       onChange={handleFotoEscolhida}
@@ -382,9 +456,8 @@ const CommunityFeed = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => fileRef.current?.click()}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold border-2 border-border bg-card text-muted-foreground hover:text-foreground"
-                      title="Anexar foto (Premium)"
                     >
                       <ImagePlus className="w-3.5 h-3.5" />
                       Foto
@@ -393,7 +466,7 @@ const CommunityFeed = () => {
                 )}
                 <button
                   onClick={handlePublish}
-                  disabled={!draft.trim() && !foto}
+                  disabled={!draft.trim() || !user}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold text-white disabled:opacity-50"
                   style={{ background: "hsl(var(--primary))" }}
                 >
@@ -404,24 +477,35 @@ const CommunityFeed = () => {
             </div>
           </div>
 
-          {/* Feed */}
           <div className="space-y-3">
-            {visiblePosts.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground text-sm">A carregar…</div>
+            ) : visiblePosts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p className="font-bold">Nada por aqui ainda.</p>
-                <p className="text-sm mt-1">Segue alguém para veres as suas publicações.</p>
+                <p className="font-bold">
+                  {tab === "tribo" ? "Ainda não segues ninguém." : "Ainda não há publicações."}
+                </p>
+                <p className="text-sm mt-1">
+                  {tab === "tribo"
+                    ? "Adiciona amigos no Ranking para veres o que partilham."
+                    : "Sê o primeiro a partilhar algo com a comunidade."}
+                </p>
               </div>
             ) : (
               visiblePosts.map((p) => (
                 <PostCard
                   key={p.id}
                   post={p}
-                  state={state[p.id]}
+                  reactions={reactions[p.id] ?? { malaik: 0, mambo: 0, concordo: 0, discordo: 0, erreh: 0 }}
+                  myReaction={myReactions[p.id] ?? null}
+                  comments={comments[p.id] ?? []}
+                  showComments={!!openComments[p.id]}
+                  draft={commentDraft[p.id] ?? ""}
                   onReact={(k) => toggleReaction(p.id, k)}
                   onToggleComments={() =>
-                    updatePost(p.id, { showComments: !state[p.id].showComments })
+                    setOpenComments((o) => ({ ...o, [p.id]: !o[p.id] }))
                   }
-                  onDraft={(v) => updatePost(p.id, { draft: v })}
+                  onDraft={(v) => setCommentDraft((d) => ({ ...d, [p.id]: v }))}
                   onSubmitComment={() => submitComment(p.id)}
                 />
               ))
@@ -432,109 +516,160 @@ const CommunityFeed = () => {
 
       {tab === "ranking" && (
         <div className="space-y-2">
-          {ranking.map((r, i) => {
-            const isMe = r.name === "Tu";
-            return (
-              <div
-                key={r.name}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3"
-                style={{
-                  background: isMe ? "hsl(var(--primary) / 0.08)" : "hsl(var(--card))",
-                  border: `2px solid ${isMe ? "hsl(var(--primary) / 0.4)" : "hsl(var(--border))"}`,
-                }}
-              >
+          {ranking.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-sm">
+              O ranking aparece assim que os utilizadores ganharem XP.
+            </div>
+          ) : (
+            ranking.map((r, i) => {
+              const isMe = user && r.user_id === user.id;
+              const isFriend = friendIds.has(r.user_id);
+              const isPending = pendingOutIds.has(r.user_id);
+              const wantsMe = pendingInIds.has(r.user_id);
+              return (
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm"
+                  key={r.user_id}
+                  className="flex items-center gap-3 rounded-2xl px-4 py-3"
                   style={{
-                    background:
-                      i === 0 ? "#FBBD12" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "hsl(var(--muted))",
-                    color: i < 3 ? "#fff" : "hsl(var(--muted-foreground))",
+                    background: isMe ? "hsl(var(--primary) / 0.08)" : "hsl(var(--card))",
+                    border: `2px solid ${isMe ? "hsl(var(--primary) / 0.4)" : "hsl(var(--border))"}`,
                   }}
                 >
-                  {i + 1}
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm"
+                    style={{
+                      background:
+                        i === 0 ? "#FBBD12" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "hsl(var(--muted))",
+                      color: i < 3 ? "#fff" : "hsl(var(--muted-foreground))",
+                    }}
+                  >
+                    {i + 1}
+                  </div>
+                  {r.avatar_url ? (
+                    <img src={r.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-8 h-8 rounded-full grid place-items-center text-white font-extrabold text-xs"
+                      style={{ background: "hsl(var(--primary))" }}
+                    >
+                      {(r.nome ?? "K")[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span className="flex-1 min-w-0 font-extrabold text-foreground flex items-center gap-1.5 truncate">
+                    <span className="truncate">{r.nome ?? "Kwendian"}</span>
+                    {i === 0 && <Crown className="w-4 h-4 flex-shrink-0" style={{ color: "#FBBD12" }} fill="#FBBD12" />}
+                  </span>
+                  <span className="text-sm font-bold text-muted-foreground">{r.xp} XP</span>
+                  {!isMe && (
+                    isFriend ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary">
+                        <Check className="w-3.5 h-3.5" /> Amigo
+                      </span>
+                    ) : wantsMe ? (
+                      <button
+                        onClick={() => aceitar(r.user_id)}
+                        className="px-2.5 py-1 rounded-full text-[11px] font-extrabold text-white"
+                        style={{ background: "hsl(var(--primary))" }}
+                      >
+                        Aceitar
+                      </button>
+                    ) : isPending ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" /> Enviado
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => seguir(r.user_id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold border-2"
+                        style={{ borderColor: "hsl(var(--primary))", color: "hsl(var(--primary))" }}
+                      >
+                        <UserPlus className="w-3.5 h-3.5" /> Seguir
+                      </button>
+                    )
+                  )}
                 </div>
-                <span className="flex-1 font-extrabold text-foreground flex items-center gap-1.5">
-                  {r.name}
-                  {i === 0 && <Crown className="w-4 h-4" style={{ color: "#FBBD12" }} fill="#FBBD12" />}
-                </span>
-                <span className="text-sm font-bold text-muted-foreground">{r.xp} XP</span>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       )}
     </div>
   );
 };
 
-/* ----- Post card ----- */
 const PostCard = ({
   post,
-  state,
+  reactions,
+  myReaction,
+  comments,
+  showComments,
+  draft,
   onReact,
   onToggleComments,
   onDraft,
   onSubmitComment,
 }: {
   post: Post;
-  state: PostState;
+  reactions: Record<ReactionKey, number>;
+  myReaction: ReactionKey | null;
+  comments: Comment[];
+  showComments: boolean;
+  draft: string;
   onReact: (k: ReactionKey) => void;
   onToggleComments: () => void;
   onDraft: (v: string) => void;
   onSubmitComment: () => void;
 }) => {
-  const BadgeIcon = post.badge.icon;
   const [pickerOpen, setPickerOpen] = useState(false);
-  const totalReactions = Object.values(state.reactions).reduce((a, b) => a + b, 0);
-  const activeEmoji = state.myReaction
-    ? REACTIONS.find((r) => r.key === state.myReaction)!.emoji
-    : null;
+  const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+  const active = myReaction ? REACTIONS.find((r) => r.key === myReaction)!.emoji : null;
+  const nome = post.author?.nome ?? "Kwendian";
 
   return (
     <article className="rounded-2xl border-2 border-border bg-card p-4">
       <header className="flex items-center gap-3 mb-2">
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-sm"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-sm overflow-hidden"
           style={{ background: "hsl(var(--primary))" }}
         >
-          {post.user[0]}
+          {post.author?.avatar_url ? (
+            <img src={post.author.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            nome[0]?.toUpperCase()
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-foreground text-sm">{post.user}</div>
+          <div className="font-extrabold text-foreground text-sm">{nome}</div>
           <div
             className="inline-flex items-center gap-1 text-[11px] font-bold mt-0.5"
-            style={{ color: post.badge.color }}
+            style={{ color: "hsl(var(--primary))" }}
           >
-            <BadgeIcon className="w-3 h-3" />
-            {post.badge.label}
+            <Trophy className="w-3 h-3" />
+            Kwendi
           </div>
         </div>
       </header>
-      <p className="text-sm text-foreground leading-relaxed">{post.text}</p>
+      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{post.text}</p>
+      {post.image_url && (
+        <img src={post.image_url} alt="" className="w-full mt-3 rounded-xl object-cover max-h-80" />
+      )}
       <footer className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
         <div className="relative">
           <button
             onClick={() => setPickerOpen((v) => !v)}
             className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-full text-xs font-bold transition-colors"
             style={{
-              background: state.myReaction ? "hsl(var(--primary) / 0.1)" : "transparent",
-              color: state.myReaction ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+              background: myReaction ? "hsl(var(--primary) / 0.1)" : "transparent",
+              color: myReaction ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
             }}
           >
-            {activeEmoji ? (
-              <span className="text-base leading-none">{activeEmoji}</span>
-            ) : (
-              <Flame className="w-4 h-4" />
-            )}
-            {totalReactions}
+            {active ? <span className="text-base leading-none">{active}</span> : <Flame className="w-4 h-4" />}
+            {total}
           </button>
           <AnimatePresence>
             {pickerOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setPickerOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
                 <motion.div
                   initial={{ opacity: 0, scale: 0.7, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -543,7 +678,7 @@ const PostCard = ({
                   className="absolute bottom-full left-0 mb-2 z-20 flex items-center gap-1 rounded-full border-2 border-border bg-card shadow-lg px-2 py-1.5"
                 >
                   {REACTIONS.map((r) => {
-                    const active = state.myReaction === r.key;
+                    const isActive = myReaction === r.key;
                     return (
                       <button
                         key={r.key}
@@ -554,8 +689,8 @@ const PostCard = ({
                         }}
                         className="text-xl leading-none p-1 rounded-full transition-transform hover:scale-125"
                         style={{
-                          background: active ? "hsl(var(--primary) / 0.15)" : "transparent",
-                          transform: active ? "scale(1.1)" : undefined,
+                          background: isActive ? "hsl(var(--primary) / 0.15)" : "transparent",
+                          transform: isActive ? "scale(1.1)" : undefined,
                         }}
                       >
                         {r.emoji}
@@ -570,17 +705,14 @@ const PostCard = ({
         <button
           onClick={onToggleComments}
           className="flex items-center gap-1.5 text-xs font-bold transition-colors"
-          style={{
-            color: state.showComments ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-          }}
+          style={{ color: showComments ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))" }}
         >
           <MessageCircle className="w-4 h-4" />
-          {state.comments.length}
+          {comments.length}
         </button>
       </footer>
-
       <AnimatePresence initial={false}>
-        {state.showComments && (
+        {showComments && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -589,28 +721,31 @@ const PostCard = ({
             className="overflow-hidden"
           >
             <div className="mt-3 pt-3 border-t border-border space-y-2">
-              {state.comments.map((c) => (
-                <div key={c.id} className="flex items-start gap-2">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white font-extrabold text-[11px] flex-shrink-0"
-                    style={{ background: "hsl(var(--primary))" }}
-                  >
-                    {c.user[0]}
-                  </div>
-                  <div className="flex-1 min-w-0 bg-secondary/60 rounded-2xl px-3 py-1.5">
-                    <div className="text-[11px] font-extrabold text-foreground">
-                      {c.user}
+              {comments.map((c) => {
+                const cn = c.author?.nome ?? "Kwendian";
+                return (
+                  <div key={c.id} className="flex items-start gap-2">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white font-extrabold text-[11px] flex-shrink-0 overflow-hidden"
+                      style={{ background: "hsl(var(--primary))" }}
+                    >
+                      {c.author?.avatar_url ? (
+                        <img src={c.author.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        cn[0]?.toUpperCase()
+                      )}
                     </div>
-                    <p className="text-xs text-foreground leading-snug break-words">
-                      {c.text}
-                    </p>
+                    <div className="flex-1 min-w-0 bg-secondary/60 rounded-2xl px-3 py-1.5">
+                      <div className="text-[11px] font-extrabold text-foreground">{cn}</div>
+                      <p className="text-xs text-foreground leading-snug break-words">{c.text}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div className="flex items-center gap-2 pt-1">
-                <img src={avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                <img src={avatarFallback} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
                 <input
-                  value={state.draft}
+                  value={draft}
                   onChange={(e) => onDraft(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -624,7 +759,7 @@ const PostCard = ({
                 />
                 <button
                   onClick={onSubmitComment}
-                  disabled={!state.draft.trim()}
+                  disabled={!draft.trim()}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-40 flex-shrink-0"
                   style={{ background: "hsl(var(--primary))" }}
                 >

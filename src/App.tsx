@@ -51,6 +51,8 @@ import NotificacoesScreen from "./screens/definicoes/NotificacoesScreen";
 import SobreScreen from "./screens/definicoes/SobreScreen";
 import DefinicoesScreen from "./screens/definicoes/DefinicoesScreen";
 import AcessibilidadeScreen from "./screens/definicoes/AcessibilidadeScreen";
+import IdiomaScreen from "./screens/definicoes/IdiomaScreen";
+import EstatisticasScreen from "./screens/EstatisticasScreen";
 import NotFound from "./pages/NotFound";
 
 /* Admin panel (rota secreta, sem link em fluxos do app) */
@@ -71,6 +73,8 @@ import { installSessionTracker } from "./lib/sessionTracker";
 import StealthExpiryBanner from "./components/StealthExpiryBanner";
 import KwendiChatScreen from "./screens/KwendiChatScreen";
 import AuthOtpScreen from "./screens/AuthOtpScreen";
+import PrivacyScreen from "./screens/PrivacyScreen";
+import TermsScreen from "./screens/TermsScreen";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +93,8 @@ const PUBLIC_ROUTES = new Set([
   "/auth/otp",
   "/stealth",
   "/fronteiras-intro",
+  "/privacy",
+  "/terms",
 ]);
 
 /** Redireciona para /apresentation se o utilizador não tem sessão real nem
@@ -147,6 +153,8 @@ const AnimatedRoutes = () => {
         <Route path="/profile/conta" element={<ContaScreen />} />
         <Route path="/profile/notificacoes" element={<NotificacoesScreen />} />
         <Route path="/profile/acessibilidade" element={<AcessibilidadeScreen />} />
+        <Route path="/profile/idioma" element={<IdiomaScreen />} />
+        <Route path="/profile/estatisticas" element={<EstatisticasScreen />} />
         <Route path="/profile/sobre" element={<SobreScreen />} />
         <Route path="/missoes" element={<MissoesScreen />} />
         <Route path="/historias" element={<HistoriasScreen />} />
@@ -161,6 +169,8 @@ const AnimatedRoutes = () => {
         <Route path="/kwendi-ia" element={<KwendiChatScreen />} />
         <Route path="/kwendi-ia/:threadId" element={<KwendiChatScreen />} />
         <Route path="/fronteiras-intro" element={<FronteirasIntroScreen />} />
+        <Route path="/privacy" element={<PrivacyScreen />} />
+        <Route path="/terms" element={<TermsScreen />} />
         <Route path="/para-alem-fronteiras" element={<FronteirasScreen />} />
         <Route path="/para-alem-fronteiras/jogo" element={<FronteirasJogoScreen />} />
 

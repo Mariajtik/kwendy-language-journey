@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeOAuthNext, getOAuthErrorFromUrl } from "@/lib/authRedirect";
+import RouteSeo from "@/components/seo/RouteSeo";
 
 const SplashScreen = () => {
   const navigate = useNavigate();
@@ -55,6 +56,12 @@ const SplashScreen = () => {
   }, [loading, navigate, session]);
 
   return (
+    <>
+    <RouteSeo
+      title="Kwendi — Aprenda Umbundu e a cultura de Angola"
+      description="Kwendi é o app angolano para aprender Umbundu com lições curtas, cultura, histórias e a IA Kwendi. Comece hoje mesmo."
+      path="/"
+    />
     <motion.div
       className="app-shell flex items-center justify-center"
       style={{ background: "hsl(var(--primary))", minHeight: "100dvh" }}
@@ -83,6 +90,7 @@ const SplashScreen = () => {
         )}
       </AnimatePresence>
     </motion.div>
+    </>
   );
 };
 

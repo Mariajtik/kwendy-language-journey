@@ -5,32 +5,48 @@
  */
 import { registerMirror } from "./mirror";
 
-// user_saldo — chave "kwendi_saldo_v1"
+// Saldo (xp, diamantes, vidas, ofensiva, baus, fragmentos, curiosidades lidas)
+// mora todo em `progresso`. `vidasExtra` fica só local — sem coluna dedicada.
 registerMirror({
   key: "kwendi_saldo_v1",
-  table: "user_saldo",
+  table: "progresso",
   event: "kwendi:saldo-changed",
   encode: (s: any) => ({
     xp: Number(s?.xp ?? 0),
     diamantes: Number(s?.diamantes ?? 0),
     vidas: Number(s?.vidas ?? 5),
-    vidas_extra: Number(s?.vidasExtra ?? 0),
     fragmentos: Number(s?.fragmentos ?? 0),
     ofensiva: Number(s?.ofensiva ?? 0),
-    ultimo_dia_ativo: String(s?.ultimoDiaAtivo ?? ""),
-    curiosidades_lidas: Array.isArray(s?.curiosidadesLidas) ? s.curiosidadesLidas : [],
     baus: s?.baus ?? { comum: 0, raro: 0, lendario: 0 },
+    curiosidades_lidas: Array.isArray(s?.curiosidadesLidas) ? s.curiosidadesLidas : [],
   }),
   decode: (r: any) => ({
-    xp: r.xp,
-    diamantes: r.diamantes,
-    vidas: r.vidas,
-    vidasExtra: r.vidas_extra,
-    fragmentos: r.fragmentos,
-    ofensiva: r.ofensiva,
-    ultimoDiaAtivo: r.ultimo_dia_ativo,
+    xp: r.xp ?? 0,
+    diamantes: r.diamantes ?? 0,
+    vidas: r.vidas ?? 5,
+    vidasExtra: 0,
+    fragmentos: r.fragmentos ?? 0,
+    ofensiva: r.ofensiva ?? 0,
+    ultimoDiaAtivo: r.ofensiva_ultimo_dia ?? "",
     curiosidadesLidas: r.curiosidades_lidas ?? [],
     baus: r.baus ?? { comum: 0, raro: 0, lendario: 0 },
+  }),
+});
+
+// Progresso do currículo (secoes_completas + unidade_atual)
+registerMirror({
+  key: "kwendi:progresso",
+  table: "progresso",
+  event: "kwendi:progresso-changed",
+  encode: (s: any) => ({
+    secoes_completas: Array.isArray(s?.seccoesCompletas) ? s.seccoesCompletas : [],
+    unidade_atual: Number(
+      typeof s?.unidadeAtual === "string" ? parseInt(s.unidadeAtual, 10) || 1 : s?.unidadeAtual ?? 1,
+    ),
+  }),
+  decode: (r: any) => ({
+    seccoesCompletas: Array.isArray(r.secoes_completas) ? r.secoes_completas : [],
+    unidadeAtual: r.unidade_atual ? String(r.unidade_atual) : undefined,
   }),
 });
 
@@ -39,14 +55,8 @@ registerMirror({
   key: "kwendi.inventario",
   table: "user_inventario",
   event: "kwendi:inventario-changed",
-  encode: (s: any) => ({
-    power_ups: Array.isArray(s?.powerUps) ? s.powerUps : [],
-    desbloqueios: Array.isArray(s?.desbloqueios) ? s.desbloqueios : [],
-  }),
-  decode: (r: any) => ({
-    powerUps: r.power_ups ?? [],
-    desbloqueios: r.desbloqueios ?? [],
-  }),
+  encode: (s: any) => ({ itens: s ?? {} }),
+  decode: (r: any) => (r.itens && Object.keys(r.itens).length ? r.itens : null),
 });
 
 // user_missoes — chave "kwendi_missoes_v1"
@@ -54,14 +64,14 @@ registerMirror({
   key: "kwendi_missoes_v1",
   table: "user_missoes",
   encode: (s: any) => ({
-    missoes: s?.missoes ?? {},
+    diarias: s?.diarias ?? s?.missoes?.diarias ?? {},
+    semanais: s?.semanais ?? s?.missoes?.semanais ?? {},
     conquistas: s?.conquistas ?? {},
-    ultimo_reset: s?.ultimoReset ?? { diaria: "", semanal: "" },
   }),
   decode: (r: any) => ({
-    missoes: r.missoes ?? {},
+    diarias: r.diarias ?? {},
+    semanais: r.semanais ?? {},
     conquistas: r.conquistas ?? {},
-    ultimoReset: r.ultimo_reset ?? { diaria: "", semanal: "" },
   }),
 });
 
@@ -71,24 +81,26 @@ registerMirror({
   table: "user_nivelamento",
   event: "kwendi:nivelamento-changed",
   encode: (s: any) => ({
-    fez: !!s?.fez,
-    ancao: !!s?.ancao,
+    feito: !!s?.fez,
+    ancião: s?.ancao ? String(s.ancao) : null,
     percentagem: Number(s?.percentagem ?? 0),
-    acertos: Number(s?.acertos ?? 0),
-    total: Number(s?.total ?? 0),
-    unidade_sugerida: s?.unidadeSugerida ?? null,
-    todos_desbloqueados: !!s?.todosDesbloqueados,
-    popup_pendente: s?.popupPendente ?? null,
+    unidade_sugerida: Number(s?.unidadeSugerida ?? 0) || null,
+    respostas: s?.respostas ?? {},
+    cefr: s?.cefr ?? null,
+    pontos_fortes: Array.isArray(s?.pontosFortes) ? s.pontosFortes : [],
+    pontos_fracos: Array.isArray(s?.pontosFracos) ? s.pontosFracos : [],
+    trilha_sugerida: Array.isArray(s?.trilhaSugerida) ? s.trilhaSugerida : [],
   }),
   decode: (r: any) => ({
-    fez: r.fez,
-    ancao: r.ancao,
-    percentagem: r.percentagem,
-    acertos: r.acertos,
-    total: r.total,
+    fez: !!r.feito,
+    ancao: r["ancião"] ?? null,
+    percentagem: r.percentagem ?? 0,
     unidadeSugerida: r.unidade_sugerida ?? null,
-    todosDesbloqueados: r.todos_desbloqueados,
-    popupPendente: r.popup_pendente ?? null,
+    respostas: r.respostas ?? {},
+    cefr: r.cefr ?? null,
+    pontosFortes: Array.isArray(r.pontos_fortes) ? r.pontos_fortes : [],
+    pontosFracos: Array.isArray(r.pontos_fracos) ? r.pontos_fracos : [],
+    trilhaSugerida: Array.isArray(r.trilha_sugerida) ? r.trilha_sugerida : [],
   }),
 });
 
@@ -96,8 +108,8 @@ registerMirror({
 registerMirror({
   key: "kwendi:fronteiras:passaporte",
   table: "user_passaporte",
-  encode: (s: any) => ({ estado: s ?? {} }),
-  decode: (r: any) => r.estado ?? {},
+  encode: (s: any) => ({ provincias_visitadas: s ?? {} }),
+  decode: (r: any) => r.provincias_visitadas ?? {},
 });
 
 // user_preferencias — várias chaves compostas num único registo `flags`.
@@ -106,22 +118,46 @@ registerMirror({
 registerMirror({
   key: "kwendi.prefs.flags",
   table: "user_preferencias",
-  encode: (s: any) => ({ flags: s ?? {} }),
-  decode: (r: any) => (r.flags && Object.keys(r.flags).length ? r.flags : null),
+  encode: (s: any) => ({ extras: { flags: s ?? {} } }),
+  decode: (r: any) =>
+    r.extras?.flags && Object.keys(r.extras.flags).length ? r.extras.flags : null,
 });
 
 // Notificações — chave "kwendi.def.notif"
 registerMirror({
   key: "kwendi.def.notif",
   table: "user_preferencias",
-  encode: (s: any) => ({ notificacoes: s ?? {} }),
-  decode: (r: any) => (r.notificacoes && Object.keys(r.notificacoes).length ? r.notificacoes : null),
+  encode: (s: any) => ({ extras: { notificacoes: s ?? {} } }),
+  decode: (r: any) =>
+    r.extras?.notificacoes && Object.keys(r.extras.notificacoes).length
+      ? r.extras.notificacoes
+      : null,
 });
 
 // Acessibilidade — chave "kwendi:acessibilidade"
 registerMirror({
   key: "kwendi:acessibilidade",
   table: "user_preferencias",
-  encode: (s: any) => ({ acessibilidade: s ?? {} }),
-  decode: (r: any) => (r.acessibilidade && Object.keys(r.acessibilidade).length ? r.acessibilidade : null),
+  encode: (s: any) => ({
+    reduzir_movimento: !!s?.reduzirMovimento,
+    alto_contraste: !!s?.altoContraste,
+    fonte: s?.fonte ?? null,
+  }),
+  decode: (r: any) => {
+    if (r.reduzir_movimento == null && r.alto_contraste == null && r.fonte == null) return null;
+    return {
+      reduzirMovimento: !!r.reduzir_movimento,
+      altoContraste: !!r.alto_contraste,
+      fonte: r.fonte ?? undefined,
+    };
+  },
+});
+
+// Idioma do App — chave "kwendi.idioma"
+registerMirror({
+  key: "kwendi.idioma",
+  table: "user_preferencias",
+  event: "kwendi:idioma-changed",
+  encode: (s: any) => ({ idioma_app: typeof s === "string" && s.length ? s : "pt-AO" }),
+  decode: (r: any) => (typeof r.idioma_app === "string" ? r.idioma_app : null),
 });

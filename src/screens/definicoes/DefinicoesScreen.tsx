@@ -5,20 +5,23 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Accessibility, Bell, ChevronRight, Info, LogOut, User as UserIcon } from "lucide-react";
+import { Accessibility, Bell, ChevronRight, Globe, Info, LogOut, User as UserIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import DefHeader from "@/screens/definicoes/_DefHeader";
 import SairConfirmModal from "@/screens/definicoes/SairConfirmModal";
 
 const DefinicoesScreen = () => {
   const nav = useNavigate();
+  const { t } = useTranslation();
   const [sairAberto, setSairAberto] = useState(false);
 
   const items = [
-    { icon: UserIcon, label: "Conta", onClick: () => nav("/profile/conta") },
-    { icon: Bell, label: "Notificações", onClick: () => nav("/profile/notificacoes") },
-    { icon: Accessibility, label: "Acessibilidade", onClick: () => nav("/profile/acessibilidade") },
-    { icon: Info, label: "Sobre o Kwendi", onClick: () => nav("/profile/sobre") },
-    { icon: LogOut, label: "Sair", destructive: true, onClick: () => setSairAberto(true) },
+    { icon: UserIcon, label: t("def.conta", "Conta"), onClick: () => nav("/profile/conta") },
+    { icon: Bell, label: t("def.notificacoes", "Notificações"), onClick: () => nav("/profile/notificacoes") },
+    { icon: Accessibility, label: t("def.acessibilidade", "Acessibilidade"), onClick: () => nav("/profile/acessibilidade") },
+    { icon: Globe, label: t("def.idioma", "Idioma do App"), onClick: () => nav("/profile/idioma") },
+    { icon: Info, label: t("def.sobre", "Sobre o Kwendi"), onClick: () => nav("/profile/sobre") },
+    { icon: LogOut, label: t("def.sair", "Sair"), destructive: true, onClick: () => setSairAberto(true) },
   ] as const;
 
   return (
@@ -28,7 +31,7 @@ const DefinicoesScreen = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <DefHeader titulo="Definições" subtitulo="Preferências e conta" />
+      <DefHeader titulo={t("def.titulo", "Definições")} subtitulo={t("def.subtitulo", "Preferências e conta")} />
       <div className="px-4 py-5 pb-32">
         <div className="rounded-2xl border-2 border-border bg-card overflow-hidden">
           {items.map((item, i, arr) => (

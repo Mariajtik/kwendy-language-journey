@@ -13,6 +13,7 @@ import BottomNav from "@/components/BottomNav";
 import { DICIONARIO, type EntradaDic } from "@/data/dicionario";
 import { useProgresso } from "@/hooks/useProgresso";
 import { CURRICULO } from "@/data/curriculo";
+import { falarKwendi } from "@/lib/kwendiVoice";
 
 const FAV_KEY = "kwendi.caderno.guardadas";
 const REVER_KEY = "kwendi.caderno.rever";
@@ -26,12 +27,7 @@ const TABS: { id: Tab; label: string; Icon: typeof NotebookPen }[] = [
 ];
 
 const falar = (texto: string) => {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(texto);
-  u.lang = "pt-PT";
-  u.rate = 0.95;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  void falarKwendi(texto, { contexto: "vocab" });
 };
 
 const CadernoScreen = () => {

@@ -18,6 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import RouteSeo from "@/components/seo/RouteSeo";
 import { setFlag } from "@/lib/backend/prefsFlags";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
@@ -117,6 +118,12 @@ const ApresentationScreen = () => {
   const current = SLIDES[index];
 
   return (
+    <>
+    <RouteSeo
+      title="Apresentação — Conheça a Kwendi"
+      description="Conheça a Kwendi, a guia que vai apresentar Angola, a língua Umbundu e a cultura local numa jornada interativa gamificada."
+      path="/apresentation"
+    />
     <div
       className="relative w-full overflow-hidden"
       onPointerDown={() => videoRef.current?.play().catch(() => undefined)}
@@ -266,6 +273,7 @@ const ApresentationScreen = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

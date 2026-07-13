@@ -5,6 +5,7 @@
 import { useCallback } from "react";
 import { useSaldo, type Raridade } from "./useSaldo";
 import { setInventario, useInventario } from "./useInventario";
+import { supabase } from "@/integrations/supabase/client";
 import type { ItemLoja } from "@/data/loja";
 
 export type ResultadoCompra =
@@ -55,6 +56,16 @@ export function useLoja() {
         // "vida-extra" alimenta o pool global de vidas extras (cross-tela)
         if (item.id === "vida-extra") {
           updateSaldo((prev) => ({ ...prev, vidasExtra: prev.vidasExtra + 1 }));
+          return { ok: true };
+        }
+        // "manter-chama" incrementa chamas_congeladas no servidor.
+        if (item.id === "manter-chama") {
+          supabase.rpc("adicionar_chama_congelada", { _qtd: 1 }).then(({ error }) => {
+            if (error) console.warn("adicionar_chama_congelada:", error.message);
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("kwendi:ofensiva-changed"));
+            }
+          });
           return { ok: true };
         }
         const expiraEm = item.duracaoMin
