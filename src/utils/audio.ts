@@ -1,27 +1,35 @@
+// src/utils/audio.ts
+console.log("🔥 MÓDULO DE ÁUDIO CARREGADO!");
+
 class AudioManager {
   public static initGlobalListener() {
     if (typeof window === "undefined") return;
 
-    // Removemos eventos antigos para não duplicar se o ficheiro recarregar
-    document.removeEventListener("click", this.handleGlobalClick);
-    document.addEventListener("click", this.handleGlobalClick);
+    // TRUE no final ativa a "Capture Phase". 
+    // Intercetamos o clique antes de o React sequer saber que ele aconteceu.
+    document.removeEventListener("click", this.handleGlobalClick, true);
+    document.addEventListener("click", this.handleGlobalClick, true);
+    
+    console.log("🎧 OUVINTE GLOBAL ATIVADO (Fase de Captura)!");
   }
 
   private static handleGlobalClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Deteta cliques em qualquer botão ou link da aplicação
     const isButton = target.closest('button, a, [role="button"]');
     
     if (isButton) {
+      console.log("🖱️ CLIQUE NUM BOTÃO DETETADO PELA CAPTURA!");
       AudioManager.playSynthPop();
     }
   };
 
-  // Cria um som do ZERO sem precisar de ficheiros MP3
   public static playSynthPop() {
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
+      if (!AudioContextClass) {
+        console.warn("AudioContext não suportado neste browser.");
+        return;
+      }
       
       const ctx = new AudioContextClass();
       const osc = ctx.createOscillator();
@@ -30,23 +38,22 @@ class AudioManager {
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      // Cria um som de "Pop/gota" muito rápido e agradável
       osc.type = "sine";
       osc.frequency.setValueAtTime(600, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
       
-      gain.gain.setValueAtTime(0.4, ctx.currentTime); // Volume a 40%
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
       
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.1);
+      
+      console.log("🎵 SOM GERADO COM SUCESSO!");
     } catch (erro) {
-      console.error("Falha ao gerar o som nativo:", erro);
+      console.error("Erro no synth:", erro);
     }
   }
 }
 
-// Inicializa a escuta global
 AudioManager.initGlobalListener();
-
 export default AudioManager;
