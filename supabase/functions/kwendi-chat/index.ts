@@ -1,129 +1,183 @@
 /**
- * kwendi-chat — Streaming chat com Lovable AI Gateway.
- * Espera JSON: { thread_id, messages: [{ role, content }] }.
- * Devolve corpo em stream (chunks de texto puro) para o cliente ir escrevendo.
+ * KwendiChatScreen — Chat com Kwendi IA (Tutor de Umbundu).
+ * Usa streaming via Edge Function `kwendi-chat`.
  */
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-const SYSTEM_PROMPT = `És o Kwendi, um tutor amigável e paciente de Umbundu e cultura angolana.
-Responde SEMPRE em Português europeu. Sê breve (2-4 frases), didático e caloroso.
-Quando ensinares uma palavra Umbundu, mostra sempre a tradução em Português entre parênteses.
-Se o utilizador perguntar algo fora de Umbundu/Angola, redireciona gentilmente.`;
+type Message = { role: "user" | "assistant"; content: string };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+export default function KwendiChatScreen() {
+  const nav = useNavigate();
+  const { session } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  try {
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    if (!token) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || loading || !session) return;
+
+    const userMessage = input.trim();
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setLoading(true);
+
+    try {
+      const token = session.access_token;
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kwendi-chat`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...messages, { role: "user", content: userMessage }],
+        }),
       });
-    }
 
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || "Erro ao conectar com Kwendi");
+        setLoading(false);
+        return;
+      }
 
-    // Validar utilizador
-    const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data: userData, error: userErr } = await admin.auth.getUser(token);
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+      if (!response.body) {
+        toast.error("Erro ao processar resposta");
+        setLoading(false);
+        return;
+      }
 
-    // Verificar Premium (fonte da verdade: progresso.premium)
-    const { data: prog } = await admin
-      .from("progresso")
-      .select("premium, premium_expira_em")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
-    const expirou =
-      prog?.premium_expira_em && new Date(prog.premium_expira_em).getTime() < Date.now();
-    if (!prog?.premium || expirou) {
-      return new Response(JSON.stringify({ error: "premium_required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+      // Processar stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = "";
 
-    const body = await req.json();
-    const messages = Array.isArray(body?.messages) ? body.messages : [];
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
-    // Chamada Lovable AI Gateway (streaming)
-    const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        stream: true,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
-        ],
-      }),
-    });
-
-    if (!upstream.ok || !upstream.body) {
-      const err = await upstream.text();
-      return new Response(JSON.stringify({ error: "upstream_failed", detail: err }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Converter SSE do gateway em texto puro
-    const reader = upstream.body.getReader();
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
-    let buffer = "";
-    const outStream = new ReadableStream({
-      async pull(controller) {
+      while (true) {
         const { done, value } = await reader.read();
-        if (done) {
-          controller.close();
-          return;
-        }
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          const l = line.trim();
-          if (!l.startsWith("data:")) continue;
-          const payload = l.slice(5).trim();
-          if (payload === "[DONE]") {
-            controller.close();
-            return;
-          }
-          try {
-            const j = JSON.parse(payload);
-            const delta = j?.choices?.[0]?.delta?.content ?? "";
-            if (delta) controller.enqueue(encoder.encode(delta));
-          } catch {
-            /* ignore */
-          }
-        }
-      },
-    });
+        if (done) break;
 
-    return new Response(outStream, {
-      headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
-    });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+        const chunk = decoder.decode(value);
+        assistantMessage += chunk;
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: assistantMessage,
+          };
+          return updated;
+        });
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error("Erro ao enviar mensagem");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      className="app-shell flex flex-col"
+      style={{ minHeight: "100dvh" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+        <button onClick={() => nav(-1)} className="p-1.5 rounded-lg hover:bg-secondary" aria-label="Voltar">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h1 className="font-extrabold text-lg">Kwendi Chat IA</h1>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+              style={{ background: "hsl(var(--kwendi-red) / 0.12)" }}
+            >
+              <span className="text-3xl">🧑‍🏫</span>
+            </div>
+            <h2 className="font-extrabold text-foreground mb-2">Bem-vindo ao Kwendi Chat</h2>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Conversa comigo sobre Umbundu e cultura angolana. Estou aqui para te ajudar a aprender! 🇦🇴
+            </p>
+          </div>
+        ) : (
+          <>
+            <AnimatePresence>
+              {messages.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-xs lg:max-w-md rounded-2xl px-4 py-3 ${
+                      msg.role === "user" ? "bg-primary text-white" : "bg-card border-2 border-border text-foreground"
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {loading && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                <div className="bg-card border-2 border-border rounded-2xl px-4 py-3 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Kwendi está a pensar...</span>
+                </div>
+              </motion.div>
+            )}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border px-4 py-4 bg-background">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Pergunta a Kwendi..."
+            disabled={loading}
+            className="flex-1 bg-card border-2 border-border rounded-2xl px-4 py-2.5 text-sm placeholder:text-muted-foreground outline-none focus:border-primary disabled:opacity-50"
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || loading}
+            className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center disabled:opacity-50 transition-transform active:scale-95"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
