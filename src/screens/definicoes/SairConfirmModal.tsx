@@ -1,10 +1,12 @@
 /**
  * SairConfirmModal — diálogo de confirmação para "Sair" da conta.
- * Limpa estado local relevante e leva o utilizador ao Splash.
+ * Limpa estado local relevante e termina a sessão Supabase.
  */
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Props {
   aberto: boolean;
@@ -13,15 +15,20 @@ interface Props {
 
 const SairConfirmModal = ({ aberto, onFechar }: Props) => {
   const nav = useNavigate();
+  const { signOut } = useAuth();
 
-  const confirmar = () => {
+  const confirmar = async () => {
     try {
-      localStorage.removeItem("kwendi.auth.user");
-    } catch {
-      /* noop */
+      // Termina a sessão Supabase (limpa token + localStorage)
+      await signOut();
+      onFechar();
+      // Redireciona para o Splash (que depois vai para /welcome)
+      nav("/", { replace: true });
+      toast.success("Sessão encerrada com sucesso.");
+    } catch (error) {
+      toast.error("Erro ao sair. Tenta novamente.");
+      console.error("Logout error:", error);
     }
-    onFechar();
-    nav("/");
   };
 
   return (
