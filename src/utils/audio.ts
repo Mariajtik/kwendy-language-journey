@@ -1,33 +1,19 @@
-// src/utils/audio.ts
-
 class AudioManager {
-  private static clickSound: HTMLAudioElement | null = null;
-
-  public static init() {
-    if (typeof window !== "undefined") {
-      // O caminho exato do teu ficheiro com a capitalização correta
-      this.clickSound = new Audio('/sounds/Voicy_Click.mp3');
+  public static playClick() {
+    try {
+      // TESTE DE ISOLAMENTO: Usamos um som hospedado externamente.
+      // É um som de clique leve de um banco de áudio público.
+      const som = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
       
-      // Dica de UX: 0.5 (50%) é o ideal para cliques. 
-      // 1.0 (100%) costuma ser demasiado alto com fones e assusta o utilizador.
-      this.clickSound.volume = 0.5; 
+      som.volume = 0.5;
+      
+      som.play().catch((erro) => {
+        console.warn("O navegador bloqueou o som:", erro);
+      });
+    } catch (erro) {
+      console.error("Erro interno:", erro);
     }
   }
-
-  public static playClick() {
-    if (!this.clickSound) return;
-    
-    // O cloneNode garante que cliques rápidos (double-click, etc) tocam o som duas vezes
-    // em vez de cortar o som a meio. É isto que dá o "feeling" premium.
-    const soundClone = this.clickSound.cloneNode(true) as HTMLAudioElement;
-    
-    soundClone.play().catch((error) => {
-      console.warn("Áudio bloqueado pelas políticas do navegador:", error);
-    });
-  }
 }
-
-// Auto-inicialização ao importar
-AudioManager.init();
 
 export default AudioManager;
