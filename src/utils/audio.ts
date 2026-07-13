@@ -3,29 +3,31 @@
 class AudioManager {
   private static clickSound: HTMLAudioElement | null = null;
 
-  // Pré-carrega o som para que seja imediato ao clicar
   public static init() {
     if (typeof window !== "undefined") {
-      this.clickSound = new Audio('/sounds/click.mp3');
-      this.clickSound.volume = 0.5; // Ajusta o volume (0.0 a 1.0)
+      // O caminho exato do teu ficheiro com a capitalização correta
+      this.clickSound = new Audio('/sounds/Voicy_Click.mp3');
+      
+      // Dica de UX: 0.5 (50%) é o ideal para cliques. 
+      // 1.0 (100%) costuma ser demasiado alto com fones e assusta o utilizador.
+      this.clickSound.volume = 0.5; 
     }
   }
 
   public static playClick() {
     if (!this.clickSound) return;
     
-    // Clonar o node permite que cliques rápidos sobreponham os sons sem cortar o anterior (Efeito Duolingo real)
+    // O cloneNode garante que cliques rápidos (double-click, etc) tocam o som duas vezes
+    // em vez de cortar o som a meio. É isto que dá o "feeling" premium.
     const soundClone = this.clickSound.cloneNode(true) as HTMLAudioElement;
     
     soundClone.play().catch((error) => {
-      // Browsers bloqueiam áudio automático até o utilizador interagir com a página.
-      // O bloco catch evita que a aplicação quebre se houver restrições.
-      console.warn("Áudio bloqueado pelo navegador:", error);
+      console.warn("Áudio bloqueado pelas políticas do navegador:", error);
     });
   }
 }
 
-// Inicializa o áudio assim que o utilitário é importado
+// Auto-inicialização ao importar
 AudioManager.init();
 
 export default AudioManager;
