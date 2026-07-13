@@ -4,7 +4,7 @@
  * Root component that sets up routing for all Kwendi screens.
  * Uses AnimatePresence from framer-motion for smooth page transitions.
  */
-
+import "@/utils/audio";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
