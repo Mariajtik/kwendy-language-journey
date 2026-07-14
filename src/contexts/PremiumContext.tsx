@@ -17,6 +17,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { playAchievement } from "@/lib/streakFx";
 
 const KEY = "kwendi.premium.ativo";
 const EVT = "kwendi:premium-changed";
@@ -81,6 +82,9 @@ export const PremiumProvider = ({ children }: { children: ReactNode }) => {
     gravarLocal(v);
     void gravarBackend(v);
     setAtivoState(v);
+    if (v) {
+      try { playAchievement(); } catch { /* noop */ }
+    }
   }, []);
   const toggle = useCallback(() => setAtivo(!ler()), [setAtivo]);
 
