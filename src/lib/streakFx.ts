@@ -2,6 +2,7 @@
  * streakFx — efeitos sonoros sintetizados via WebAudio para o fluxo de chama.
  * Sem assets externos; se AudioContext não estiver disponível, falha silencioso.
  */
+import AudioManager from "@/utils/audio";
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -59,10 +60,7 @@ export function playStreakShield() {
   beep(1320, 0.14, 0.06, 0.08, "triangle");
 }
 
-/**
- * Fanfarra de conquista — usa MP3 real via AudioManager.
- */
-import AudioManager from "@/utils/audio";
+/** Fanfarra de conquista — usa MP3 real via AudioManager. */
 export function playAchievement() {
   AudioManager.play("achievement");
 }
