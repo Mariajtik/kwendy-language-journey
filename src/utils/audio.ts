@@ -1,20 +1,17 @@
 // src/utils/audio.ts
-// Gestor central de efeitos sonoros do Kwendi.
-// - Toca MP3s alojados em CDN (assets Lovable).
+// Gestor central de efeitos sonoros do Kwendi com latência ZERO absoluta (Web Audio API).
+// - Pré-carrega os MP3s limpos diretamente da pasta pública (/sounds/) na RAM.
 // - Respeita o flag de acessibilidade `kwendi.def.acessibilidade` (sons).
 // - Debounce em clicks globais para evitar disparos duplicados.
-import clickAsset from "@/assets/sfx/click.mp3.asset.json";
-import correctAsset from "@/assets/sfx/correct.mp3.asset.json";
-import wrongAsset from "@/assets/sfx/wrong.mp3.asset.json";
-import achievementAsset from "@/assets/sfx/achievement.mp3.asset.json";
 
 export type SfxName = "click" | "correct" | "wrong" | "achievement";
 
-const URLS: Record<SfxName, string> = {
-  click: clickAsset.url,
-  correct: correctAsset.url,
-  wrong: wrongAsset.url,
-  achievement: achievementAsset.url,
+// Mapeamento exato dos teus ficheiros guardados na pasta public/sounds/ do GitHub
+const SOUND_FILES: Record<SfxName, string> = {
+  click: "Voicy_Click.mp3",
+  correct: "Voicy_Correct.mp3",
+  wrong: "Voicy_Wrong.mp3",
+  achievement: "Voicy_Correct.mp3", // Reutiliza o som correto como fallback para conquistas
 };
 
 const VOLUMES: Record<SfxName, number> = {
@@ -35,29 +32,52 @@ function somsAtivos(): boolean {
   }
 }
 
-// Pool de HTMLAudio por som para permitir sobreposição sem re-download.
-const pools: Record<SfxName, HTMLAudioElement[]> = {
-  click: [],
-  correct: [],
-  wrong: [],
-  achievement: [],
-};
-
-function getPlayer(name: SfxName): HTMLAudioElement | null {
-  if (typeof Audio === "undefined") return null;
-  const pool = pools[name];
-  const free = pool.find((a) => a.paused || a.ended);
-  if (free) return free;
-  if (pool.length >= 4) return pool[0]; // limite de instâncias simultâneas
-  const a = new Audio(URLS[name]);
-  a.preload = "auto";
-  pool.push(a);
-  return a;
-}
-
-let lastClickAt = 0;
-
 class AudioManager {
+  private static ctx: AudioContext | null = null;
+  private static buffers: Record<string, AudioBuffer> = {};
+  private static lastClickAt = 0;
+
+  static init() {
+    if (typeof window === "undefined" || this.ctx) return;
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      this.ctx = new AudioContextClass();
+
+      // Pré-carrega e descodifica todos os sons para a memória RAM (latência zero)
+      Object.entries(SOUND_FILES).forEach(([key, filename]) => {
+        this.preload(key as SfxName, filename);
+      });
+
+      this.initGlobalListener();
+    } catch (e) {
+      console.warn("Web Audio API não suportada neste browser:", e);
+    }
+  }
+
+  private static async preload(name: SfxName, filename: string) {
+    try {
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const path = `${baseUrl}sounds/${filename}`.replace(/\/+/g, "/");
+      
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const arrayBuffer = await response.arrayBuffer();
+      
+      // Descodifica o áudio comprimido para áudio bruto (PCM) na memória RAM
+      this.ctx?.decodeAudioData(
+        arrayBuffer,
+        (decodedBuffer) => {
+          this.buffers[name] = decodedBuffer;
+        },
+        (err) => console.error(`Erro ao descodificar som [${name}]:`, err)
+      );
+    } catch (error) {
+      console.warn(`Não foi possível pré-carregar o som [${name}]:`, error);
+    }
+  }
+
   static initGlobalListener() {
     if (typeof window === "undefined") return;
     document.removeEventListener("click", AudioManager.handleGlobalClick, true);
@@ -75,25 +95,63 @@ class AudioManager {
 
   static play(name: SfxName) {
     if (!somsAtivos()) return;
-    const a = getPlayer(name);
-    if (!a) return;
+    
+    if (!this.ctx) this.init();
+    const context = this.ctx;
+    if (!context) return;
+
+    // Contorna políticas estritas de autoplay dos navegadores modernos
+    if (context.state === "suspended") {
+      context.resume();
+    }
+
+    const buffer = this.buffers[name];
+    if (!buffer) {
+      // Fallback ultra-rápido caso o buffer ainda esteja a carregar
+      const baseUrl = import.meta.env.BASE_URL || "/";
+      const path = `${baseUrl}sounds/${SOUND_FILES[name]}`.replace(/\/+/g, "/");
+      const fallback = new Audio(path);
+      fallback.volume = VOLUMES[name];
+      void fallback.play().catch(() => {});
+      return;
+    }
+
     try {
-      a.currentTime = 0;
-      a.volume = VOLUMES[name];
-      void a.play().catch(() => undefined);
-    } catch {
-      /* silencioso */
+      // Toca o som diretamente da memória do hardware de áudio (Instantâneo / 0ms)
+      const source = context.createBufferSource();
+      const gainNode = context.createGain();
+
+      source.buffer = buffer;
+      gainNode.gain.setValueAtTime(VOLUMES[name], context.currentTime);
+
+      source.connect(gainNode);
+      gainNode.connect(context.destination);
+      source.start(0);
+    } catch (e) {
+      console.error(`Erro ao reproduzir [${name}]:`, e);
     }
   }
 
   static playClick() {
     const now = Date.now();
-    if (now - lastClickAt < 40) return; // debounce
-    lastClickAt = now;
+    if (now - AudioManager.lastClickAt < 40) return; // debounce
+    AudioManager.lastClickAt = now;
     AudioManager.play("click");
   }
 }
 
+// Desbloqueia e inicializa o motor de áudio no primeiro clique do utilizador
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    AudioManager.init();
+    document.removeEventListener("click", unlock, true);
+    document.removeEventListener("touchstart", unlock, true);
+  };
+  document.addEventListener("click", unlock, true);
+  document.addEventListener("touchstart", unlock, true);
+}
+
+// Inicializa a escuta global de botões
 AudioManager.initGlobalListener();
 
 export default AudioManager;
