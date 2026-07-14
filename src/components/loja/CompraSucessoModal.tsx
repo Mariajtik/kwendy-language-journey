@@ -2,15 +2,21 @@
  * CompraSucessoModal — confirmação visual de compra.
  */
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import type { ItemLoja } from "@/data/loja";
+import { playAchievement } from "@/lib/streakFx";
 
 interface Props {
   item: ItemLoja | null;
   onFechar: () => void;
 }
 
-const CompraSucessoModal = ({ item, onFechar }: Props) => (
+const CompraSucessoModal = ({ item, onFechar }: Props) => {
+  useEffect(() => {
+    if (item) playAchievement();
+  }, [item?.id ?? null]);
+  return (
   <AnimatePresence>
     {item && (
       <motion.div
@@ -59,6 +65,7 @@ const CompraSucessoModal = ({ item, onFechar }: Props) => (
       </motion.div>
     )}
   </AnimatePresence>
-);
+  );
+};
 
 export default CompraSucessoModal;

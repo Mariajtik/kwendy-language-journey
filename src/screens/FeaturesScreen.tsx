@@ -156,9 +156,9 @@ const FeaturesScreen = () => {
               >
                 <span>{f.emoji}</span>
               </motion.div>
-              <h3 className="text-sm font-extrabold text-foreground leading-tight">
+              <h2 className="text-sm font-extrabold text-foreground leading-tight">
                 {f.title}
-              </h3>
+              </h2>
               <p className="text-[11px] mt-1 text-muted-foreground font-semibold leading-snug">
                 {f.desc}
               </p>

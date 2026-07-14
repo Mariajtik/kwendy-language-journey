@@ -9,6 +9,7 @@ import type { Raridade } from "@/data/missoes";
 import { Puzzle } from "lucide-react";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import KwendiIcon from "@/components/icons/KwendiIcon";
+import { playAchievement } from "@/lib/streakFx";
 
 const IconeDrop = ({ d }: { d: DropItem }) => {
   switch (d.tipo) {
@@ -37,6 +38,7 @@ const BauModal = ({ raridade, drops, onClose }: Props) => {
     }
     const t = setTimeout(() => {
       setAberto(true);
+      playAchievement();
       confetti({
         particleCount: 160,
         spread: 100,

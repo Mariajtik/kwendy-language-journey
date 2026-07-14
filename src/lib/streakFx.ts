@@ -2,6 +2,7 @@
  * streakFx — efeitos sonoros sintetizados via WebAudio para o fluxo de chama.
  * Sem assets externos; se AudioContext não estiver disponível, falha silencioso.
  */
+import AudioManager from "@/utils/audio";
 let ctx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -35,11 +36,9 @@ function beep(freq: number, dur: number, when: number, gain = 0.15, type: Oscill
   osc.stop(ac.currentTime + when + dur + 0.02);
 }
 
-/** Chama a subir: dois "pops" ascendentes + um harmónico brilhante. */
+/** Chama a subir: efeito de conquista. */
 export function playStreakUp() {
-  beep(520, 0.12, 0);
-  beep(780, 0.14, 0.09);
-  beep(1040, 0.18, 0.2, 0.1, "triangle");
+  AudioManager.play("achievement");
 }
 
 /** Chama a acender pela primeira vez: pop grave + harmónico. */
@@ -61,13 +60,7 @@ export function playStreakShield() {
   beep(1320, 0.14, 0.06, 0.08, "triangle");
 }
 
-/**
- * Fanfarra curta de conquista — motivo ascendente inspirado em fanfarras
- * africanas (Ré–Mi–Sol–Dó agudo), sintetizada para evitar direitos autorais.
- */
+/** Fanfarra de conquista — usa MP3 real via AudioManager. */
 export function playAchievement() {
-  beep(587, 0.14, 0, 0.14, "triangle");   // Ré5
-  beep(659, 0.14, 0.14, 0.14, "triangle"); // Mi5
-  beep(784, 0.14, 0.28, 0.14, "triangle"); // Sol5
-  beep(1046, 0.4, 0.44, 0.15, "triangle"); // Dó6 sustido
+  AudioManager.play("achievement");
 }

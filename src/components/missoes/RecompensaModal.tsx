@@ -7,6 +7,7 @@ import confetti from "canvas-confetti";
 import DiamanteNegro from "@/components/icons/DiamanteNegro";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import type { Recompensa } from "@/data/missoes";
+import { playAchievement } from "@/lib/streakFx";
 
 interface Props {
   recompensa: Recompensa | null;
@@ -17,6 +18,7 @@ interface Props {
 const RecompensaModal = ({ recompensa, titulo = "Missão concluída!", onClose }: Props) => {
   useEffect(() => {
     if (!recompensa) return;
+    playAchievement();
     confetti({
       particleCount: 120,
       spread: 80,

@@ -493,7 +493,7 @@ const HomeScreen = () => {
             aria-label="Perfil"
             onClick={() => navigate("/profile")}
           >
-            <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
+            <img src={avatarSrc} alt="Imagem de perfil do utilizador" className="w-full h-full object-cover" />
           </button>
 
           {/* Africa map with plane departing from Angola */}

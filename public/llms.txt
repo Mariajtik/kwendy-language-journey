@@ -1,0 +1,18 @@
+# Kwendi
+
+> Kwendi é um aplicativo de aprendizagem da língua Umbundu e da cultura angolana, com lições interativas, jogos e histórias.
+
+O Kwendi ensina Umbundu do zero até níveis avançados através de percursos gamificados, dicionário bilingue, curiosidades culturais, histórias tradicionais e um mapa interativo de África.
+
+## Páginas
+
+- [Início](/): Landing page do Kwendi com visão geral do produto.
+- [Apresentação](/apresentation): Tour animado apresentando a personagem Kwendi e a missão do app.
+- [Recursos](/features): Lista de funcionalidades — lições, dicionário, histórias, missões e família Kwendi.
+- [Bem-vindo](/welcome): Ecrã de boas-vindas com opções de cadastro, login e modo furtivo.
+- [Privacidade](/privacy): Política de privacidade do Kwendi.
+- [Termos](/terms): Termos de uso do Kwendi.
+
+## Optional
+
+- [Cultura angolana](/): Curiosidades sobre gastronomia, fauna, flora e figuras históricas de Angola no ecrã inicial.
