@@ -1,17 +1,30 @@
 // src/utils/audio.ts
-// Gestor central de efeitos sonoros do Kwendi com latência ZERO absoluta (Web Audio API).
-// - Pré-carrega os MP3s limpos diretamente da pasta pública (/sounds/) na RAM.
-// - Respeita o flag de acessibilidade `kwendi.def.acessibilidade` (sons).
-// - Debounce em clicks globais para evitar disparos duplicados.
+// Gestor de Áudio Híbrido e Resiliente para o Kwendi.
+// - Tenta carregar ficheiros locais cortados (com suporte a múltiplos nomes).
+// - Fallback automático para a CDN Lovable se o ficheiro local falhar.
+// - Processamento via Web Audio API para latência ZERO.
+
+import clickAsset from "@/assets/sfx/click.mp3.asset.json";
+import correctAsset from "@/assets/sfx/correct.mp3.asset.json";
+import wrongAsset from "@/assets/sfx/wrong.mp3.asset.json";
+import achievementAsset from "@/assets/sfx/achievement.mp3.asset.json";
 
 export type SfxName = "click" | "correct" | "wrong" | "achievement";
 
-// Mapeamento exato dos teus ficheiros guardados na pasta public/sounds/ do GitHub
-const SOUND_FILES: Record<SfxName, string> = {
-  click: "Voicy_Click.mp3",
-  correct: "Voicy_Correct.mp3",
-  wrong: "Voicy_Wrong.mp3",
-  achievement: "Voicy_Correct.mp3", // Reutiliza o som correto como fallback para conquistas
+// Lista de nomes possíveis que os teus ficheiros cortados possam ter no GitHub
+const LOCAL_VARIANTS: Record<SfxName, string[]> = {
+  click: ["Voicy_Click.mp3", "click.mp3"],
+  correct: ["Voicy_Correct.mp3", "Voicy_CORRECT ANSWER BUZZER.mp3", "correct.mp3"],
+  wrong: ["Voicy_Wrong.mp3", "Voicy_Wrong Buzzer 4.mp3", "wrong.mp3"],
+  achievement: ["Voicy_Terraria achievement.mp3", "achievement.mp3", "Voicy_Correct.mp3"]
+};
+
+// Fallbacks oficiais da CDN do Lovable
+const CDN_URLS: Record<SfxName, string> = {
+  click: clickAsset.url,
+  correct: correctAsset.url,
+  wrong: wrongAsset.url,
+  achievement: achievementAsset.url,
 };
 
 const VOLUMES: Record<SfxName, number> = {
@@ -44,38 +57,65 @@ class AudioManager {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       this.ctx = new AudioContextClass();
 
-      // Pré-carrega e descodifica todos os sons para a memória RAM (latência zero)
-      Object.entries(SOUND_FILES).forEach(([key, filename]) => {
-        this.preload(key as SfxName, filename);
+      // Inicia o pré-carregamento em paralelo para todos os efeitos
+      Object.keys(LOCAL_VARIANTS).forEach((key) => {
+        this.preloadWithFallback(key as SfxName);
       });
 
       this.initGlobalListener();
     } catch (e) {
-      console.warn("Web Audio API não suportada neste browser:", e);
+      console.warn("Web Audio API não suportada:", e);
     }
   }
 
-  private static async preload(name: SfxName, filename: string) {
-    try {
-      const baseUrl = import.meta.env.BASE_URL || "/";
-      const path = `${baseUrl}sounds/${filename}`.replace(/\/+/g, "/");
-      
-      const response = await fetch(path);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  // Tenta carregar o ficheiro local cortado. Se falhar, recorre à CDN do Lovable.
+  private static async preloadWithFallback(name: SfxName) {
+    const baseUrl = import.meta.env.BASE_URL || "/";
+    const variants = LOCAL_VARIANTS[name];
+    
+    // 1. Tenta as variantes de nomes locais no GitHub
+    for (const filename of variants) {
+      const localPath = `${baseUrl}sounds/${filename}`.replace(/\/+/g, "/");
+      try {
+        const response = await fetch(localPath);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          await this.decodeAndStore(name, arrayBuffer);
+          console.log(`🎯 [Audio] Carregado com sucesso do GitHub: ${filename}`);
+          return; // Sucesso! Sai da função.
+        }
+      } catch {
+        // Falha silenciosa, tenta a próxima variante
+      }
+    }
 
-      const arrayBuffer = await response.arrayBuffer();
-      
-      // Descodifica o áudio comprimido para áudio bruto (PCM) na memória RAM
+    // 2. Plano B: Se nenhum local funcionar, descarrega o asset da CDN Lovable
+    console.warn(`⚠️ [Audio] Ficheiro local para [${name}] não encontrado. Usando fallback CDN.`);
+    try {
+      const response = await fetch(CDN_URLS[name]);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        await this.decodeAndStore(name, arrayBuffer);
+      }
+    } catch (err) {
+      console.error(`❌ [Audio] Falha crítica ao carregar fallback para [${name}]:`, err);
+    }
+  }
+
+  private static decodeAndStore(name: SfxName, arrayBuffer: ArrayBuffer): Promise<void> {
+    return new Promise((resolve) => {
       this.ctx?.decodeAudioData(
         arrayBuffer,
         (decodedBuffer) => {
           this.buffers[name] = decodedBuffer;
+          resolve();
         },
-        (err) => console.error(`Erro ao descodificar som [${name}]:`, err)
+        (err) => {
+          console.error(`Erro ao descodificar buffer de [${name}]:`, err);
+          resolve();
+        }
       );
-    } catch (error) {
-      console.warn(`Não foi possível pré-carregar o som [${name}]:`, error);
-    }
+    });
   }
 
   static initGlobalListener() {
@@ -100,24 +140,20 @@ class AudioManager {
     const context = this.ctx;
     if (!context) return;
 
-    // Contorna políticas estritas de autoplay dos navegadores modernos
     if (context.state === "suspended") {
       context.resume();
     }
 
     const buffer = this.buffers[name];
     if (!buffer) {
-      // Fallback ultra-rápido caso o buffer ainda esteja a carregar
-      const baseUrl = import.meta.env.BASE_URL || "/";
-      const path = `${baseUrl}sounds/${SOUND_FILES[name]}`.replace(/\/+/g, "/");
-      const fallback = new Audio(path);
+      // Fallback clássico caso a descodificação ainda esteja a decorrer
+      const fallback = new Audio(CDN_URLS[name]);
       fallback.volume = VOLUMES[name];
       void fallback.play().catch(() => {});
       return;
     }
 
     try {
-      // Toca o som diretamente da memória do hardware de áudio (Instantâneo / 0ms)
       const source = context.createBufferSource();
       const gainNode = context.createGain();
 
