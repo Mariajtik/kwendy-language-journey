@@ -1,59 +1,99 @@
 // src/utils/audio.ts
-console.log("🔥 MÓDULO DE ÁUDIO CARREGADO!");
+// Gestor central de efeitos sonoros do Kwendi.
+// - Toca MP3s alojados em CDN (assets Lovable).
+// - Respeita o flag de acessibilidade `kwendi.def.acessibilidade` (sons).
+// - Debounce em clicks globais para evitar disparos duplicados.
+import clickAsset from "@/assets/sfx/click.mp3.asset.json";
+import correctAsset from "@/assets/sfx/correct.mp3.asset.json";
+import wrongAsset from "@/assets/sfx/wrong.mp3.asset.json";
+import achievementAsset from "@/assets/sfx/achievement.mp3.asset.json";
+
+export type SfxName = "click" | "correct" | "wrong" | "achievement";
+
+const URLS: Record<SfxName, string> = {
+  click: clickAsset.url,
+  correct: correctAsset.url,
+  wrong: wrongAsset.url,
+  achievement: achievementAsset.url,
+};
+
+const VOLUMES: Record<SfxName, number> = {
+  click: 0.35,
+  correct: 0.55,
+  wrong: 0.5,
+  achievement: 0.55,
+};
+
+function somsAtivos(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem("kwendi.def.acessibilidade");
+    if (!raw) return true;
+    return JSON.parse(raw)?.sons !== false;
+  } catch {
+    return true;
+  }
+}
+
+// Pool de HTMLAudio por som para permitir sobreposição sem re-download.
+const pools: Record<SfxName, HTMLAudioElement[]> = {
+  click: [],
+  correct: [],
+  wrong: [],
+  achievement: [],
+};
+
+function getPlayer(name: SfxName): HTMLAudioElement | null {
+  if (typeof Audio === "undefined") return null;
+  const pool = pools[name];
+  const free = pool.find((a) => a.paused || a.ended);
+  if (free) return free;
+  if (pool.length >= 4) return pool[0]; // limite de instâncias simultâneas
+  const a = new Audio(URLS[name]);
+  a.preload = "auto";
+  pool.push(a);
+  return a;
+}
+
+let lastClickAt = 0;
 
 class AudioManager {
-  public static initGlobalListener() {
+  static initGlobalListener() {
     if (typeof window === "undefined") return;
-
-    // TRUE no final ativa a "Capture Phase". 
-    // Intercetamos o clique antes de o React sequer saber que ele aconteceu.
-    document.removeEventListener("click", this.handleGlobalClick, true);
-    document.addEventListener("click", this.handleGlobalClick, true);
-    
-    console.log("🎧 OUVINTE GLOBAL ATIVADO (Fase de Captura)!");
+    document.removeEventListener("click", AudioManager.handleGlobalClick, true);
+    document.addEventListener("click", AudioManager.handleGlobalClick, true);
   }
 
   private static handleGlobalClick = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const isButton = target.closest('button, a, [role="button"]');
-    
-    if (isButton) {
-      console.log("🖱️ CLIQUE NUM BOTÃO DETETADO PELA CAPTURA!");
-      AudioManager.playSynthPop();
-    }
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+    const el = target.closest('button, a, [role="button"], [data-sfx-click]');
+    if (!el) return;
+    if ((el as HTMLElement).dataset.sfxSilent === "true") return;
+    AudioManager.playClick();
   };
 
-  public static playSynthPop() {
+  static play(name: SfxName) {
+    if (!somsAtivos()) return;
+    const a = getPlayer(name);
+    if (!a) return;
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) {
-        console.warn("AudioContext não suportado neste browser.");
-        return;
-      }
-      
-      const ctx = new AudioContextClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
-      
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-      
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.1);
-      
-      console.log("🎵 SOM GERADO COM SUCESSO!");
-    } catch (erro) {
-      console.error("Erro no synth:", erro);
+      a.currentTime = 0;
+      a.volume = VOLUMES[name];
+      void a.play().catch(() => undefined);
+    } catch {
+      /* silencioso */
     }
+  }
+
+  static playClick() {
+    const now = Date.now();
+    if (now - lastClickAt < 40) return; // debounce
+    lastClickAt = now;
+    AudioManager.play("click");
   }
 }
 
 AudioManager.initGlobalListener();
+
 export default AudioManager;

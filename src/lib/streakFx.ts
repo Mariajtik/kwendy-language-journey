@@ -62,12 +62,9 @@ export function playStreakShield() {
 }
 
 /**
- * Fanfarra curta de conquista — motivo ascendente inspirado em fanfarras
- * africanas (Ré–Mi–Sol–Dó agudo), sintetizada para evitar direitos autorais.
+ * Fanfarra de conquista — usa MP3 real via AudioManager.
  */
+import AudioManager from "@/utils/audio";
 export function playAchievement() {
-  beep(587, 0.14, 0, 0.14, "triangle");   // Ré5
-  beep(659, 0.14, 0.14, 0.14, "triangle"); // Mi5
-  beep(784, 0.14, 0.28, 0.14, "triangle"); // Sol5
-  beep(1046, 0.4, 0.44, 0.15, "triangle"); // Dó6 sustido
+  AudioManager.play("achievement");
 }
