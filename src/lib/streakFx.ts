@@ -35,11 +35,9 @@ function beep(freq: number, dur: number, when: number, gain = 0.15, type: Oscill
   osc.stop(ac.currentTime + when + dur + 0.02);
 }
 
-/** Chama a subir: dois "pops" ascendentes + um harmónico brilhante. */
+/** Chama a subir: efeito de conquista. */
 export function playStreakUp() {
-  beep(520, 0.12, 0);
-  beep(780, 0.14, 0.09);
-  beep(1040, 0.18, 0.2, 0.1, "triangle");
+  AudioManager.play("achievement");
 }
 
 /** Chama a acender pela primeira vez: pop grave + harmónico. */
