@@ -58,6 +58,7 @@ const WelcomeScreen = () => {
         animate="show"
         className="flex flex-col items-center w-full max-w-sm"
       >
+        <h1 className="sr-only">Kwendi — aprenda Umbundu e descubra a cultura angolana</h1>
         {/* Greeting text in Umbundu + Portuguese */}
         <motion.div variants={item} className="text-center mb-1">
           <p className="text-lg font-bold text-foreground leading-relaxed">

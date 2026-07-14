@@ -134,6 +134,7 @@ const ApresentationScreen = () => {
         className="relative mx-auto h-[100dvh] w-full max-w-[480px] overflow-hidden"
         style={{ background: "linear-gradient(180deg, hsl(var(--kwendi-green)) 0%, hsl(var(--kwendi-forest)) 100%)" }}
       >
+        <h1 className="sr-only">Apresentação do Kwendi: uma jornada pela língua Umbundu e cultura angolana</h1>
         {/* Vídeo background */}
         <video
           ref={videoRef}
