@@ -50,6 +50,37 @@ class AudioManager {
   private static buffers: Record<string, AudioBuffer> = {};
   private static lastClickAt = 0;
 
+  /** Devolve (ou cria) o AudioContext partilhado, já desbloqueado. */
+  static getContext(): AudioContext | null {
+    if (typeof window === "undefined") return null;
+    if (!this.ctx) {
+      try {
+        const AC = window.AudioContext || (window as any).webkitAudioContext;
+        this.ctx = new AC();
+      } catch {
+        return null;
+      }
+    }
+    if (this.ctx && this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+    return this.ctx;
+  }
+
+  /** Reproduz um ArrayBuffer arbitrário no mesmo contexto global. */
+  static async playArrayBuffer(data: ArrayBuffer, volume = 1): Promise<void> {
+    const ctx = this.getContext();
+    if (!ctx) throw new Error("no_audio_context");
+    const buffer = await ctx.decodeAudioData(data.slice(0));
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(0);
+  }
+
   static init() {
     if (typeof window === "undefined" || this.ctx) return;
 
