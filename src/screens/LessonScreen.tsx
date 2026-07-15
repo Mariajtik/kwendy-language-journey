@@ -13,6 +13,7 @@ import { MicOff, VolumeX } from "lucide-react";
 import KwendiIcon from "@/components/icons/KwendiIcon";
 import { useMissoes } from "@/hooks/useMissoes";
 import { setSaldo, useSaldo, perderVida } from "@/hooks/useSaldo";
+import { premiumAtivoStatic } from "@/contexts/PremiumContext";
 import { useProgresso } from "@/hooks/useProgresso";
 import { useInventario, dobradorXpAtivo } from "@/hooks/useInventario";
 import { useOfensiva } from "@/hooks/useOfensiva";
@@ -244,7 +245,7 @@ const LessonScreen = () => {
 
   // Bloqueia a entrada na lição se já não houver vidas.
   useEffect(() => {
-    if (hearts <= 0 && !done) {
+    if (hearts <= 0 && !done && !premiumAtivoStatic()) {
       toast({
         title: "Sem vidas",
         description: "Recupera vidas para continuar as lições.",
