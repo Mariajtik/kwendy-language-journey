@@ -43,8 +43,7 @@ export function playStreakUp() {
 
 /** Chama a acender pela primeira vez: pop grave + harmónico. */
 export function playStreakIgnite() {
-  beep(220, 0.15, 0, 0.15, "sawtooth");
-  beep(660, 0.25, 0.08, 0.12, "triangle");
+  AudioManager.play("achievement");
 }
 
 /** Chama a apagar: descida triste. */
