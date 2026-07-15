@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { agendarLembreteOfensiva } from "@/lib/notifications";
+import { premiumAtivoStatic } from "@/contexts/PremiumContext";
 
 export type OfensivaEstado = {
   ofensiva: number;
@@ -124,6 +125,8 @@ export function useOfensiva() {
 
   const perderVidaBackend = useCallback(async () => {
     if (!user) return;
+    // Premium (degustação): vidas infinitas — não consome no servidor.
+    if (premiumAtivoStatic()) return;
     const { data, error } = await supabase.rpc("perder_vida_progresso");
     if (error) return;
     const row = Array.isArray(data) ? data[0] : data;
