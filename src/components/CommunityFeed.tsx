@@ -173,11 +173,7 @@ const CommunityFeed = () => {
   }, [lang, loadProfiles, user]);
 
   const loadRanking = useCallback(async () => {
-    const { data } = await supabase
-      .from("public_ranking")
-      .select("*")
-      .order("xp", { ascending: false })
-      .limit(20);
+    const { data } = await supabase.rpc("listar_ranking", { _limit: 20 });
     setRanking((data ?? []) as any);
   }, []);
 
