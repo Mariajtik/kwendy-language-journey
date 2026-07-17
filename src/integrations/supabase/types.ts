@@ -749,16 +749,6 @@ export type Database = {
       }
     }
     Views: {
-      public_ranking: {
-        Row: {
-          avatar_url: string | null
-          nome: string | null
-          ofensiva: number | null
-          user_id: string | null
-          xp: number | null
-        }
-        Relationships: []
-      }
       public_streaks: {
         Row: {
           avatar_url: string | null
@@ -878,6 +868,16 @@ export type Database = {
           avatar_url: string
           id: string
           nome: string
+          xp: number
+        }[]
+      }
+      listar_ranking: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          nome: string
+          ofensiva: number
+          user_id: string
           xp: number
         }[]
       }
